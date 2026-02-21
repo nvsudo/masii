@@ -120,3 +120,21 @@ Send `/start` to the bot on Telegram to verify it's working.
 - Health checks configured to auto-restart on failures
 - Database connection to Supabase AP South 1 (same region)
 - WEBHOOK_URL environment variable needed (set to app URL after deployment)
+
+## Deployment Fix Log (2026-02-21 Evening)
+
+### Issue: Double webhook path causing 404 errors
+**Symptom:** Bot receiving webhook calls to `/telegram/telegram` instead of `/telegram`
+
+**Root cause:** `WEBHOOK_URL` environment variable was set to `https://jodi-bot-staging.fly.dev/telegram`, but webhook_bot.py adds `/telegram` again in the setWebhook call.
+
+**Fix:**
+```bash
+flyctl secrets set WEBHOOK_URL="https://jodi-bot-staging.fly.dev" -a jodi-bot-staging
+```
+
+**Corrected webhook registration:**
+- Before: `https://jodi-bot-staging.fly.dev/telegram/telegram` ❌
+- After: `https://jodi-bot-staging.fly.dev/telegram` ✅
+
+**Status:** Fixed and tested (2026-02-21 19:42 GST)

@@ -129,7 +129,9 @@ def get_completion_percentage(answers: Dict, skip_questions: list) -> float:
 def get_conditional_options(question_num: int, answers: Dict) -> Optional[list]:
     """
     Return conditional options for questions that change based on previous answers.
-    Currently handles Q21 (sect/denomination based on religion).
+    Currently handles:
+    - Q21: sect/denomination based on religion
+    - Q22: caste/community based on religion
     """
     
     if question_num == 21:
@@ -177,6 +179,59 @@ def get_conditional_options(question_num: int, answers: Dict) -> Optional[list]:
             ]
         else:
             # For Buddhist, Parsi, Jewish, Atheist, etc. → return None to skip
+            return None
+    
+    elif question_num == 22:
+        # Caste/community options based on religion
+        religion = answers.get("religion")
+        
+        if religion == "Hindu":
+            return [
+                {"label": "Brahmin", "value": "Brahmin"},
+                {"label": "Kshatriya / Rajput", "value": "Kshatriya / Rajput"},
+                {"label": "Vaishya / Baniya", "value": "Vaishya / Baniya"},
+                {"label": "Kayastha", "value": "Kayastha"},
+                {"label": "Maratha", "value": "Maratha"},
+                {"label": "Reddy", "value": "Reddy"},
+                {"label": "Nair", "value": "Nair"},
+                {"label": "Ezhava", "value": "Ezhava"},
+                {"label": "Scheduled Caste (SC)", "value": "Scheduled Caste (SC)"},
+                {"label": "Scheduled Tribe (ST)", "value": "Scheduled Tribe (ST)"},
+                {"label": "OBC (Other Backward Class)", "value": "OBC (Other Backward Class)"},
+                {"label": "Other", "value": "Other"},
+                {"label": "Prefer not to say", "value": None}
+            ]
+        elif religion == "Jain":
+            return [
+                {"label": "Digambar", "value": "Digambar"},
+                {"label": "Shwetambar", "value": "Shwetambar"},
+                {"label": "Agarwal", "value": "Agarwal"},
+                {"label": "Oswal", "value": "Oswal"},
+                {"label": "Porwal", "value": "Porwal"},
+                {"label": "Other", "value": "Other"},
+                {"label": "Prefer not to say", "value": None}
+            ]
+        elif religion == "Sikh":
+            return [
+                {"label": "Jat", "value": "Jat"},
+                {"label": "Khatri", "value": "Khatri"},
+                {"label": "Arora", "value": "Arora"},
+                {"label": "Ramgarhia", "value": "Ramgarhia"},
+                {"label": "Saini", "value": "Saini"},
+                {"label": "Scheduled Caste (SC)", "value": "Scheduled Caste (SC)"},
+                {"label": "Other", "value": "Other"},
+                {"label": "Prefer not to say", "value": None}
+            ]
+        elif religion == "Buddhist":
+            return [
+                {"label": "Scheduled Caste (SC)", "value": "Scheduled Caste (SC)"},
+                {"label": "Scheduled Tribe (ST)", "value": "Scheduled Tribe (ST)"},
+                {"label": "OBC (Other Backward Class)", "value": "OBC (Other Backward Class)"},
+                {"label": "Other", "value": "Other"},
+                {"label": "Prefer not to say", "value": None}
+            ]
+        else:
+            # Muslim, Christian, Parsi, etc. - caste doesn't apply
             return None
     
     return None

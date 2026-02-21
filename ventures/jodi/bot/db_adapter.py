@@ -143,7 +143,8 @@ class DatabaseAdapter:
         if table == 'users':
             await self._save_to_users_table(telegram_id, field, value)
         elif table == 'preferences':
-            await self._save_to_jsonb_table('user_preferences', telegram_id, field, value)
+            # user_preferences has regular columns, not JSONB
+            await self._save_to_preferences_table(telegram_id, field, value)
         elif table == 'personality':
             await self._save_to_jsonb_table('user_signals', telegram_id, field, value)
     
@@ -190,8 +191,73 @@ class DatabaseAdapter:
         self._execute(query, (value, telegram_id))
         logger.debug(f"Saved {field} = {value} for user {telegram_id}")
     
+    async def _save_to_preferences_table(self, telegram_id: int, field: str, value: Any):
+        """Save answer to user_preferences table column"""
+        # First get user_id from telegram_id
+        user_id_query = "SELECT id FROM users WHERE telegram_id = %s"
+        result = self._execute(user_id_query, (telegram_id,), fetch=True)
+        if not result:
+            logger.error(f"User not found for telegram_id {telegram_id}")
+            return
+        
+        # result is a dict-like RealDictRow, not a list
+        user_id = result['id']
+        
+        # Ensure row exists in user_preferences
+        create_query = """
+            INSERT INTO user_preferences (user_id)
+            VALUES (%s)
+            ON CONFLICT (user_id) DO NOTHING
+        """
+        self._execute(create_query, (user_id,))
+        
+        # Column mapping for user_preferences table
+        column_map = {
+            'partner_location_pref': 'partner_location_pref',
+            'partner_religion_pref': 'partner_religion_pref',
+            'caste_importance': 'caste_importance',
+            'partner_diet_pref': 'partner_diet_pref',
+            'smoking_partner_ok': 'smoking_partner_ok',
+            'drinking_partner_ok': 'drinking_partner_ok',
+            'pref_age_range': 'pref_age_range',
+            'pref_height': 'pref_height',
+            'pref_complexion': 'pref_complexion',
+            'pref_education_min': 'pref_education_min',
+            'pref_income_range': 'pref_income_range',
+            'pref_marital_status': 'pref_marital_status',
+            'pref_children_ok': 'pref_children_ok',
+            'pref_disability_ok': 'pref_disability_ok',
+            'pref_working_spouse': 'pref_working_spouse',
+            'db_divorced_ok': 'db_divorced_ok',
+            'db_widowed_ok': 'db_widowed_ok',
+            'db_children_ok': 'db_children_ok',
+            'db_nri_ok': 'db_nri_ok',
+            'db_age_gap_max': 'db_age_gap_max',
+        }
+        
+        column = column_map.get(field, field)
+        
+        # Build update query
+        query = f"""
+            UPDATE user_preferences
+            SET {column} = %s, updated_at = NOW()
+            WHERE user_id = %s
+        """
+        
+        self._execute(query, (value, user_id))
+        logger.debug(f"Saved {field} = {value} to user_preferences for user {user_id}")
+    
     async def _save_to_jsonb_table(self, table: str, telegram_id: int, field: str, value: Any):
         """Save answer to JSONB column in preferences or signals table"""
+        # Get user_id from telegram_id (both tables reference users.id, not telegram_id)
+        user_id_query = "SELECT id FROM users WHERE telegram_id = %s"
+        result = self._execute(user_id_query, (telegram_id,), fetch=True)
+        if not result:
+            logger.error(f"User not found for telegram_id {telegram_id}")
+            return
+        
+        user_id = result['id']
+        
         # First, ensure row exists
         if table == 'user_preferences':
             create_query = """
@@ -206,7 +272,7 @@ class DatabaseAdapter:
                 ON CONFLICT (user_id) DO NOTHING
             """
         
-        self._execute(create_query, (telegram_id,))
+        self._execute(create_query, (user_id,))
         
         # Update JSONB field
         column = 'preferences' if table == 'user_preferences' else 'signals'
@@ -219,8 +285,8 @@ class DatabaseAdapter:
         """
         
         jsonb_value = json.dumps({field: value})
-        self._execute(query, (jsonb_value, telegram_id))
-        logger.debug(f"Saved {field} to {table}.{column} for user {telegram_id}")
+        self._execute(query, (jsonb_value, user_id))
+        logger.debug(f"Saved {field} to {table}.{column} for user {user_id}")
     
     # ============== PHOTO STORAGE ==============
     

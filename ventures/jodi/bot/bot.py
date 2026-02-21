@@ -256,7 +256,12 @@ async def handle_sticker(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle errors"""
-    logger.error(f"Update {update} caused error {context.error}")
+    import traceback
+    
+    # Log full error with traceback
+    logger.error(f"Update {update} caused error: {context.error}")
+    logger.error(f"Error type: {type(context.error).__name__}")
+    logger.error(f"Full traceback:\n{''.join(traceback.format_exception(type(context.error), context.error, context.error.__traceback__))}")
     
     if update and update.effective_message:
         await update.effective_message.reply_text(

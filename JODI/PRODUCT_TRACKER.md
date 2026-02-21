@@ -219,6 +219,31 @@
 
 ## ✅ Done (Shipped)
 
+### [BUG-005] Caste/Community (Q22) - No Options Shown
+- **Type:** Bug
+- **Status:** Done ✅
+- **Shipped:** 2026-02-21 22:38 GST
+- **Owner:** A
+- **Description:** Q22 (caste/community) showed no button options, displayed "tap on option above", user stuck
+- **Root Cause:** Same as BUG-004 — `get_conditional_options()` missing Q22 handler. Q22 has `options: "castes_by_religion"` (dynamic), but function only handled Q21.
+- **Solution:**
+  - Added Q22 handler to `get_conditional_options()` in `conditional_logic.py`
+  - Returns caste/community options based on religion:
+    - **Hindu:** Brahmin, Kshatriya/Rajput, Vaishya/Baniya, Kayastha, Maratha, Reddy, Nair, Ezhava, SC, ST, OBC, Other, Prefer not to say (13 options)
+    - **Jain:** Digambar, Shwetambar, Agarwal, Oswal, Porwal, Other, Prefer not to say (7 options)
+    - **Sikh:** Jat, Khatri, Arora, Ramgarhia, Saini, SC, Other, Prefer not to say (8 options)
+    - **Buddhist:** SC, ST, OBC, Other, Prefer not to say (5 options)
+    - **Others** (Muslim, Christian, etc.): return None (caste doesn't apply, question skipped)
+- **Recursive Check:** Confirmed only 2 questions use conditional options in entire flow:
+  - Q21 (sects_by_religion) — fixed in BUG-004
+  - Q22 (castes_by_religion) — fixed in BUG-005
+  - All other dynamic options ("countries", "states_india") already handled by `self.dynamic_options` dict
+- **Files Changed:** `bot/conditional_logic.py` (56 lines added)
+- **Deployment:** Commit 7a5144b, deploying to Fly staging
+- **Time to fix:** 15 minutes (diagnosis + recursive check + code + deploy)
+- **Impact:** Unblocks all users at Q21→Q22 transition
+- **Note:** Caste options will also need cultural terminology review (same as IMP-005 for sects)
+
 ### [BUG-004] Sect/Denomination (Q21) - No Options Shown
 - **Type:** Bug
 - **Status:** Done ✅
@@ -371,25 +396,27 @@
 
 ---
 
-## 📊 Metrics (As of 2026-02-21 22:32)
+## 📊 Metrics (As of 2026-02-21 22:38)
 
 | Metric | Count |
 |--------|-------|
-| Total Items | 13 |
+| Total Items | 14 |
 | Features | 5 |
 | Improvements | 5 |
-| Bugs | 4 |
+| Bugs | 5 |
 | P0 (Critical) | 1 |
 | P1 (High) | 6 |
 | P2 (Medium) | 0 |
 | P3 (Backlog) | 0 |
-| Done | 7 |
+| Done | 8 |
 | In Progress | 0 |
 | Backlog | 6 |
 
 ---
 
 ## 🔄 Update Log
+
+**2026-02-21 (22:38):** ✅ **BUG-005 FIXED** — Q22 caste/community conditional options now rendering. Same root cause as BUG-004 (missing handler in `get_conditional_options()`). Added Q22 handler with caste options for Hindu (13), Jain (7), Sikh (8), Buddhist (5). Recursive check confirmed only Q21+Q22 use conditional options. Deployed commit 7a5144b. 15-minute fix. **Note:** Caste options also need cultural terminology review (same as IMP-005).
 
 **2026-02-21 (22:32):** Added IMP-005 (Sect/Denomination Cultural Terminology Review) — P1. User feedback: "Vaishnavite — English names for Indian culture. We need to do better." Q21 uses academic English transliterations (Vaishnavite, Shaivite) that feel foreign for Indian matchmaking context. Need culturally authentic terminology — research competitor platforms (Shaadi.com), test bilingual options ("Vaishnava (वैष्णव)"), consider regional variations. Applies to all religions (Hindu, Muslim, Sikh, Christian, Jain). Ties to FEAT-004 (language selection).
 

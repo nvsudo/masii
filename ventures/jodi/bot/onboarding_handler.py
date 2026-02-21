@@ -23,7 +23,7 @@ from config import (
     get_countries,
     get_states_india
 )
-from conditional_logic import get_next_question, should_skip_question
+from conditional_logic import get_next_question, should_skip_question, get_conditional_options
 from validation import validate_input
 from db_adapter import DatabaseAdapter
 
@@ -157,11 +157,17 @@ class OnboardingHandler:
     async def _ask_single_select(self, chat_id: int, context: ContextTypes.DEFAULT_TYPE,
                                 question_num: int, question: Dict, session: Dict):
         """Display single-select question with buttons"""
-        # Get options
-        options = question['options']
-        if isinstance(options, str):
-            # Dynamic options
-            options = self.dynamic_options.get(options, [])
+        # Check for conditional options first (e.g., Q21 sect based on religion)
+        conditional_opts = get_conditional_options(question_num, session['answers'])
+        
+        if conditional_opts is not None:
+            options = conditional_opts
+        else:
+            # Get options from question config
+            options = question['options']
+            if isinstance(options, str):
+                # Dynamic options
+                options = self.dynamic_options.get(options, [])
         
         # Build keyboard
         columns = question.get('columns', 1)

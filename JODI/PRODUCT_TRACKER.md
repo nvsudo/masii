@@ -8,6 +8,166 @@
 
 ## 🚨 P0 — Critical (Ship This Week)
 
+### [FEAT-006] Entry Flow: Self vs Proxy + Existing User Check
+- **Type:** Feature
+- **Status:** Backlog
+- **Priority:** P0
+- **Created:** 2026-02-22 11:10 GST
+- **Owner:** Unassigned
+- **User Request:** "At the top of the flow: is this for yourself or someone else? Existing user or new user? If existing, enter mobile number (better word this). Start with what we don't have already (state-aware flow)."
+- **Description:** Add gating questions at the very beginning (before Q1 gender) to handle proxy submissions and returning users.
+- **Flow Design:**
+  1. **First Screen:** "Are you filling this for yourself or someone else?"
+     - Options: [Myself] [Family member / Friend]
+  2. **IF Proxy selected:**
+     - "Who are you filling this for?" → [Better wording needed: "candidate", "person", "individual"?]
+     - "How are you connected to them?" → [Parent / Sibling / Friend / Relative / Matchmaker]
+     - "Do you have their consent to create this profile?" → [Yes, they know / I'll get consent later / No consent yet]
+     - IF no consent → Show disclaimer: "You can fill the form, but we won't activate matching until they consent."
+  3. **Second Screen (all users):** "Have you started a profile with us before?"
+     - Options: [New user] [Returning user]
+  4. **IF Returning user:**
+     - "Please enter your mobile number" → Validate against `users.phone`
+     - IF found → Load existing `answers` from session/DB, resume from last unanswered question
+     - IF not found → "We couldn't find a profile with that number. Let's start fresh." → Proceed as new user
+  5. **THEN:** Proceed to Q1 (Gender)
+- **State-Aware Flow Logic:**
+  - Load `session.answers` from DB (by telegram_id or phone lookup)
+  - Skip questions where `answers[field]` already exists
+  - Display progress: "You're 45% complete. Let's pick up where you left off."
+  - Allow users to update previous answers: "Want to change any previous answers first?" → Show summary with edit buttons
+- **Database Changes:**
+  - Add `is_proxy` BOOLEAN to `users` table
+  - Add `proxy_relationship` VARCHAR(50) (self/parent/sibling/friend/relative/matchmaker)
+  - Add `consent_obtained` BOOLEAN (default FALSE)
+  - Add `phone` VARCHAR(20) UNIQUE (for returning user lookup)
+  - Add `onboarding_resumed` BOOLEAN (track if they're resuming vs fresh start)
+- **UX Considerations:**
+  - Proxy users see "You're filling this for [Name]" reminder throughout
+  - Returning users see "Last updated: Feb 21, 2026" on resume
+  - State-aware: "We already have your age and location. Moving to family questions..."
+- **Edge Cases:**
+  - Proxy with consent later → Send consent request message to candidate's phone
+  - Returning user changes answers → Update DB, recalculate tier completion
+  - Multiple devices (Telegram + web) → Sync state across platforms
+- **Deliverables:**
+  1. Entry flow UI (2 new screens before Q1)
+  2. Proxy relationship capture + consent tracking
+  3. Phone-based user lookup (returning users)
+  4. State-aware question skipping (skip already-answered)
+  5. Resume flow UX (progress indicator, edit previous answers)
+  6. DB schema updates (4 new columns)
+- **Impact:** Reduces dropoff (returning users don't start over), enables proxy submissions (parents/siblings), improves UX (transparent progress)
+
+### [BUG-006] Question Loop Detection — Languages You Speak (Q26)
+- **Type:** Bug
+- **Status:** Backlog
+- **Priority:** P0
+- **Created:** 2026-02-22 11:10 GST
+- **Owner:** Unassigned
+- **User Report:** "Languages you speak has come a few times now in my testing in a loop"
+- **Description:** Q26 (languages you speak) appearing multiple times in the same user flow. Feels like infinite loop, causes dropoffs.
+- **Root Cause (Hypothesis):**
+  1. Skip logic broken (conditional not firing correctly)
+  2. Next question calculation loops back to Q26
+  3. State not saving correctly (answer recorded but question re-asked)
+  4. Multi-select buffer not clearing after "Done" pressed
+- **To Reproduce:**
+  - Need user's exact path (Hindu/Muslim/NRI? Marital status? Religion?)
+  - N to provide test path that triggers loop
+- **Impact:** Critical UX bug — users think form is broken, abandon onboarding
+- **Fix Strategy:**
+  1. Add loop detection: track `asked_questions` array in session
+  2. Before asking question: check if `question_num in asked_questions`
+  3. If duplicate detected: log error, skip to next question, alert monitoring
+  4. Root cause: inspect `get_next_question()` logic for Q26 specifically
+- **Deliverables:**
+  - Loop detection middleware in `_ask_question()`
+  - Fix conditional logic bug causing Q26 re-ask
+  - Add test case for reported user path
+  - Monitoring alert when loop detected
+
+### [IMP-007] Section Transition Messages (9 Transitions)
+- **Type:** Improvement
+- **Status:** Backlog
+- **Priority:** P0
+- **Created:** 2026-02-22 11:10 GST
+- **Owner:** Unassigned
+- **User Feedback:** "As we transition from one category to others, there is no transparency felt — like 'now I will move on to ask you some questions about your family...' Without conversations and categories, it feels like an infinite loop and we will have drop offs."
+- **Description:** No buffer messages when moving between question sections. Abrupt jumps (Q9 body type → Q10 residency, Q17 hometown → Q18 religion) feel jarring and infinite.
+- **Current Behavior:**
+  - Questions fire one after another with zero context
+  - User has no sense of progress or structure
+  - Feels like endless interrogation
+- **Expected Behavior:**
+  - Brief 1-sentence transition message before each section
+  - Reassures user, shows progress, builds trust
+  - Example: "Great! Now let's talk about your family background..." before Q38
+- **9 Transitions Needed:**
+  1. **After Q9 → Before Q10:** "Now let's understand your location and mobility..."
+  2. **After Q17 → Before Q18:** "Moving on to religion and cultural background..."
+  3. **After Q27 → Before Q28:** "Let's talk about your education and career..."
+  4. **After Q32 → Before Q33:** "🔒 Next few questions are private (income, finances). Only shared with serious matches after your approval."
+  5. **After Q37 → Before Q38:** "Now, some questions about your family..."
+  6. **After Q44 → Before Q45:** "Let's talk about lifestyle and daily habits..."
+  7. **After Q55 → Before Q56:** "Great progress! Now let's understand what you're looking for in a partner..."
+  8. **After Q64 → Before Q65:** "Almost there! A few questions about values and dealbreakers..."
+  9. **After Q72 → Before Photos:** "That's all the questions done ✓ One last thing — let's add a photo..."
+- **Implementation:**
+  - Add `SECTION_TRANSITIONS` dict in `config.py` (maps question_num → transition text)
+  - Modify `_ask_question()` to check if previous question ended a section
+  - Send transition message before asking next question
+  - Include progress indicator: "Section 4 of 9 complete"
+- **Tone:**
+  - Warm, conversational, encouraging
+  - "Great!", "Almost there!", "Thanks for sharing that"
+  - Reassuring for sensitive sections (financial, dealbreakers)
+- **Impact:** Reduces perceived infinite loop, builds trust, improves completion rate
+
+### [IMP-006] Conversational Warmth & Empathy
+- **Type:** Improvement
+- **Status:** Backlog
+- **Priority:** P1
+- **Created:** 2026-02-22 11:10 GST
+- **Owner:** Unassigned
+- **User Feedback:** "Conversationally, needs to get warmer. The tree route sometimes goes in a loop as well."
+- **Description:** Bot feels transactional, not warm or human. Reads like a form, not a conversation. Lacks personality, empathy, reassurance.
+- **Current Issues:**
+  - No acknowledgment of answers ("Got it", "Thanks", "That helps")
+  - No empathy for sensitive questions (disability, divorce, financial status)
+  - No personality or humor
+  - No encouragement or progress celebration
+- **Proposed Changes:**
+  1. **Acknowledgment responses** after sensitive/personal questions:
+     - After Q5 (children from previous): "Thanks for sharing that with me."
+     - After Q9 (disability): "I appreciate you being open about this."
+     - After Q33-Q37 (financial): "Thanks. This stays private — only shared with serious matches after your approval."
+     - After Q72 (dealbreakers): "Good to know what matters most to you."
+  2. **Progress encouragement** at milestones:
+     - 25% complete: "You're doing great! 25% done."
+     - 50% complete: "Halfway there! This is going well."
+     - 75% complete: "Almost done! Just a few more questions."
+  3. **Empathy for difficult questions:**
+     - Before financial section: "Next few questions are about finances. I know this can feel intrusive, but it helps us find matches who are in a similar life stage. You can skip any question."
+     - Before dealbreakers: "Everyone has non-negotiables. Let's talk about yours — no judgment."
+  4. **Humor/lightness where appropriate:**
+     - After Q53 (weekends): "Everyone needs downtime 😊"
+     - After Q54 (pets): "🐶 or 🐱? Or both?"
+  5. **Personality in section transitions:**
+     - Not: "Section 4 of 9"
+     - Instead: "Great! Let's talk about family next. Don't worry, we're not asking for dowry 😄"
+- **Implementation:**
+  - Add `response_template` field to questions in `config.py`
+  - Modify `_handle_question_answer()` to send acknowledgment after saving answer
+  - Add progress milestone messages (25%, 50%, 75%)
+  - Update section transitions with warmer tone
+- **Tone Guide:**
+  - Warm, friendly, slightly playful
+  - Empathetic for sensitive topics
+  - Encouraging, not pushy
+  - Indian cultural context (diaspora-aware, family-oriented)
+- **Impact:** Builds trust, reduces perceived interrogation, improves completion rate
+
 ### [FEAT-003] Consent Handling for Proxy Submissions
 - **Type:** Feature
 - **Status:** Backlog
@@ -28,6 +188,7 @@
   - Proxy relationship field (self/parent/sibling/friend/other)
   - Matching gate (skip if has_consent=false)
   - Consent collection flow (post-profile for proxy submissions)
+- **Note:** Superseded by FEAT-006 (more comprehensive entry flow design)
 
 ---
 
@@ -202,6 +363,64 @@
   - Use Google Translate API for initial translations
   - Human review/refinement for cultural nuance (especially intro messages)
   - A/B test emoji usage by language (some languages may need less emoji-heavy copy)
+
+### [FEAT-005] Automated Conditional Logic Tests
+- **Type:** Feature
+- **Status:** Backlog
+- **Priority:** P1
+- **Created:** 2026-02-22 11:10 GST
+- **Owner:** Unassigned
+- **User Request:** "We need tests to simulate the conditional trees. For example — languages you speak has come a few times now in my testing in a loop."
+- **Description:** No automated tests to catch conditional logic bugs (loops, skip logic errors, duplicate questions). Current `validate_conditional_logic()` function exists in `conditional_logic.py` but never runs automatically.
+- **Problem:**
+  - BUG-006 (Q26 loop) discovered manually during testing
+  - No way to catch regressions when modifying skip logic
+  - Conditional branches untested (Hindu vs Muslim vs NRI paths)
+  - Deploy blindly, hope nothing breaks
+- **Proposed Solution:**
+  1. **Test Suite with 8-10 User Personas:**
+     - Hindu, never married, India (baseline)
+     - Muslim, never married, India
+     - NRI Hindu, never married, USA
+     - Divorced Hindu with kids, India
+     - Jain, OCI, UK
+     - Sikh, never married, Canada
+     - Buddhist, India
+     - Christian, never married, India
+  2. **Simulate Full Flow for Each Persona:**
+     - Start at Q1, follow conditional logic through Q77
+     - Track: asked questions, skipped questions, section jumps
+     - Assert: no duplicate questions, correct question count, right sections skipped
+  3. **Assertions:**
+     - `no_duplicate_questions(asked_questions)` — fail if any question asked twice
+     - `correct_question_count(persona)` — Hindu India = 73 questions, Muslim India = 69, etc.
+     - `correct_skip_logic(persona)` — Q22-Q24 skipped for Muslims, Q34 skipped for Indians, etc.
+     - `section_jumps_correct(persona)` — Q21→Q25 jump for Muslims, Q24→Q28 for non-Hindus
+  4. **Run on Every Deploy:**
+     - Pre-deploy script: `python -m pytest tests/test_conditional_logic.py`
+     - CI/CD integration (GitHub Actions)
+     - Fail deployment if tests fail
+- **Existing Foundation:**
+  - `conditional_logic.py` already has `validate_conditional_logic()` function
+  - `TEST_PATHS` already defined (4 personas)
+  - Just need to: expand personas, convert to pytest, integrate with deploy
+- **Files to Create:**
+  - `/ventures/jodi/tests/test_conditional_logic.py`
+  - `/ventures/jodi/tests/test_personas.json` (8-10 user paths)
+  - `/ventures/jodi/.github/workflows/test.yml` (CI/CD)
+  - `/ventures/jodi/scripts/run_tests.sh` (pre-deploy script)
+- **Deliverables:**
+  1. Pytest test suite with 8-10 persona paths
+  2. Assertions: no duplicates, correct counts, right skips
+  3. Pre-deploy script integration
+  4. CI/CD GitHub Actions workflow
+  5. Documentation: how to add new test personas
+- **Impact:**
+  - Catch loops (BUG-006) before users see them
+  - Prevent regressions when modifying skip logic
+  - Confidence to refactor conditional logic
+  - Faster iteration (no manual testing)
+- **ETA:** 1 day (build test suite + CI/CD integration)
 
 ---
 
@@ -396,25 +615,45 @@
 
 ---
 
-## 📊 Metrics (As of 2026-02-21 22:38)
+## 📊 Metrics (As of 2026-02-22 11:15)
 
 | Metric | Count |
 |--------|-------|
-| Total Items | 14 |
-| Features | 5 |
-| Improvements | 5 |
-| Bugs | 5 |
-| P0 (Critical) | 1 |
-| P1 (High) | 6 |
+| Total Items | 19 |
+| Features | 7 |
+| Improvements | 7 |
+| Bugs | 6 |
+| P0 (Critical) | 4 |
+| P1 (High) | 8 |
 | P2 (Medium) | 0 |
 | P3 (Backlog) | 0 |
 | Done | 8 |
 | In Progress | 0 |
-| Backlog | 6 |
+| Backlog | 11 |
 
 ---
 
 ## 🔄 Update Log
+
+**2026-02-22 (11:15):** 🎯 **MAJOR TRACKER UPDATE** — Added 5 new high-priority items based on N's testing feedback:
+- **FEAT-006** (P0): Entry flow redesign — "For yourself or someone else?" + existing user check + state-aware flow (skip already-answered questions)
+- **BUG-006** (P0): Question loop detection — "Languages you speak" (Q26) appearing multiple times (need N's test path to reproduce)
+- **IMP-007** (P0): Section transition messages — 9 transitions needed ("Now let's talk about your family...") to reduce perceived infinite loop and improve transparency
+- **IMP-006** (P1): Conversational warmth & empathy — Bot feels transactional, needs acknowledgment responses, progress encouragement, personality
+- **FEAT-005** (P1): Automated conditional logic tests — Build test suite with 8-10 personas to catch loops/regressions before deploy
+
+Also created **CONDITIONAL_FLOW.md** — Visual Mermaid diagram of entire 77-question flow with all conditional branches, section jumps, and skip logic. N can review flow and vibe before approving changes.
+
+**Key insights from N's feedback:**
+1. **Infinite loop feeling** = Missing section transitions + actual loop bugs (Q26) + no warmth
+2. **Dropoffs likely** = Users don't know where they are in the flow, feels endless
+3. **State-aware flow critical** = Returning users shouldn't start over (huge UX win)
+4. **Testing infrastructure missing** = Need automated tests to prevent regressions
+
+**Next steps:** 
+1. N to review CONDITIONAL_FLOW.md and confirm priorities
+2. N to provide test path that triggers Q26 loop (need to reproduce)
+3. Pick top 3 to fix this week (suggest: BUG-006 loop, IMP-007 transitions, FEAT-006 entry flow)
 
 **2026-02-21 (22:38):** ✅ **BUG-005 FIXED** — Q22 caste/community conditional options now rendering. Same root cause as BUG-004 (missing handler in `get_conditional_options()`). Added Q22 handler with caste options for Hindu (13), Jain (7), Sikh (8), Buddhist (5). Recursive check confirmed only Q21+Q22 use conditional options. Deployed commit 7a5144b. 15-minute fix. **Note:** Caste options also need cultural terminology review (same as IMP-005).
 

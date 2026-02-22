@@ -24,7 +24,7 @@ from config import (
     get_countries,
     get_states_india
 )
-from conditional_logic import get_next_question, should_skip_question, get_conditional_options, get_section_for_question
+from conditional_logic import get_next_question, should_skip_question, get_conditional_options, get_section_for_question, get_completion_percentage
 from validation import validate_input
 from db_adapter import DatabaseAdapter
 
@@ -462,6 +462,10 @@ class OnboardingHandler:
         # Write to database
         await self.db.save_answer(telegram_id, question['db_table'], field, actual_value)
         
+        # Show acknowledgment or progress milestone if appropriate
+        await self._show_acknowledgment_if_needed(query.message.chat.id, context,
+                                                 question_num, session)
+        
         # Move to next question
         next_q = get_next_question(session['answers'], question_num)
         await self._ask_question(query.message.chat.id, context, next_q, session)
@@ -481,6 +485,10 @@ class OnboardingHandler:
             
             # Save to DB
             await self.db.save_answer(telegram_id, question['db_table'], field, selected)
+            
+            # Show acknowledgment or progress milestone if appropriate
+            await self._show_acknowledgment_if_needed(query.message.chat.id, context,
+                                                     question_num, session)
             
             # Next question
             next_q = get_next_question(session['answers'], question_num)
@@ -556,6 +564,10 @@ class OnboardingHandler:
                     response = response_template.format(age=age)
                     await query.message.reply_text(response)
                 
+                # Show acknowledgment or progress milestone if appropriate
+                await self._show_acknowledgment_if_needed(query.message.chat.id, context,
+                                                         question_num, session)
+                
                 # Move to next question
                 next_q = get_next_question(session['answers'], question_num)
                 await self._ask_question(query.message.chat.id, context, next_q, session)
@@ -598,6 +610,10 @@ class OnboardingHandler:
             
             # Save to DB
             await self.db.save_answer(telegram_id, question['db_table'], field, value)
+            
+            # Show acknowledgment or progress milestone if appropriate
+            await self._show_acknowledgment_if_needed(query.message.chat.id, context,
+                                                     question_num, session)
             
             # Move to next question
             next_q = get_next_question(session['answers'], question_num)
@@ -656,6 +672,10 @@ class OnboardingHandler:
                 response = response_template.format(age=age)
                 await update.message.reply_text(response)
         
+        # Show acknowledgment or progress milestone if appropriate
+        await self._show_acknowledgment_if_needed(update.message.chat.id, context,
+                                                 current_q, session)
+        
         # Move to next question
         next_q = get_next_question(session['answers'], current_q)
         await self._ask_question(update.message.chat.id, context, next_q, session)
@@ -702,3 +722,51 @@ Send me a clear photo where your face is visible 📸"""
         if value is None:
             return 'none'
         return str(value).lower().replace(' ', '_').replace('/', '_')
+    
+    async def _show_acknowledgment_if_needed(self, chat_id: int, context: ContextTypes.DEFAULT_TYPE,
+                                             question_num: int, session: Dict):
+        """After certain sensitive questions, add a warm acknowledgment. Also show progress milestones."""
+        # Initialize sent milestones store
+        if 'milestones_sent' not in session:
+            session['milestones_sent'] = []
+        
+        # Acknowledgments for sensitive questions (renumbered indices)
+        ack_messages = {
+            11: "Thank you for sharing that — noted with care. This stays private with me. 🔒",
+            22: "Got it. I only use this to guide who I introduce you to — never to judge.",
+            24: "Thanks — community noted. If you'd rather skip later, just say the word.",
+            26: "Understood. I'll keep this in mind thoughtfully when matching.",
+            35: "Thanks for trusting me with that. None of this is shown to matches. 🔒",
+            36: "Currency noted. Keeping it private, as always. 🔒",
+            37: "Got it. Appreciate the honesty — it's just for filtering, not a score. 🔒",
+            38: "Thanks! This just helps me understand practical stuff. 🔒",
+            39: "Noted. Families come in all shapes — totally normal. 😊",
+            44: "Thanks — there's no right answer here. We'll find what fits your life."
+        }
+        
+        if question_num in ack_messages:
+            await context.bot.send_message(chat_id=chat_id, text=ack_messages[question_num])
+        
+        # Progress milestones
+        try:
+            pct = int(get_completion_percentage(session.get('answers', {}), session.get('skip_questions', [])))
+        except Exception:
+            # Fallback simple progress
+            answered = len(session.get('answers', {}))
+            total = 79
+            pct = int((answered / total) * 100)
+        
+        def send_once(key: str, text: str):
+            if key not in session['milestones_sent']:
+                session['milestones_sent'].append(key)
+                self.db.save_session(session)
+                return context.bot.send_message(chat_id=chat_id, text=text)
+            return None
+        
+        # Milestone thresholds
+        if pct >= 25 and '25' not in session['milestones_sent']:
+            await send_once('25', "Nice pace — we're about a quarter done. ✅")
+        if pct >= 50 and '50' not in session['milestones_sent']:
+            await send_once('50', "Halfway there! 🙌 You're doing great.")
+        if pct >= 75 and '75' not in session['milestones_sent']:
+            await send_once('75', "Final stretch! Just a few more tap-taps. ⏳")

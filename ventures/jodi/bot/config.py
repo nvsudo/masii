@@ -1,6 +1,6 @@
 """
 JODI Bot Configuration
-Data-driven button configurations for all 77 onboarding questions
+Data-driven button configurations for all 79 onboarding questions
 """
 
 from enum import Enum

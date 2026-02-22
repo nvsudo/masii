@@ -284,8 +284,7 @@ TEST_PATHS = [
             "residency_type": "Indian citizen (in India)",
             "religion": "Hindu"
         },
-        "expected_questions": list(range(1, 5)) + list(range(6, 10)) + [10, 12] + 
-                             list(range(13, 18)) + list(range(18, 78))
+        "expected_questions": [1,2,3,4,6,7,8,9,10,11, 12,14,15,16,17,18] + list(range(20, 80))
     },
     {
         "name": "Muslim, never married, India",
@@ -294,9 +293,7 @@ TEST_PATHS = [
             "residency_type": "Indian citizen (in India)",
             "religion": "Muslim"
         },
-        "expected_questions": list(range(1, 5)) + list(range(6, 10)) + [10, 12] + 
-                             list(range(13, 17)) + list(range(18, 22)) + [25, 26] + 
-                             list(range(28, 78))
+        "expected_questions": [1,2,3,4,6,7,8,9,10,11, 12,14,15,16,17,18] + list(range(20, 24)) + [27, 28, 30,31,32,33,34,35,36,37,38,39] + list(range(40,80))
     },
     {
         "name": "NRI Hindu, never married, abroad",
@@ -305,8 +302,7 @@ TEST_PATHS = [
             "residency_type": "NRI",
             "religion": "Hindu"
         },
-        "expected_questions": list(range(1, 5)) + list(range(6, 12)) + 
-                             list(range(13, 18)) + list(range(18, 78))
+        "expected_questions": [1,2,3,4,6,7,8,9,10,11] + list(range(12, 20)) + list(range(20, 80))
     },
     {
         "name": "Divorced Hindu, has children, India",
@@ -316,7 +312,7 @@ TEST_PATHS = [
             "religion": "Hindu",
             "children_intent": "Already have"
         },
-        "expected_questions": list(range(1, 10)) + [10, 12] + list(range(13, 78))
+        "expected_questions": list(range(1, 12)) + [12,14] + list(range(15, 80))
     }
 ]
 

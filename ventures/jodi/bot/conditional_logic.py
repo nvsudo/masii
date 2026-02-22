@@ -253,13 +253,13 @@ def validate_conditional_logic(test_paths: list) -> Dict:
         asked_questions = []
         current_q = 1
         
-        while current_q <= 77:
+        while current_q <= 79:
             if not should_skip_question(current_q, answers):
                 asked_questions.append(current_q)
             current_q = get_next_question(answers, current_q)
             
             # Safety break
-            if len(asked_questions) > 80:
+            if len(asked_questions) > 82:
                 break
         
         # Compare

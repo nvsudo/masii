@@ -23,7 +23,7 @@ from config import (
     get_countries,
     get_states_india
 )
-from conditional_logic import get_next_question, should_skip_question, get_conditional_options
+from conditional_logic import get_next_question, should_skip_question, get_conditional_options, get_section_for_question
 from validation import validate_input
 from db_adapter import DatabaseAdapter
 
@@ -68,6 +68,7 @@ class OnboardingHandler:
             "intro_index": 0,
             "answers": {},
             "skip_questions": [],
+            "asked_questions": [],  # Loop detection: track all asked questions
             "multi_select_buffer": {},
             "photo_urls": [],
             "started_at": datetime.utcnow().isoformat(),
@@ -117,12 +118,78 @@ class OnboardingHandler:
         # Ask first question
         await self._ask_question(chat_id, context, 1, session)
     
+    async def _send_section_transition(self, chat_id: int, context: ContextTypes.DEFAULT_TYPE,
+                                       current_q: int, previous_q: int, session: Dict):
+        """Send transition message if entering a new section"""
+        if previous_q is None or previous_q == 0:
+            return  # No transition needed (first question or after intro)
+        
+        current_section = get_section_for_question(current_q)
+        previous_section = get_section_for_question(previous_q)
+        
+        if current_section != previous_section:
+            # Map section names to transition keys
+            transition_key_map = {
+                "identity_basics": None,  # No transition (comes after intro)
+                "location_mobility": "after_identity",
+                "religion_culture": "after_location",
+                "education_career": "after_religion",
+                "financial": "after_education",
+                "family": "after_financial",
+                "lifestyle": "after_family",
+                "partner_prefs": "after_lifestyle",
+                "values": "after_partner_prefs",
+                "dealbreakers": "after_values"
+            }
+            
+            transition_key = transition_key_map.get(current_section)
+            if transition_key and transition_key in SECTION_TRANSITIONS:
+                # Calculate progress percentage for some transitions
+                total_questions = 77
+                answered = len(session.get('answers', {}))
+                progress_pct = int((answered / total_questions) * 100)
+                
+                transition_text = SECTION_TRANSITIONS[transition_key]
+                # Add progress indicator for some transitions
+                if transition_key in ["after_family", "after_lifestyle"]:
+                    transition_text += f"\n\n📊 {progress_pct}% complete"
+                
+                await context.bot.send_message(
+                    chat_id=chat_id,
+                    text=transition_text
+                )
+    
     async def _ask_question(self, chat_id: int, context: ContextTypes.DEFAULT_TYPE,
                            question_num: int, session: Dict):
         """Display a question with appropriate UI"""
         if question_num > 77:
             # All questions complete
             await self._show_photo_upload(chat_id, context, session)
+            return
+        
+        # Send section transition message if entering new section
+        previous_q = session.get('current_question', 0)
+        await self._send_section_transition(chat_id, context, question_num, previous_q, session)
+        
+        # LOOP DETECTION: Check if this question was already asked
+        asked_questions = session.get('asked_questions', [])
+        if question_num in asked_questions:
+            logger.error(f"🔁 LOOP DETECTED: Q{question_num} already asked for user {session['user_id']}")
+            logger.error(f"  Path: {asked_questions}")
+            logger.error(f"  Current answers: {list(session['answers'].keys())}")
+            
+            # Alert monitoring (send to N via logger - can wire to Telegram later)
+            # Skip this question and try next
+            next_q = get_next_question(session['answers'], question_num)
+            if next_q == question_num:
+                # Infinite loop detected - bail out
+                logger.error(f"🚨 INFINITE LOOP: Q{question_num} → Q{question_num}. Stopping.")
+                await context.bot.send_message(
+                    chat_id=chat_id,
+                    text="Something went wrong with the flow. Let me get this fixed — I'll ping you when it's ready."
+                )
+                return
+            await self._ask_question(chat_id, context, next_q, session)
             return
         
         # Check if question should be skipped
@@ -140,8 +207,11 @@ class OnboardingHandler:
             await self._ask_question(chat_id, context, next_q, session)
             return
         
-        # Update session
+        # Update session and mark question as asked
         session['current_question'] = question_num
+        if 'asked_questions' not in session:
+            session['asked_questions'] = []
+        session['asked_questions'].append(question_num)
         self.db.save_session(session)
         
         # Build and send question

@@ -227,6 +227,8 @@ class OnboardingHandler:
             await self._ask_two_step(chat_id, context, question_num, question, session)
         elif question['type'] == 'two_step_date':
             await self._ask_two_step_date(chat_id, context, question_num, question, session)
+        elif question['type'] == 'two_step_region':
+            await self._ask_two_step_region(chat_id, context, question_num, question, session)
     
     async def _ask_single_select(self, chat_id: int, context: ContextTypes.DEFAULT_TYPE,
                                 question_num: int, question: Dict, session: Dict):
@@ -340,6 +342,29 @@ class OnboardingHandler:
             step_question = {**question['step2'], 'field': question['step2']['field']}
             await self._ask_single_select(chat_id, context, question_num, step_question, session)
     
+    async def _ask_two_step_region(self, chat_id: int, context: ContextTypes.DEFAULT_TYPE,
+                                   question_num: int, question: Dict, session: Dict):
+        """Two-step hierarchical region/country selection"""
+        from config import get_countries_by_region
+        
+        step1_field = question['step1']['field']
+        
+        if step1_field not in session.get('two_step_buffer', {}):
+            # Step 1: Ask for region
+            step_question = {**question['step1'], 'field': step1_field}
+            await self._ask_single_select(chat_id, context, question_num, step_question, session)
+        else:
+            # Step 2: Ask for country based on selected region
+            selected_region = session['two_step_buffer'][step1_field]
+            countries = get_countries_by_region(selected_region)
+            
+            step_question = {
+                **question['step2'],
+                'field': question['step2']['field'],
+                'options': countries
+            }
+            await self._ask_single_select(chat_id, context, question_num, step_question, session)
+    
     async def handle_button_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle button press callbacks"""
         query = update.callback_query
@@ -398,6 +423,12 @@ class OnboardingHandler:
         if question['type'] == 'two_step_date':
             await self._handle_two_step_date(query, context, telegram_id,
                                             question_num, question, value, session)
+            return
+        
+        # Handle two-step region (for NRI location)
+        if question['type'] == 'two_step_region':
+            await self._handle_two_step_region(query, context, telegram_id,
+                                              question_num, question, value, session)
             return
         
         # Single-select - save answer
@@ -526,6 +557,41 @@ class OnboardingHandler:
                 self.db.save_session(session)
                 await self._ask_two_step_date(query.message.chat.id, context,
                                              question_num, question, session)
+    
+    async def _handle_two_step_region(self, query, context, telegram_id: int,
+                                      question_num: int, question: Dict,
+                                      value: str, session: Dict):
+        """Handle two-step region/country selection"""
+        # Initialize two_step_buffer if needed
+        if 'two_step_buffer' not in session:
+            session['two_step_buffer'] = {}
+        
+        step1_field = question['step1']['field']
+        step2_field = question['step2']['field']
+        
+        # Check if we're processing step 1 or step 2
+        if step1_field not in session['two_step_buffer']:
+            # Step 1: Save region selection
+            session['two_step_buffer'][step1_field] = value
+            self.db.save_session(session)
+            
+            # Ask step 2 (country selection based on region)
+            await self._ask_two_step_region(query.message.chat.id, context,
+                                           question_num, question, session)
+        else:
+            # Step 2: Save country selection
+            field = question.get('field', step2_field)
+            session['answers'][field] = value
+            session['two_step_buffer'] = {}  # Clear buffer
+            session['last_active'] = datetime.utcnow().isoformat()
+            self.db.save_session(session)
+            
+            # Save to DB
+            await self.db.save_answer(telegram_id, question['db_table'], field, value)
+            
+            # Move to next question
+            next_q = get_next_question(session['answers'], question_num)
+            await self._ask_question(query.message.chat.id, context, next_q, session)
     
     async def handle_text_input(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle text input during questions"""

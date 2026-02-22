@@ -306,11 +306,29 @@ QUESTIONS = {
         "section": "location_mobility",
         "field": "country_current",
         "db_table": "users",
-        "text": "Where are you based?",
-        "type": "single_select",
+        "type": "two_step_region",
         "condition": "residency_type != 'Indian citizen (in India)'",
-        "options": "countries",  # Dynamic list
-        "columns": 2
+        "step1": {
+            "text": "Which region are you in?",
+            "type": "single_select",
+            "field": "region",
+            "options": [
+                {"label": "🇺🇸 USA", "value": "USA"},
+                {"label": "🇬🇧 UK", "value": "UK"},
+                {"label": "🇪🇺 Europe", "value": "Europe"},
+                {"label": "🕌 Middle East", "value": "Middle East"},
+                {"label": "🌏 Asia-Pacific", "value": "Asia-Pacific"},
+                {"label": "🌍 Other", "value": "Other"}
+            ],
+            "columns": 2
+        },
+        "step2": {
+            "text": "Which country?",
+            "type": "single_select",
+            "field": "country_current",
+            "options": "countries_by_region",  # Dynamic based on region
+            "columns": 2
+        }
     },
     
     14: {
@@ -1327,6 +1345,54 @@ def get_birth_years():
         {"label": str(year), "value": str(year)}
         for year in range(2006, 1979, -1)
     ]
+
+def get_countries_by_region(region: str):
+    """Countries organized by region for hierarchical selection"""
+    regions = {
+        "USA": [
+            {"label": "United States", "value": "United States"}
+        ],
+        "UK": [
+            {"label": "United Kingdom", "value": "United Kingdom"}
+        ],
+        "Europe": [
+            {"label": "🇩🇪 Germany", "value": "Germany"},
+            {"label": "🇫🇷 France", "value": "France"},
+            {"label": "🇮🇹 Italy", "value": "Italy"},
+            {"label": "🇪🇸 Spain", "value": "Spain"},
+            {"label": "🇳🇱 Netherlands", "value": "Netherlands"},
+            {"label": "🇨🇭 Switzerland", "value": "Switzerland"},
+            {"label": "🇸🇪 Sweden", "value": "Sweden"},
+            {"label": "🇳🇴 Norway", "value": "Norway"},
+            {"label": "Other →", "value": "Other", "requires_text": True}
+        ],
+        "Middle East": [
+            {"label": "🇦🇪 UAE", "value": "UAE"},
+            {"label": "🇸🇦 Saudi Arabia", "value": "Saudi Arabia"},
+            {"label": "🇶🇦 Qatar", "value": "Qatar"},
+            {"label": "🇧🇭 Bahrain", "value": "Bahrain"},
+            {"label": "🇰🇼 Kuwait", "value": "Kuwait"},
+            {"label": "🇴🇲 Oman", "value": "Oman"},
+            {"label": "Other →", "value": "Other", "requires_text": True}
+        ],
+        "Asia-Pacific": [
+            {"label": "🇸🇬 Singapore", "value": "Singapore"},
+            {"label": "🇦🇺 Australia", "value": "Australia"},
+            {"label": "🇳🇿 New Zealand", "value": "New Zealand"},
+            {"label": "🇨🇦 Canada", "value": "Canada"},
+            {"label": "🇲🇾 Malaysia", "value": "Malaysia"},
+            {"label": "🇭🇰 Hong Kong", "value": "Hong Kong"},
+            {"label": "🇯🇵 Japan", "value": "Japan"},
+            {"label": "Other →", "value": "Other", "requires_text": True}
+        ],
+        "Other": [
+            {"label": "🇿🇦 South Africa", "value": "South Africa"},
+            {"label": "🇧🇷 Brazil", "value": "Brazil"},
+            {"label": "🇲🇽 Mexico", "value": "Mexico"},
+            {"label": "Other →", "value": "Other", "requires_text": True}
+        ]
+    }
+    return regions.get(region, [])
 
 def get_countries():
     """Top countries for NRI population"""

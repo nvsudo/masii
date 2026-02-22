@@ -215,14 +215,14 @@ QUESTIONS = {
         "section": "identity_basics",
         "field": "body_type",
         "db_table": "users",
-        "text": "Body type?",
+        "text": "How would you describe your build?",
         "type": "single_select",
         "options": [
             {"label": "Slim", "value": "Slim"},
             {"label": "Average", "value": "Average"},
             {"label": "Athletic", "value": "Athletic"},
             {"label": "Curvy", "value": "Curvy"},
-            {"label": "Heavy", "value": "Heavy"},
+            {"label": "Full-figured", "value": "Full-figured"},
             {"label": "Prefer not to say", "value": None}
         ],
         "columns": 2
@@ -230,9 +230,25 @@ QUESTIONS = {
     
     8: {
         "section": "identity_basics",
+        "field": "partner_body_type_pref",
+        "db_table": "preferences",
+        "text": "What about your ideal partner?",
+        "type": "single_select",
+        "options": [
+            {"label": "Slim", "value": "Slim"},
+            {"label": "Average", "value": "Average"},
+            {"label": "Athletic", "value": "Athletic"},
+            {"label": "Curvy / Full-figured", "value": "Curvy / Full-figured"},
+            {"label": "Any body type is fine", "value": "Any"}
+        ],
+        "columns": 2
+    },
+    
+    9: {
+        "section": "identity_basics",
         "field": "complexion",
         "db_table": "users",
-        "text": "Skin tone? (Optional — helps with photo matching)",
+        "text": "And your skin tone? (Optional — just for photo matching)",
         "type": "single_select",
         "options": [
             {"label": "Fair", "value": "Fair"},
@@ -244,7 +260,21 @@ QUESTIONS = {
         "columns": 2
     },
     
-    9: {
+    12: {
+        "section": "identity_basics",
+        "field": "partner_complexion_pref",
+        "db_table": "preferences",
+        "text": "Your ideal partner's complexion?",
+        "type": "single_select",
+        "options": [
+            {"label": "Fair preferred", "value": "Fair preferred"},
+            {"label": "No preference", "value": "No preference"},
+            {"label": "Skip", "value": None}
+        ],
+        "columns": 2
+    },
+    
+    13: {
         "section": "identity_basics",
         "field": "disability_status",
         "db_table": "users",
@@ -257,8 +287,8 @@ QUESTIONS = {
         ]
     },
     
-    # SECTION B: LOCATION & MOBILITY (Q10-Q17)
-    10: {
+    # SECTION B: LOCATION & MOBILITY (Q12-Q19)
+    12: {
         "section": "location_mobility",
         "field": "residency_type",
         "db_table": "users",
@@ -272,7 +302,7 @@ QUESTIONS = {
         ]
     },
     
-    11: {
+    13: {
         "section": "location_mobility",
         "field": "country_current",
         "db_table": "users",
@@ -283,7 +313,7 @@ QUESTIONS = {
         "columns": 2
     },
     
-    12: {
+    14: {
         "section": "location_mobility",
         "field": "state_india",
         "db_table": "users",
@@ -294,7 +324,7 @@ QUESTIONS = {
         "columns": 2
     },
     
-    13: {
+    15: {
         "section": "location_mobility",
         "field": "city_current",
         "db_table": "users",
@@ -303,7 +333,7 @@ QUESTIONS = {
         "placeholder": "e.g. Mumbai, Dubai, Singapore..."
     },
     
-    14: {
+    16: {
         "section": "location_mobility",
         "field": "hometown_state",
         "db_table": "users",
@@ -312,7 +342,7 @@ QUESTIONS = {
         "placeholder": "State or city..."
     },
     
-    15: {
+    17: {
         "section": "location_mobility",
         "field": "willing_to_relocate",
         "db_table": "users",
@@ -326,7 +356,7 @@ QUESTIONS = {
         ]
     },
     
-    16: {
+    18: {
         "section": "location_mobility",
         "field": "partner_location_pref",
         "db_table": "preferences",
@@ -340,7 +370,7 @@ QUESTIONS = {
         ]
     },
     
-    17: {
+    19: {
         "section": "location_mobility",
         "field": "settling_country",
         "db_table": "users",
@@ -354,8 +384,8 @@ QUESTIONS = {
         ]
     },
     
-    # SECTION C: RELIGION, CASTE & CULTURE (Q18-Q27)
-    18: {
+    # SECTION C: RELIGION, CASTE & CULTURE (Q20-Q29)
+    20: {
         "section": "religion_culture",
         "field": "religion",
         "db_table": "users",
@@ -377,7 +407,7 @@ QUESTIONS = {
         "columns": 2
     },
     
-    19: {
+    21: {
         "section": "religion_culture",
         "field": "religious_practice",
         "db_table": "users",
@@ -392,7 +422,7 @@ QUESTIONS = {
         ]
     },
     
-    20: {
+    22: {
         "section": "religion_culture",
         "field": "partner_religion_pref",
         "db_table": "preferences",
@@ -405,7 +435,7 @@ QUESTIONS = {
         ]
     },
     
-    21: {
+    23: {
         "section": "religion_culture",
         "field": "sect_denomination",
         "db_table": "users",
@@ -415,7 +445,7 @@ QUESTIONS = {
         "condition": "religion in ['Hindu', 'Muslim', 'Christian', 'Sikh']"
     },
     
-    22: {
+    24: {
         "section": "religion_culture",
         "field": "caste_community",
         "db_table": "users",
@@ -425,7 +455,7 @@ QUESTIONS = {
         "condition": "religion in ['Hindu', 'Jain', 'Sikh', 'Buddhist']"
     },
     
-    23: {
+    25: {
         "section": "religion_culture",
         "field": "sub_caste",
         "db_table": "users",
@@ -435,7 +465,7 @@ QUESTIONS = {
         "condition": "caste_community is not None"
     },
     
-    24: {
+    26: {
         "section": "religion_culture",
         "field": "caste_importance",
         "db_table": "preferences",
@@ -449,7 +479,7 @@ QUESTIONS = {
         ]
     },
     
-    25: {
+    27: {
         "section": "religion_culture",
         "field": "mother_tongue",
         "db_table": "users",
@@ -477,7 +507,7 @@ QUESTIONS = {
         "columns": 2
     },
     
-    26: {
+    28: {
         "section": "religion_culture",
         "field": "languages_spoken",
         "db_table": "users",
@@ -502,7 +532,7 @@ QUESTIONS = {
         "columns": 2
     },
     
-    27: {
+    29: {
         "section": "religion_culture",
         "field": "manglik_status",
         "db_table": "users",
@@ -518,8 +548,8 @@ QUESTIONS = {
         ]
     },
     
-    # SECTION D: EDUCATION & CAREER (Q28-Q32)
-    28: {
+    # SECTION D: EDUCATION & CAREER (Q30-Q34)
+    30: {
         "section": "education_career",
         "field": "education_level",
         "db_table": "users",
@@ -537,7 +567,7 @@ QUESTIONS = {
         ]
     },
     
-    29: {
+    31: {
         "section": "education_career",
         "field": "education_institute_tier",
         "db_table": "users",
@@ -552,7 +582,7 @@ QUESTIONS = {
         ]
     },
     
-    30: {
+    32: {
         "section": "education_career",
         "field": "employment_status",
         "db_table": "users",
@@ -570,7 +600,7 @@ QUESTIONS = {
         ]
     },
     
-    31: {
+    33: {
         "section": "education_career",
         "field": "work_industry",
         "db_table": "users",
@@ -595,7 +625,7 @@ QUESTIONS = {
         "columns": 2
     },
     
-    32: {
+    34: {
         "section": "education_career",
         "field": "career_ambition",
         "db_table": "users",
@@ -610,8 +640,8 @@ QUESTIONS = {
         ]
     },
     
-    # SECTION E: FINANCIAL PROFILE (Q33-Q37)
-    33: {
+    # SECTION E: FINANCIAL PROFILE (Q35-Q39)
+    35: {
         "section": "financial",
         "field": "annual_income",
         "db_table": "users",
@@ -631,7 +661,7 @@ QUESTIONS = {
         "columns": 2
     },
     
-    34: {
+    36: {
         "section": "financial",
         "field": "income_currency",
         "db_table": "users",
@@ -652,7 +682,7 @@ QUESTIONS = {
         "columns": 3
     },
     
-    35: {
+    37: {
         "section": "financial",
         "field": "net_worth_range",
         "db_table": "users",
@@ -670,7 +700,7 @@ QUESTIONS = {
         "columns": 2
     },
     
-    36: {
+    38: {
         "section": "financial",
         "field": "property_ownership",
         "db_table": "users",
@@ -685,7 +715,7 @@ QUESTIONS = {
         ]
     },
     
-    37: {
+    39: {
         "section": "financial",
         "field": "financial_dependents",
         "db_table": "users",
@@ -701,8 +731,8 @@ QUESTIONS = {
         ]
     },
     
-    # SECTION F: FAMILY BACKGROUND (Q38-Q44)
-    38: {
+    # SECTION F: FAMILY BACKGROUND (Q40-Q46)
+    40: {
         "section": "family",
         "field": "family_type",
         "db_table": "users",
@@ -715,7 +745,7 @@ QUESTIONS = {
         ]
     },
     
-    39: {
+    41: {
         "section": "family",
         "field": "family_financial_status",
         "db_table": "users",
@@ -730,7 +760,7 @@ QUESTIONS = {
         ]
     },
     
-    40: {
+    42: {
         "section": "family",
         "field": "father_occupation",
         "db_table": "users",
@@ -748,7 +778,7 @@ QUESTIONS = {
         ]
     },
     
-    41: {
+    43: {
         "section": "family",
         "field": "family_values",
         "db_table": "users",
@@ -762,7 +792,7 @@ QUESTIONS = {
         ]
     },
     
-    42: {
+    44: {
         "section": "family",
         "field": "living_with_parents_post_marriage",
         "db_table": "users",
@@ -777,7 +807,7 @@ QUESTIONS = {
         ]
     },
     
-    43: {
+    45: {
         "section": "family",
         "field": "family_involvement_search",
         "db_table": "users",
@@ -791,7 +821,7 @@ QUESTIONS = {
         ]
     },
     
-    44: {
+    46: {
         "section": "family",
         "field": "siblings",
         "db_table": "users",
@@ -806,8 +836,8 @@ QUESTIONS = {
         ]
     },
     
-    # SECTION G: LIFESTYLE & HABITS (Q45-Q55)
-    45: {
+    # SECTION G: LIFESTYLE & HABITS (Q47-Q57)
+    47: {
         "section": "lifestyle",
         "field": "diet",
         "db_table": "users",
@@ -826,7 +856,7 @@ QUESTIONS = {
         "columns": 2
     },
     
-    46: {
+    48: {
         "section": "lifestyle",
         "field": "partner_diet_pref",
         "db_table": "preferences",
@@ -841,7 +871,7 @@ QUESTIONS = {
         ]
     },
     
-    47: {
+    49: {
         "section": "lifestyle",
         "field": "smoking",
         "db_table": "users",
@@ -856,7 +886,7 @@ QUESTIONS = {
         ]
     },
     
-    48: {
+    50: {
         "section": "lifestyle",
         "field": "smoking_partner_ok",
         "db_table": "preferences",
@@ -869,7 +899,7 @@ QUESTIONS = {
         ]
     },
     
-    49: {
+    51: {
         "section": "lifestyle",
         "field": "drinking",
         "db_table": "users",
@@ -883,7 +913,7 @@ QUESTIONS = {
         ]
     },
     
-    50: {
+    52: {
         "section": "lifestyle",
         "field": "drinking_partner_ok",
         "db_table": "preferences",
@@ -896,7 +926,7 @@ QUESTIONS = {
         ]
     },
     
-    51: {
+    53: {
         "section": "lifestyle",
         "field": "fitness_frequency",
         "db_table": "users",
@@ -910,7 +940,7 @@ QUESTIONS = {
         ]
     },
     
-    52: {
+    54: {
         "section": "lifestyle",
         "field": "social_style",
         "db_table": "users",
@@ -924,7 +954,7 @@ QUESTIONS = {
         ]
     },
     
-    53: {
+    55: {
         "section": "lifestyle",
         "field": "weekend_style",
         "db_table": "users",
@@ -939,7 +969,7 @@ QUESTIONS = {
         ]
     },
     
-    54: {
+    56: {
         "section": "lifestyle",
         "field": "pet_ownership",
         "db_table": "users",
@@ -955,7 +985,7 @@ QUESTIONS = {
         ]
     },
     
-    55: {
+    57: {
         "section": "lifestyle",
         "field": "sleep_schedule",
         "db_table": "users",
@@ -969,8 +999,8 @@ QUESTIONS = {
         ]
     },
     
-    # SECTION H: PARTNER PREFERENCES (Q56-Q64)
-    56: {
+    # SECTION H: PARTNER PREFERENCES (Q58-Q66)
+    58: {
         "section": "partner_prefs",
         "field": "pref_age_range",
         "db_table": "preferences",
@@ -985,7 +1015,7 @@ QUESTIONS = {
         ]
     },
     
-    57: {
+    59: {
         "section": "partner_prefs",
         "field": "pref_height",
         "db_table": "preferences",
@@ -999,7 +1029,7 @@ QUESTIONS = {
         ]
     },
     
-    58: {
+    60: {
         "section": "partner_prefs",
         "field": "pref_complexion",
         "db_table": "preferences",
@@ -1012,7 +1042,7 @@ QUESTIONS = {
         ]
     },
     
-    59: {
+    61: {
         "section": "partner_prefs",
         "field": "pref_education_min",
         "db_table": "preferences",
@@ -1027,7 +1057,7 @@ QUESTIONS = {
         ]
     },
     
-    60: {
+    62: {
         "section": "partner_prefs",
         "field": "pref_income_range",
         "db_table": "preferences",
@@ -1045,7 +1075,7 @@ QUESTIONS = {
         "columns": 2
     },
     
-    61: {
+    63: {
         "section": "partner_prefs",
         "field": "pref_marital_status",
         "db_table": "preferences",
@@ -1060,7 +1090,7 @@ QUESTIONS = {
         ]
     },
     
-    62: {
+    64: {
         "section": "partner_prefs",
         "field": "pref_children_ok",
         "db_table": "preferences",
@@ -1074,7 +1104,7 @@ QUESTIONS = {
         ]
     },
     
-    63: {
+    65: {
         "section": "partner_prefs",
         "field": "pref_disability_ok",
         "db_table": "preferences",
@@ -1088,7 +1118,7 @@ QUESTIONS = {
         ]
     },
     
-    64: {
+    66: {
         "section": "partner_prefs",
         "field": "pref_working_spouse",
         "db_table": "preferences",
@@ -1103,8 +1133,8 @@ QUESTIONS = {
         ]
     },
     
-    # SECTION I: VALUES & RELATIONSHIP STYLE (Q65-Q72)
-    65: {
+    # SECTION I: VALUES & RELATIONSHIP STYLE (Q67-Q74)
+    67: {
         "section": "values",
         "field": "relationship_intent",
         "db_table": "users",
@@ -1119,7 +1149,7 @@ QUESTIONS = {
         ]
     },
     
-    66: {
+    68: {
         "section": "values",
         "field": "children_intent",
         "db_table": "users",
@@ -1134,7 +1164,7 @@ QUESTIONS = {
         ]
     },
     
-    67: {
+    69: {
         "section": "values",
         "field": "children_timeline",
         "db_table": "users",
@@ -1150,7 +1180,7 @@ QUESTIONS = {
         ]
     },
     
-    68: {
+    70: {
         "section": "values",
         "field": "gender_roles_household",
         "db_table": "users",
@@ -1165,7 +1195,7 @@ QUESTIONS = {
         ]
     },
     
-    69: {
+    71: {
         "section": "values",
         "field": "financial_management",
         "db_table": "users",
@@ -1179,7 +1209,7 @@ QUESTIONS = {
         ]
     },
     
-    70: {
+    72: {
         "section": "values",
         "field": "political_leaning",
         "db_table": "users",
@@ -1196,7 +1226,7 @@ QUESTIONS = {
         "columns": 2
     },
     
-    71: {
+    73: {
         "section": "values",
         "field": "astrology_belief",
         "db_table": "users",
@@ -1210,7 +1240,7 @@ QUESTIONS = {
         ]
     },
     
-    72: {
+    74: {
         "section": "values",
         "field": "interfaith_intercaste_openness",
         "db_table": "users",
@@ -1224,8 +1254,8 @@ QUESTIONS = {
         ]
     },
     
-    # SECTION J: HARD DEALBREAKER CHECKBOXES (Q73-Q77)
-    73: {
+    # SECTION J: HARD DEALBREAKER CHECKBOXES (Q75-Q79)
+    75: {
         "section": "dealbreakers",
         "field": "db_divorced_ok",
         "db_table": "preferences",
@@ -1237,7 +1267,7 @@ QUESTIONS = {
         ]
     },
     
-    74: {
+    76: {
         "section": "dealbreakers",
         "field": "db_widowed_ok",
         "db_table": "preferences",
@@ -1249,7 +1279,7 @@ QUESTIONS = {
         ]
     },
     
-    75: {
+    77: {
         "section": "dealbreakers",
         "field": "db_children_ok",
         "db_table": "preferences",
@@ -1261,7 +1291,7 @@ QUESTIONS = {
         ]
     },
     
-    76: {
+    78: {
         "section": "dealbreakers",
         "field": "db_nri_ok",
         "db_table": "preferences",
@@ -1274,7 +1304,7 @@ QUESTIONS = {
         ]
     },
     
-    77: {
+    79: {
         "section": "dealbreakers",
         "field": "db_age_gap_max",
         "db_table": "preferences",

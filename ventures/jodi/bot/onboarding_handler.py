@@ -1,6 +1,6 @@
 """
 JODI Telegram Onboarding Flow Handler
-Handles button-based structured onboarding (Questions 1-77)
+Handles button-based structured onboarding (Questions 1-79)
 """
 
 import json
@@ -50,7 +50,7 @@ class OnboardingHandler:
         # Check if user has existing progress
         session = self.db.get_session(telegram_id)
         
-        if session and session.get('current_question', 0) > 0 and session.get('current_question', 0) < 77:
+        if session and session.get('current_question', 0) > 0 and session.get('current_question', 0) < 79:
             # User has incomplete onboarding
             await self._show_resume_prompt(update, context, session)
         else:
@@ -147,7 +147,7 @@ class OnboardingHandler:
             transition_key = transition_key_map.get(current_section)
             if transition_key and transition_key in SECTION_TRANSITIONS:
                 # Calculate progress percentage for some transitions
-                total_questions = 77
+                total_questions = 79
                 answered = len(session.get('answers', {}))
                 progress_pct = int((answered / total_questions) * 100)
                 
@@ -164,7 +164,7 @@ class OnboardingHandler:
     async def _ask_question(self, chat_id: int, context: ContextTypes.DEFAULT_TYPE,
                            question_num: int, session: Dict):
         """Display a question with appropriate UI"""
-        if question_num > 77:
+        if question_num > 79:
             # All questions complete
             await self._show_photo_upload(chat_id, context, session)
             return
@@ -609,7 +609,7 @@ Send me a clear photo where your face is visible 📸"""
         name = session.get('answers', {}).get('first_name', update.effective_user.first_name)
         current = session.get('current_question', 0)
         
-        text = RESUME_PROMPT.format(name=name, current=current, total=77)
+        text = RESUME_PROMPT.format(name=name, current=current, total=79)
         
         keyboard = [[
             InlineKeyboardButton(RESUME_BUTTONS[0], callback_data='resume_onboarding'),

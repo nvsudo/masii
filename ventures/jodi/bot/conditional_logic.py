@@ -16,35 +16,35 @@ def should_skip_question(question_num: int, answers: Dict) -> bool:
     if question_num == 5:
         return answers.get("marital_status") == "Never married"
     
-    # Q11: Show only if residency_type ≠ "Indian citizen (in India)"
-    if question_num == 11:
+    # Q13: Show only if residency_type ≠ "Indian citizen (in India)"
+    if question_num == 13:
         return answers.get("residency_type") == "Indian citizen (in India)"
     
-    # Q12: Show only if residency_type = "Indian citizen (in India)"
-    if question_num == 12:
+    # Q14: Show only if residency_type = "Indian citizen (in India)"
+    if question_num == 14:
         return answers.get("residency_type") != "Indian citizen (in India)"
     
-    # Q17: Show only if NRI/OCI
-    if question_num == 17:
+    # Q19: Show only if NRI/OCI
+    if question_num == 19:
         residency = answers.get("residency_type")
         return residency not in ["NRI", "OCI / PIO"]
     
-    # Q22-Q24, Q27: Show only for Hindu/Jain/Sikh/Buddhist
-    if question_num in [22, 23, 24, 27]:
+    # Q24-Q26, Q29: Show only for Hindu/Jain/Sikh/Buddhist
+    if question_num in [24, 25, 26, 29]:
         religion = answers.get("religion")
         return religion not in ["Hindu", "Jain", "Sikh", "Buddhist"]
     
-    # Q23: Show only if caste_community answered (not "Prefer not to say" or empty)
-    if question_num == 23:
+    # Q25: Show only if caste_community answered (not "Prefer not to say" or empty)
+    if question_num == 25:
         caste = answers.get("caste_community")
         return not caste or caste == "Prefer not to say"
     
-    # Q34: Show only if NRI
-    if question_num == 34:
+    # Q36: Show only if NRI
+    if question_num == 36:
         return answers.get("residency_type") != "NRI"
     
-    # Q67: Show only if children_intent ≠ "Definitely not"
-    if question_num == 67:
+    # Q69: Show only if children_intent ≠ "Definitely not"
+    if question_num == 69:
         return answers.get("children_intent") == "Definitely not"
     
     return False
@@ -58,22 +58,22 @@ def get_next_question(answers: Dict, current_question: int) -> int:
     next_q = current_question + 1
     
     # Keep checking if next question should be skipped
-    while next_q <= 77 and should_skip_question(next_q, answers):
+    while next_q <= 79 and should_skip_question(next_q, answers):
         next_q += 1
     
     # Handle section jumps
     
-    # If Q22 (caste) should be skipped, jump to Q25 (mother_tongue)
-    if current_question == 21 and should_skip_question(22, answers):
-        next_q = 25
+    # If Q24 (caste) should be skipped, jump to Q27 (mother_tongue)
+    if current_question == 23 and should_skip_question(24, answers):
+        next_q = 27
     
-    # If Q27 (manglik) should be skipped after Q24, jump to Q28 (education)
-    if current_question == 24 and should_skip_question(27, answers):
-        next_q = 28
+    # If Q29 (manglik) should be skipped after Q26, jump to Q30 (education)
+    if current_question == 26 and should_skip_question(29, answers):
+        next_q = 30
     
-    # If Q17 should be skipped after Q16, jump to Q18 (religion section)
-    if current_question == 16 and should_skip_question(17, answers):
-        next_q = 18
+    # If Q19 should be skipped after Q18, jump to Q20 (religion section)
+    if current_question == 18 and should_skip_question(19, answers):
+        next_q = 20
     
     return next_q
 
@@ -82,25 +82,25 @@ def get_section_for_question(question_num: int) -> str:
     """Return the section name for a given question number"""
     if question_num <= 0:
         return "intro"
-    elif question_num <= 9:
+    elif question_num <= 11:
         return "identity_basics"
-    elif question_num <= 17:
+    elif question_num <= 19:
         return "location_mobility"
-    elif question_num <= 27:
+    elif question_num <= 29:
         return "religion_culture"
-    elif question_num <= 32:
+    elif question_num <= 34:
         return "education_career"
-    elif question_num <= 37:
+    elif question_num <= 39:
         return "financial"
-    elif question_num <= 44:
+    elif question_num <= 46:
         return "family"
-    elif question_num <= 55:
+    elif question_num <= 57:
         return "lifestyle"
-    elif question_num <= 64:
+    elif question_num <= 66:
         return "partner_prefs"
-    elif question_num <= 72:
+    elif question_num <= 74:
         return "values"
-    elif question_num <= 77:
+    elif question_num <= 79:
         return "dealbreakers"
     else:
         return "photo_upload"
@@ -109,10 +109,10 @@ def get_section_for_question(question_num: int) -> str:
 def get_completion_percentage(answers: Dict, skip_questions: list) -> float:
     """
     Calculate onboarding completion percentage.
-    Total questions = 77 - number of legitimately skipped questions
+    Total questions = 79 - number of legitimately skipped questions
     """
     # Total possible questions
-    total_possible = 77
+    total_possible = 79
     
     # Subtract legitimately skipped questions
     total_required = total_possible - len(skip_questions)
@@ -130,11 +130,11 @@ def get_conditional_options(question_num: int, answers: Dict) -> Optional[list]:
     """
     Return conditional options for questions that change based on previous answers.
     Currently handles:
-    - Q21: sect/denomination based on religion
-    - Q22: caste/community based on religion
+    - Q23: sect/denomination based on religion
+    - Q24: caste/community based on religion
     """
     
-    if question_num == 21:
+    if question_num == 23:
         # Sect/denomination options based on religion
         religion = answers.get("religion")
         
@@ -181,7 +181,7 @@ def get_conditional_options(question_num: int, answers: Dict) -> Optional[list]:
             # For Buddhist, Parsi, Jewish, Atheist, etc. → return None to skip
             return None
     
-    elif question_num == 22:
+    elif question_num == 24:
         # Caste/community options based on religion
         religion = answers.get("religion")
         

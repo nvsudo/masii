@@ -216,6 +216,16 @@ class OnboardingHandler:
         session['asked_questions'].append(question_num)
         self.db.save_session(session)
         
+        # Show pre-message if exists (e.g., expectation-setting before partner preferences)
+        if 'pre_message' in question:
+            await context.bot.send_message(
+                chat_id=chat_id,
+                text=question['pre_message']
+            )
+            # Small delay for readability
+            import asyncio
+            await asyncio.sleep(1)
+        
         # Build and send question
         if question['type'] == 'single_select':
             await self._ask_single_select(chat_id, context, question_num, question, session)

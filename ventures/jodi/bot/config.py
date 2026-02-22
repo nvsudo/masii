@@ -444,6 +444,15 @@ QUESTIONS = {
         "section": "religion_culture",
         "field": "partner_religion_pref",
         "db_table": "preferences",
+        "pre_message": """Quick pause here 👋
+
+Now I'm going to ask about what you're looking for in a partner.
+
+Some of these questions might feel a bit direct — "Must they be the same religion?" "What income range?" — but here's why I ask:
+
+I'd rather know your honest answer now than introduce you to someone who's a bad fit. If religion matters to you, that's valid. If it doesn't, that's valid too.
+
+These answers stay private. I use them to filter matches, not judge you.""",
         "text": "Partner's religion:",
         "type": "single_select",
         "options": [

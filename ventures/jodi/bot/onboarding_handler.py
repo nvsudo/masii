@@ -20,6 +20,7 @@ from config import (
     RESUME_PROMPT,
     RESUME_BUTTONS,
     VALIDATION_RULES,
+    get_birth_years,
     get_countries,
     get_states_india
 )
@@ -36,6 +37,7 @@ class OnboardingHandler:
     def __init__(self, db_adapter: DatabaseAdapter):
         self.db = db_adapter
         self.dynamic_options = {
+            "birth_years": get_birth_years(),
             "countries": get_countries(),
             "states_india": get_states_india()
         }
@@ -223,6 +225,8 @@ class OnboardingHandler:
             await self._ask_text_input(chat_id, context, question_num, question)
         elif question['type'] == 'two_step':
             await self._ask_two_step(chat_id, context, question_num, question, session)
+        elif question['type'] == 'two_step_date':
+            await self._ask_two_step_date(chat_id, context, question_num, question, session)
     
     async def _ask_single_select(self, chat_id: int, context: ContextTypes.DEFAULT_TYPE,
                                 question_num: int, question: Dict, session: Dict):
@@ -321,6 +325,21 @@ class OnboardingHandler:
             await self._ask_single_select(chat_id, context, question_num,
                                          question['step2'], session)
     
+    async def _ask_two_step_date(self, chat_id: int, context: ContextTypes.DEFAULT_TYPE,
+                                 question_num: int, question: Dict, session: Dict):
+        """Two-step date question (year, then month for DOB)"""
+        # Check if we're on step 1 (year) or step 2 (month)
+        step1_field = question['step1']['field']
+        
+        if step1_field not in session.get('two_step_buffer', {}):
+            # Step 1: Ask for birth year
+            step_question = {**question['step1'], 'field': step1_field}
+            await self._ask_single_select(chat_id, context, question_num, step_question, session)
+        else:
+            # Step 2: Ask for birth month
+            step_question = {**question['step2'], 'field': question['step2']['field']}
+            await self._ask_single_select(chat_id, context, question_num, step_question, session)
+    
     async def handle_button_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle button press callbacks"""
         query = update.callback_query
@@ -373,6 +392,12 @@ class OnboardingHandler:
         if question['type'] == 'two_step':
             await self._handle_two_step(query, context, telegram_id,
                                        question_num, question, value, session)
+            return
+        
+        # Handle two-step date (for DOB)
+        if question['type'] == 'two_step_date':
+            await self._handle_two_step_date(query, context, telegram_id,
+                                            question_num, question, value, session)
             return
         
         # Single-select - save answer
@@ -436,6 +461,71 @@ class OnboardingHandler:
             # Re-render buttons
             await self._ask_multi_select(query.message.chat.id, context,
                                         question_num, question, session)
+    
+    async def _handle_two_step_date(self, query, context, telegram_id: int,
+                                    question_num: int, question: Dict, 
+                                    value: str, session: Dict):
+        """Handle two-step date input (year, then month)"""
+        # Initialize two_step_buffer if needed
+        if 'two_step_buffer' not in session:
+            session['two_step_buffer'] = {}
+        
+        step1_field = question['step1']['field']
+        step2_field = question['step2']['field']
+        
+        # Check if we're processing step 1 or step 2
+        if step1_field not in session['two_step_buffer']:
+            # Step 1: Save birth year
+            session['two_step_buffer'][step1_field] = value
+            self.db.save_session(session)
+            
+            # Ask step 2
+            await self._ask_two_step_date(query.message.chat.id, context, 
+                                         question_num, question, session)
+        else:
+            # Step 2: Save birth month and construct date
+            session['two_step_buffer'][step2_field] = value
+            
+            birth_year = session['two_step_buffer'][step1_field]
+            birth_month = session['two_step_buffer'][step2_field]
+            
+            # Construct date (assuming day 1 for now - we can make this more sophisticated later)
+            from datetime import datetime
+            try:
+                # Create date: YYYY-MM-01
+                date_obj = datetime(int(birth_year), int(birth_month), 1)
+                date_str = date_obj.strftime('%Y-%m-%d')
+                
+                # Calculate age
+                age = (datetime.now() - date_obj).days // 365
+                
+                # Save to answers and database
+                field = question.get('field', 'date_of_birth')
+                session['answers'][field] = date_str
+                session['two_step_buffer'] = {}  # Clear buffer
+                session['last_active'] = datetime.utcnow().isoformat()
+                self.db.save_session(session)
+                
+                # Save to DB
+                await self.db.save_answer(telegram_id, question['db_table'], field, date_str)
+                
+                # Show response template if exists
+                response_template = question.get('response_template')
+                if response_template:
+                    response = response_template.format(age=age)
+                    await query.message.reply_text(response)
+                
+                # Move to next question
+                next_q = get_next_question(session['answers'], question_num)
+                await self._ask_question(query.message.chat.id, context, next_q, session)
+                
+            except (ValueError, KeyError) as e:
+                logger.error(f"Error constructing date: {e}")
+                await query.message.reply_text("Something went wrong. Let me ask that again.")
+                session['two_step_buffer'] = {}
+                self.db.save_session(session)
+                await self._ask_two_step_date(query.message.chat.id, context,
+                                             question_num, question, session)
     
     async def handle_text_input(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle text input during questions"""

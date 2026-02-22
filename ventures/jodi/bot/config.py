@@ -134,12 +134,34 @@ QUESTIONS = {
         "section": "identity_basics",
         "field": "date_of_birth",
         "db_table": "users",
-        "text": """When were you born? (DD/MM/YYYY)
-
-I keep your exact date private — only your age shows to matches.""",
-        "type": "text_input",
-        "placeholder": "DD/MM/YYYY",
-        "validation": "date_of_birth",
+        "type": "two_step_date",
+        "step1": {
+            "text": "What year were you born?",
+            "type": "single_select",
+            "field": "birth_year",
+            "options": "birth_years",  # Dynamic
+            "columns": 3
+        },
+        "step2": {
+            "text": "Which month?",
+            "type": "single_select",
+            "field": "birth_month",
+            "options": [
+                {"label": "January", "value": "1"},
+                {"label": "February", "value": "2"},
+                {"label": "March", "value": "3"},
+                {"label": "April", "value": "4"},
+                {"label": "May", "value": "5"},
+                {"label": "June", "value": "6"},
+                {"label": "July", "value": "7"},
+                {"label": "August", "value": "8"},
+                {"label": "September", "value": "9"},
+                {"label": "October", "value": "10"},
+                {"label": "November", "value": "11"},
+                {"label": "December", "value": "12"}
+            ],
+            "columns": 2
+        },
         "response_template": "{age} — got it ✓"
     },
     
@@ -1269,6 +1291,13 @@ I keep your exact date private — only your age shows to matches.""",
 }
 
 # Dynamic option generators
+def get_birth_years():
+    """Birth years from 1980 to 2006 (ages 18-44)"""
+    return [
+        {"label": str(year), "value": str(year)}
+        for year in range(2006, 1979, -1)
+    ]
+
 def get_countries():
     """Top countries for NRI population"""
     return [

@@ -466,7 +466,7 @@ These answers stay private. I use them to filter matches, not judge you.""",
         "section": "religion_culture",
         "field": "sect_denomination",
         "db_table": "users",
-        "text": "Sect / denomination:",
+        "text": "Which tradition do you follow?",
         "type": "single_select",
         "options": "sects_by_religion",  # Dynamic based on religion
         "condition": "religion in ['Hindu', 'Muslim', 'Christian', 'Sikh']"
@@ -476,7 +476,7 @@ These answers stay private. I use them to filter matches, not judge you.""",
         "section": "religion_culture",
         "field": "caste_community",
         "db_table": "users",
-        "text": "Caste / community:",
+        "text": "Your community:",
         "type": "single_select",
         "options": "castes_by_religion",  # Dynamic based on religion
         "condition": "religion in ['Hindu', 'Jain', 'Sikh', 'Buddhist']"
@@ -486,9 +486,9 @@ These answers stay private. I use them to filter matches, not judge you.""",
         "section": "religion_culture",
         "field": "sub_caste",
         "db_table": "users",
-        "text": "Sub-caste / gotra (optional):",
+        "text": "Sub-community or gotra? (Optional)",
         "type": "text_input",
-        "placeholder": "Enter sub-caste or gotra...",
+        "placeholder": "e.g., Iyer, Agarwal, Garg...",
         "condition": "caste_community is not None"
     },
     

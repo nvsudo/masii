@@ -18,12 +18,20 @@ This is a curated memory of decisions and notable events. It should be concise a
   - **Dynamic subreddit rotation:** 7-day schedule (Monday=GTM/Sales, Tuesday=Product/Growth, etc.) to reduce deliverability fatigue
   - **Feedback loop:** Reply to Scout's email to provide feedback; Scout parses and adjusts scoring/keywords
   - Updated cron job to use all 3 features starting tonight (Feb 16)
+- 2026-02-19: **Scout → Validation Research Mode + Distribution Lens**
+  - N's mandate: Keep sector rotation (breadth), add validation layer (depth). Distribution is a CONSTANT lens for all findings.
+  - Continue finding diverse ideas across sectors (life continuity, kids safety, RevOps, hiring, etc.)
+  - **Distribution as constant:** Always ask: How do people find solutions in this space? What's the distribution model? Can agents automate it?
+  - **Validation layer applied to ALL findings:** What exists / What's broken / What's missing / Distribution / Scout's opinion
+  - Target: 3-5 high-signal findings per week (diverse sectors, not just distribution-focused)
+  - Track patterns across sectors (is vendor selection pain universal? does every sector struggle with distribution?)
+  - Effective: Tonight's scan (2026-02-19, 11:30 PM Dubai)
 - 2026-02-15 (Mahashivratri): **Core operating principles established:**
   - **Push back on over-engineering:** When N designs schemas/business plans/visions before user validation → stop him. Mom test first, speak to 10 users, build hacky first, move fast. This is a mandate to enforce.
   - **Build hacky, ship fast:** Prototypes > perfect systems. Revenue > features. Cash is the real signal.
   - **Scout evolution:** Beyond GTM frustrations → "What can we build with agents?" lens. Follow the money trail: frustration → revenue opportunity → what to build. Example: 6sense EMEA integrations (solve their acquisition bottleneck = revenue opportunity).
   - **IRL business + agentic = 10x:** Old school businesses made agentic solve margins, customer acquisition. Acquire IRL business, add intelligence layer, crush competitors.
-  - **Manifestation:** HAYSTACK ships this week (Feb 18). Real revenue in 30 days. Stop theorizing, start shipping.
+  - **Manifestation:** IGNITION CLUB ships this week (Feb 18). Real revenue in 30 days. Stop theorizing, start shipping.
 - DECISIONS.md: Advisory trail for all builds. Process: A briefs → Kavi + Shreya review → A synthesizes → N decides.
 - 2026-02-09: Life Admin Portal v1 shipped (3-tab Kanban for Revenue Ideas, Content Queue, A's Work). Local-only FastAPI app; data flows from markdown files. Parser patterns: filter Gate 0 instructions, stop before Backlog, exclude template placeholders. Useful for quick visual triage of all moving parts.
 - 2026-02-09: VC Talent Outreach scaffolding complete. Arie voice template finalized; 2 emails queued for approval. Cold Prospects CRM normalized; schema mirrors Main tab for frictionless promotion. Ready to personalize top 10–15 targets and batch send post-approval.
@@ -101,10 +109,10 @@ This is a curated memory of decisions and notable events. It should be concise a
   - Complete Telegram onboarding sequence finalized: 7-message intro (2-3 min) + 4 phases (37 screens, 10-12 min total, 34-36 fields captured, $0 LLM cost).
   - N chose soft, trust-building tone for intro (privacy reassurance, photos-at-end philosophy, emotionally safe space). Deliberate trade-off: longer intro filters for serious users.
   - Spec: `/JODI/TELEGRAM_ONBOARDING_SEQUENCE.md`. Blitz spawned to implement full button flow.
-- 2026-02-13 Late Night: **HAYSTACK - AI Recruitment Platform Greenlit**
-  - N pivoted to Haystack (revenue hiring for tech teams) as parallel/primary focus alongside JODI.
-  - Core insight: "AI recruiting platforms automate sending resumes everywhere. They don't automate shortlisting." Haystack does what elite recruiters do: verify performance (quota docs, W2s), index by context (company strength, product difficulty), infer skills from what it took to sell, surface relative outperformers.
-  - Email-first MVP: talent.haystack@gmail.com (candidates and companies).
+- 2026-02-13 Late Night: **IGNITION CLUB - AI Recruitment Platform Greenlit**
+  - N pivoted to Ignition Club (revenue hiring for tech teams) as parallel/primary focus alongside JODI.
+  - Core insight: "AI recruiting platforms automate sending resumes everywhere. They don't automate shortlisting." Ignition Club does what elite recruiters do: verify performance (quota docs, W2s), index by context (company strength, product difficulty), infer skills from what it took to sell, surface relative outperformers.
+  - Email-first MVP: talent.Ignition Club@gmail.com (candidates and companies).
   - Verification layer: quota attainment docs, ITR/W2s, LinkedIn cross-check, company strength lookup (Crunchbase).
   - Matching: Pre-tagged candidates ("lob" system), fit scoring (0.4 verified performance + 0.3 context similarity + 0.2 relative strength + 0.1 trajectory), LLM-generated "why this match" narratives.
   - Overnight batch processing: Extract signals, match candidates to JDs, send morning emails at 8 AM.
@@ -146,6 +154,23 @@ This is a curated memory of decisions and notable events. It should be concise a
   - **Monthly estimate:** $20-30 conservative, $50-70 aggressive
   - **Posting tweets requires OAuth 2.0 User Context** (not currently configured; future enhancement)
   - Credits to be added by N tomorrow
+- 2026-02-20: **Network Intel — Apollo → Hunter.io Migration Complete**
+  - Repo: `/clawd/ops/network-intel/` (git repo, tracked)
+  - Replaced Apollo API (LinkedIn enrichment, ~$0.50/contact) with Hunter.io (Name + Domain, ~$0.10/contact)
+  - Created TOOL_DESIGN.md (full technical spec: input/output, architecture, cost control, workflow)
+  - Refactored `scripts/enrich.py`: reads Cold Prospects sheet, enriches via Hunter.io, saves to `contact_jsons/YYYY-MM-DD/`, updates sheet
+  - Daily cron job: 7:00 AM Dubai, max 20 contacts/run, Telegram report to N
+  - Hunter.io key saved: `/clawd/ops/credentials/hunter_key.txt`
+  - All JSON responses archived to `contact_jsons/` (gitignored, preserved for audit trail)
+  - Tested: 4/6 enriched successfully (scores 89-98%)
+  - Updated TOOLS.md with Network Intel workflow
+  - Committed to git: "Migrate from Apollo to Hunter.io - complete refactor"
+- 2026-02-19: **Identity Update — "AI Partner" Not "AI Assistant"**
+  - N's feedback: "AI assistant is too small for what you do"
+  - Updated positioning: "Nik's AI partner" (reflects scope of work)
+  - Created INTRO_ARSENAL.md with context-specific intro templates
+  - Key intros: (1) Humble brag: "Nik works 12-14h/day, I work 24×7", (2) Helpful offer: "Anything you need in international markets, holler", (3) Domain-specific humor (e.g., "powered by Claude, not Pinot")
+  - StarTree context captured: Dec 2025 releases, banking on positive reception
 - 2026-02-13 Night: **Greg's Draft Workflow Configured**
   - Created Google Drive folder structure: `Greg/` and `Greg/drafts/`
   - Greg folder: https://drive.google.com/drive/folders/1H0oBy-hIorl0EbUsB36mDJuAebp3of37
@@ -154,3 +179,10 @@ This is a curated memory of decisions and notable events. It should be concise a
   - Workflow: Greg creates Google Docs in drafts/ → N reviews → Manual publish (Medium API deprecated)
   - Naming convention: `YYYY-MM-DD - [Title] - [Status]` (Draft/Review/Approved/Published)
   - Helper script in Greg's TOOLS.md for programmatic doc creation
+- 2026-02-24 00:10: **CRITICAL LESSON: Agentic Build Speed vs Human Estimates**
+  - Behavr MVP Stream 1 (SDK + ingestion + infra + judge prompts) shipped in **2 hours** of parallel agent work. I estimated "8-12 weeks."
+  - **Gap:** ~300x faster than conservative estimate. Training data bias toward human timelines (meetings, context switching, handoffs) made me underestimate agentic velocity.
+  - **The unlock:** Task Execution Protocol (depth-first + breadth spawning + 15-min check-ins + parallel execution). No meetings, no waiting, true parallelism.
+  - **New baseline:** Stop thinking in weeks. Think in hours. Agentic builds are 100-300x faster when framework is applied properly.
+  - **Going forward:** Default aggressive estimates. If I think "2 weeks," real answer is probably "2 days" with proper spawning. Velocity is a competitive moat.
+  - **Full analysis:** `/memory/2026-02-24-agentic-build-speed-lesson.md`

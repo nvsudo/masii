@@ -1,188 +1,126 @@
 # MEMORY.md - World Model Log
 
-This is a curated memory of decisions and notable events. It should be concise and useful to bridge contexts across sessions (including Telegram group sessions).
+Curated memory for cross-session context. Older entries archived to `memory/archive-2026-02-early.md`.
 
-**📋 Team Structure:** See `TEAM_HANDBOOK.md` (source of truth for main agents + spawned subagents roster)
+---
 
-- 2026-02-06: Setup plan for Clawd - Tasks group (Telegram); nano-based sub-agent planned; memory bridge to Clawd_Tasks.md.
-- 2026-02-06: UK Self-Sponsorship thread discussed; log to memory for cross-session context.
-- 2026-02-07 08:15: GitHub PAT granted (full repo access: write packages, users, discussions). Stored at `/clawd/.github_pat` (not in git). Use for: code review, pulling existing projects, cross-project work.
-- 2026-02-07 08:10+: Reviewed existing parenting bot (parenting_tips_test) — Python FastAPI + OpenAI + Supabase. Key patterns: two-phase LLM analysis, safety evaluation, Supabase RLS. Plan: adapt LLM prompts for Haiku/Sonnet, port safety logic, build Telegram MVP with JSONL. See PARENTING_BOT_REVIEW.md.
-- 2026-02-07 09:00: Team structure established. Created /clawd/team/ with:
-  - TEAM.md (org structure: N → A → Kavi + Shreya + Nano)
-  - Kavi 🔧 (Tech CoFounder): systems-first, best-practices, shipping speed. Persistent partner with full context.
-  - Shreya 🎯 (Product CoFounder): ruthless on market fit, customer-obsessed, kills cool things that don't sell. Persistent partner with full context.
-- 2026-02-08: Operating with ~20 parallel ideas; not all will be greenlit. Create and maintain IDEA_TRACKER.md (statuses) and CONTENT_QUEUE.md (writing pipeline) to keep focus and momentum.
-- 2026-02-16: **Scout improvements (3 features):**
-  - **PAST_IDEAS.md repo:** Tracks all suggested opportunities to avoid repetition (skip if seen in last 7 days)
-  - **Dynamic subreddit rotation:** 7-day schedule (Monday=GTM/Sales, Tuesday=Product/Growth, etc.) to reduce deliverability fatigue
-  - **Feedback loop:** Reply to Scout's email to provide feedback; Scout parses and adjusts scoring/keywords
-  - Updated cron job to use all 3 features starting tonight (Feb 16)
-- 2026-02-19: **Scout → Validation Research Mode + Distribution Lens**
-  - N's mandate: Keep sector rotation (breadth), add validation layer (depth). Distribution is a CONSTANT lens for all findings.
-  - Continue finding diverse ideas across sectors (life continuity, kids safety, RevOps, hiring, etc.)
-  - **Distribution as constant:** Always ask: How do people find solutions in this space? What's the distribution model? Can agents automate it?
-  - **Validation layer applied to ALL findings:** What exists / What's broken / What's missing / Distribution / Scout's opinion
-  - Target: 3-5 high-signal findings per week (diverse sectors, not just distribution-focused)
-  - Track patterns across sectors (is vendor selection pain universal? does every sector struggle with distribution?)
-  - Effective: Tonight's scan (2026-02-19, 11:30 PM Dubai)
-- 2026-02-15 (Mahashivratri): **Core operating principles established:**
-  - **Push back on over-engineering:** When N designs schemas/business plans/visions before user validation → stop him. Mom test first, speak to 10 users, build hacky first, move fast. This is a mandate to enforce.
-  - **Build hacky, ship fast:** Prototypes > perfect systems. Revenue > features. Cash is the real signal.
-  - **Scout evolution:** Beyond GTM frustrations → "What can we build with agents?" lens. Follow the money trail: frustration → revenue opportunity → what to build. Example: 6sense EMEA integrations (solve their acquisition bottleneck = revenue opportunity).
-  - **IRL business + agentic = 10x:** Old school businesses made agentic solve margins, customer acquisition. Acquire IRL business, add intelligence layer, crush competitors.
-  - **Manifestation:** IGNITION CLUB ships this week (Feb 18). Real revenue in 30 days. Stop theorizing, start shipping.
-- DECISIONS.md: Advisory trail for all builds. Process: A briefs → Kavi + Shreya review → A synthesizes → N decides.
-- 2026-02-09: Life Admin Portal v1 shipped (3-tab Kanban for Revenue Ideas, Content Queue, A's Work). Local-only FastAPI app; data flows from markdown files. Parser patterns: filter Gate 0 instructions, stop before Backlog, exclude template placeholders. Useful for quick visual triage of all moving parts.
-- 2026-02-09: VC Talent Outreach scaffolding complete. Arie voice template finalized; 2 emails queued for approval. Cold Prospects CRM normalized; schema mirrors Main tab for frictionless promotion. Ready to personalize top 10–15 targets and batch send post-approval.
-- 2026-02-10: Agent team assembled — Kavi (systems), Shreya (product/sonnet), Greg (content/opus), Michael (outreach/gpt-mini). All email/calendar handling transferred to Michael: EMAIL_POLICY.md, OUTREACH_PLAYBOOK.md, approval queue, CRM access, 15-min inbox cron, campaign templates.
-- 2026-02-10: Recent housekeeping: updated HEARTBEAT.md with Projects Health Check; added scripts: scripts/fly_logs.sh, scripts/deploy.sh, scripts/supabase_query.py; created PROJECTS.md. Reviewed memory/ and no immediate consolidation required; older files (2025-01-30.md) can be archived if desired.
-- 2026-02-10: Created Scout agent — Reddit Niche Frustration Scanner. Runs nightly at 11:30 PM Dubai (gpt-5), scans Primary subreddits for high-signal frustrations, scores opportunities (18+/30 threshold), can attempt overnight MVPs (24+/30). Morning email at 7 AM. State persists in /sessions/Scout/STATE.json. Registered in AGENTS.md.
-- 2026-02-11 10:20: **Agent-to-agent messaging ENABLED** in moltbot.json (tools.agentToAgent.enabled=true, allow=["*"]). All agents can now communicate directly.
-- 2026-02-11 10:25: **JODI Project — Team Briefing Completed**
-  - Created JOJI_PROJECT.md (complete project hub: vision, status, team roles, deadlines)
-  - Shreya ✅ delivered Conversational State Management Spec (1-page: Controller API, JSON schema, system prompts, acceptance criteria, 2-week rollout)
-  - Key metric: gating at 80%+ completeness; confidence thresholds 0.85/0.65-0.85/<0.65; opus/sonnet/gpt-5 only for extraction
-  - Briefed Kavi (monitoring + DB health), Shreya (spec done, approval to create Google Doc), Blitz (implement Week 1-2 rollout), Greg (tone guide + 5-10 prompts for diaspora audience)
-  - Timeline: Blitz Week 1 (API + progress) by end of week; Kavi monitoring by end of week; Greg tone guide by end of week; Week 2: gating logic + QA + soft pilot
-  - Created JOJI_TEAM_BRIEFING.md as master reference doc for all agents
-  - Files: JOJI_PROJECT.md, JOJI_Conversational_State_Management_Spec.md, docs/ONBOARDING_TECHNICAL.md copied to each agent's workspace
-- 2026-02-11 10:35: **Shreya's Spec → Google Doc (LIVE)**
-  - Conversational State Management Spec uploaded to Google Drive and shared with nikunj.vora@gmail.com (writer access)
-  - Link: https://docs.google.com/document/d/1X8qztj_bZGRS4Mp5HWkbIoO8ZlN68Abj/edit
-  - All 3 clarifications incorporated (required fields definition, next_prompt optional, Week 0 task assignments)
-  - Status: Ready for Blitz to implement Week 1-2 of rollout plan
-- 2026-02-11 10:45: **Blitz Briefed & Ready to Ship**
-  - Blitz initialized and standing by for JODI Week 1 implementation
-  - Provided detailed spec content (Section 3 system-prompt, Section 5 Day 1-5 breakdown)
-  - Answered architectural questions: new FastAPI service (services/conversational_controller), new conversation_state table, Anthropic API keys, 5% rollout feature flag
-  - Day 1–5 plan approved (scaffold → API endpoints → extractor integration → UI → tests)
-  - First deliverable: migration + service scaffold by EOD tomorrow
-  - Kavi still needs Fly.io + Supabase access to start monitoring work
-  - Greg ready to start tone guide + copy rewrite (standing by for task assignment)
-- 2026-02-11 13:06: **N APPROVED: Blitz Uses Codex CLI**
-  - N confirmed: "Blitz can always use this. Go ahead"
-  - Blitz started Codex --full-auto in /matchmaker/jodi (session: cool-orbit)
-  - Building: FastAPI scaffold + DB migration + feature flags + tests + CI
-  - ETA: EOD tomorrow (Day 1 deliverable: service scaffold + migration)
-  - N also clarified: State controller logic is optimizable post-MVP (Telegram buttons, cheaper LLM, hybrid extraction)
-- 2026-02-11 ~14:00: **MAJOR PRODUCT SHIFT — Tier-Based Onboarding**
-  - **Removed matching from state controller** — matching moves to async batch process (Phase 2) with guardrails
-  - **Changed progress model** from % completion (0-100%) to tier-based (Tier 1 → 2 → 3 → [4?])
-  - **Tier structure (Keeper.ai inspired):**
-    - Tier 1: Basic (age, location, basics)
-    - Tier 2: Basic Preferences (what you want)
-    - Tier 3: Advanced (deep context, signals, family, lifestyle)
-    - Tier 4: TBD (awaiting Shreya)
-  - **Out-of-order capture:** User in Tier 1 might give Tier 3 info (capture it, tier doesn't close until T1 complete)
-  - **Shreya tasked:** Research Keeper.ai + Three Day Rule → create Google Doc with data architecture (signals, intents, explicit/soft data points, tier mappings)
-  - **Blitz paused:** Waiting for Shreya's tier definitions before updating docs/SYSTEM_DESIGN.md and code
-  - **Timeline:** Shreya doc → Blitz updates service → Claude extraction integration (Days 2-5)
-- 2026-02-11 ~14:15: **DevOps Agent Created**
-  - New agent: devops-agent (Infrastructure & Operations)
-  - Reports to Kavi; takes instructions from A + Kavi
-  - Role: Fly.io/Supabase management, deployments, monitoring, incident response
-  - Model: gpt-5-mini
-  - Workspace: `/Users/nikunjvora/clawd/agents/devops/`
-  - Immediate needs: Fly.io access, Supabase access, alerting channel setup
-  - Ready to: set up health checks, deploy services, write runbooks, triage incidents
-- 2026-02-11 ~19:00: **JODI Deployment Ready — Critical Architectural Decisions Made**
-  - **Product Pivot:** Removed matching from state controller (async batch Phase 2). Progress model changed from % (0-100%) to tier-based (Tier 1→2→3→4). Out-of-order capture allowed (capture Tier 3 data while in Tier 1, tier only closes when requirements met).
-  - **Shreya Task:** Research Keeper.ai + Three Day Rule → produce data architecture doc (tier mappings, signals, soft/explicit data points). Due EOW. Critical blocker for Blitz's Week 2+ work.
-  - **Blitz Week 1:** Manual scaffold successful (Codex failed 3x, manual was faster). GitHub repo created: https://github.com/nvsudo/jodi. FastAPI service scaffold + bot code ready to ship.
-  - **Infrastructure:** Fly.io + Supabase fully configured. IPv4 pooler (Fly-compatible). All credentials found from N's yesterday setup. Bot deployment executing now (staging first → prod).
-  - **Deployment Strategy:** Staging validation before prod. Fly native email alerts (nikunj.vora@gmail.com). Keep last 2 Fly releases for fast rollback.
-  - **Team:** Kavi now has full infra access. Greg ready for tone work. DevOps shipping deployment today. Blitz waiting on Shreya.
-- 2026-02-12: **JODI Data Framework — Xing's Spec Superseded**
-  - N found Xing's tier spec "undercooked" on data point coverage. Created comprehensive Matchmaking Data Capture Framework v1 (100+ data points).
-  - Key architecture: Explicit vs Inferred (40/60 split), Hard filters (indexed columns) vs Signals (JSONB), MVP activation rules (100% T1 + 70% T2 + 45% total + 2+ sessions).
-  - 4-tier model: Basics → Ready → Deep Profile → Calibrated. Matching only activates at Tier 2 70%+ (Keeper lesson: don't rush incomplete profiles).
-  - Competitive moat: 60% of data is AI-inferred from conversation (what forms can't capture). Priority scoring: higher completeness = better/earlier matches.
-  - Kavi tasked: schema design (hard filters vs signals, confidence scores, tier progress tracking, LLM extraction pipeline). Xing: support validation, learn from this.
-  - Doc: `/Users/nikunjvora/clawd/JODI/Matchmaking_Data_Capture_Framework_v1.docx`. Updated JODI_PROJECT.md. Briefed Kavi + Xing via sessions_send.
-- 2026-02-12 PM: **JODI Schema Execution Approved**
-  - N approved final schema + extraction pipeline execution with clarifications: DOB parsing (age 18-80), Telegram buttons for accuracy, income privacy wording OK, LLM CRUD ensured later, photo validation skipped.
-  - Critical: Add missing fields from 100+ data point framework to schema. Kavi briefed via `/JODI/KAVI_BRIEFING_SCHEMA_EXECUTION.md`. Ship ASAP.
-- 2026-02-12 Evening: **JODI Schema Deployed + Onboarding Sequence Finalized**
-  - Schema deployed to Supabase by Kavi: first_name, last_name, full_name, alias fields added; all 100+ data points covered; migrations 01-07 executed successfully.
-  - Google Sheet created for schema review: https://docs.google.com/spreadsheets/d/18nvSgfJ0yD_DDoNMhV8-0JvjP_DT0tbsPkOHDjclywA/edit
-  - Complete Telegram onboarding sequence finalized: 7-message intro (2-3 min) + 4 phases (37 screens, 10-12 min total, 34-36 fields captured, $0 LLM cost).
-  - N chose soft, trust-building tone for intro (privacy reassurance, photos-at-end philosophy, emotionally safe space). Deliberate trade-off: longer intro filters for serious users.
-  - Spec: `/JODI/TELEGRAM_ONBOARDING_SEQUENCE.md`. Blitz spawned to implement full button flow.
-- 2026-02-13 Late Night: **IGNITION CLUB - AI Recruitment Platform Greenlit**
-  - N pivoted to Ignition Club (revenue hiring for tech teams) as parallel/primary focus alongside JODI.
-  - Core insight: "AI recruiting platforms automate sending resumes everywhere. They don't automate shortlisting." Ignition Club does what elite recruiters do: verify performance (quota docs, W2s), index by context (company strength, product difficulty), infer skills from what it took to sell, surface relative outperformers.
-  - Email-first MVP: talent.Ignition Club@gmail.com (candidates and companies).
-  - Verification layer: quota attainment docs, ITR/W2s, LinkedIn cross-check, company strength lookup (Crunchbase).
-  - Matching: Pre-tagged candidates ("lob" system), fit scoring (0.4 verified performance + 0.3 context similarity + 0.2 relative strength + 0.1 trajectory), LLM-generated "why this match" narratives.
-  - Overnight batch processing: Extract signals, match candidates to JDs, send morning emails at 8 AM.
-  - Tech stack: PostgreSQL/Supabase, Mailgun inbound, Postmark outbound, Claude Opus extraction, Celery batch jobs.
-  - Blitz spawned to scaffold full MVP overnight (database schema, email parser, LLM pipeline, matching algorithm, templates).
-  - Go-live: N advertising emails to network tomorrow morning (2026-02-13).
-- 2026-02-13: **Team Structure Cleanup + Model Rebalancing**
-  - AGENTS.md → TEAM_HANDBOOK.md (clearer scope, includes main agents + spawned subagents)
-  - Added clear tags: "Main Agents" (persistent, registered in moltbot.json) vs "Spawned Subagents" (temporary via sessions_spawn)
-  - Model rebalancing for cost optimization:
-    - **Opus:** Xing ONLY (product/GTM strategy)
-    - **Sonnet:** Main, Kavi, Blitz, Greg, DevOps (core work)
-    - **GPT-5-mini:** Scout, Michael, Productivity Journal (high-volume tasks)
-  - Added naming rule: spawned subagents MUST have unique names (no collisions with main agent IDs like "kavi" or "blitz")
-  - Agent-to-agent messaging confirmed enabled (tools.agentToAgent.enabled=true, allow=["*"])
-- 2026-02-13 Evening: **Michael Avery (EA) — Telegram Group + Full Identity Setup**
-  - Converted Telegram group -5152042869 (formerly Clawd-Tasks) to Michael's workspace
-  - Role: Executive Assistant to Nik — keep communication flowing, protect time, maintain context, reduce cognitive load
-  - Personality: New-age professional (calm, sweet, efficient, empathetic, warm but controlled)
-  - Autonomy rules: coordination/scheduling autonomous, strategic requires approval, CRM-first triage
-  - Full JD documented in `/agents/michael/IDENTITY.md`
-  - Updated TEAM_HANDBOOK.md with complete Michael profile
-  - Group routes to agent:michael:main
-  - **Model:** Upgraded to Haiku (from gpt-5-mini) for better email quality
-  - **CRM:** Full field guide in TOOLS.md (20 fields, usage rules, lookup workflow)
-    - URL: https://docs.google.com/spreadsheets/d/1F6BjFpuVrD7-Ai9k9kuUf5n_A5L-Zu-4aTTL5fqBS7M/edit
-    - Key fields: Bond Strength, Notes, Next Action, Thread Status, Our Agenda, Last Outreach/Reply
-    - Permissions: Michael can read/write existing fields, CANNOT create new columns (only A can modify structure)
-  - **Cron job:** 15-min inbox monitoring (ea.nikvora@gmail.com) with CRM lookup + Telegram triage delivery
-- 2026-02-13 Late Evening: **Twitter/X API Access Configured (Read-Only)**
-  - Bearer token (app-only auth) added to moltbot.json env
-  - Created `/clawd/twitter_helper.py` (search tweets, user timelines, hashtag monitoring, topic research)
-  - **Cost:** $0.005 per tweet read (pay-per-use model)
-  - **Hard limits:** Max 20 tweets/search, max 15 tweets/user timeline (enforced in helper script)
-  - **Agent access (read-only):**
-    - **Main (A):** Search conversations, monitor topics, gather signals
-    - **Scout:** Daily Reddit + Brave scans; separate Twitter scan every 3 days for cross-validation, ~$5/month budget
-    - **Greg:** Weekly research batches, monitor competitors, ~$3.50/month budget
-  - **Monthly estimate:** $20-30 conservative, $50-70 aggressive
-  - **Posting tweets requires OAuth 2.0 User Context** (not currently configured; future enhancement)
-  - Credits to be added by N tomorrow
-- 2026-02-20: **Network Intel — Apollo → Hunter.io Migration Complete**
-  - Repo: `/clawd/ops/network-intel/` (git repo, tracked)
-  - Replaced Apollo API (LinkedIn enrichment, ~$0.50/contact) with Hunter.io (Name + Domain, ~$0.10/contact)
-  - Created TOOL_DESIGN.md (full technical spec: input/output, architecture, cost control, workflow)
-  - Refactored `scripts/enrich.py`: reads Cold Prospects sheet, enriches via Hunter.io, saves to `contact_jsons/YYYY-MM-DD/`, updates sheet
-  - Daily cron job: 7:00 AM Dubai, max 20 contacts/run, Telegram report to N
-  - Hunter.io key saved: `/clawd/ops/credentials/hunter_key.txt`
-  - All JSON responses archived to `contact_jsons/` (gitignored, preserved for audit trail)
-  - Tested: 4/6 enriched successfully (scores 89-98%)
-  - Updated TOOLS.md with Network Intel workflow
-  - Committed to git: "Migrate from Apollo to Hunter.io - complete refactor"
-- 2026-02-19: **Identity Update — "AI Partner" Not "AI Assistant"**
-  - N's feedback: "AI assistant is too small for what you do"
-  - Updated positioning: "Nik's AI partner" (reflects scope of work)
-  - Created INTRO_ARSENAL.md with context-specific intro templates
-  - Key intros: (1) Humble brag: "Nik works 12-14h/day, I work 24×7", (2) Helpful offer: "Anything you need in international markets, holler", (3) Domain-specific humor (e.g., "powered by Claude, not Pinot")
-  - StarTree context captured: Dec 2025 releases, banking on positive reception
-- 2026-02-13 Night: **Greg's Draft Workflow Configured**
-  - Created Google Drive folder structure: `Greg/` and `Greg/drafts/`
-  - Greg folder: https://drive.google.com/drive/folders/1H0oBy-hIorl0EbUsB36mDJuAebp3of37
-  - Drafts folder: https://drive.google.com/drive/folders/1KXBP_Y3UMLzp4s3oqdz0mCzpCEzRiakV
-  - Both shared with nikunj.vora@gmail.com (writer access)
-  - Workflow: Greg creates Google Docs in drafts/ → N reviews → Manual publish (Medium API deprecated)
-  - Naming convention: `YYYY-MM-DD - [Title] - [Status]` (Draft/Review/Approved/Published)
-  - Helper script in Greg's TOOLS.md for programmatic doc creation
-- 2026-02-24 00:10: **CRITICAL LESSON: Agentic Build Speed vs Human Estimates**
-  - Behavr MVP Stream 1 (SDK + ingestion + infra + judge prompts) shipped in **2 hours** of parallel agent work. I estimated "8-12 weeks."
-  - **Gap:** ~300x faster than conservative estimate. Training data bias toward human timelines (meetings, context switching, handoffs) made me underestimate agentic velocity.
-  - **The unlock:** Task Execution Protocol (depth-first + breadth spawning + 15-min check-ins + parallel execution). No meetings, no waiting, true parallelism.
-  - **New baseline:** Stop thinking in weeks. Think in hours. Agentic builds are 100-300x faster when framework is applied properly.
-  - **Going forward:** Default aggressive estimates. If I think "2 weeks," real answer is probably "2 days" with proper spawning. Velocity is a competitive moat.
-  - **Full analysis:** `/memory/2026-02-24-agentic-build-speed-lesson.md`
+## 📚 Foundational Docs
+
+**Read these first:**
+- **Workspace Structure:** `/clawd/README.md` — Complete file organization and folder purposes
+- **Agent Operating System:** `/clawd/foundry/AGENT_OPERATING_SYSTEM.md` — How agents work (threads, heartbeats, queues, v2.0)
+- **Task Estimation Framework:** `/clawd/foundry/AGENT_TASK_ESTIMATION.md` — Depth/breadth/heartbeats concepts for scoping work
+- **Task Execution Protocol:** `/clawd/TASK_EXECUTION_PROTOCOL.md` — PLAN → EXECUTE → REPORT → CHECK (mandatory for tasks >10min)
+
+---
+
+## 📋 Team & Structure
+
+**Source of truth:** `TEAM_HANDBOOK.md`
+
+**Main Agents:** A (main), Kavi, Blitz, Michael, Scout, Greg, Xing, DevOps, Sam, Seema
+**Models:** Opus (Xing only), Sonnet (most agents), Haiku (Michael), GPT-5-mini (Scout)
+**Agent-to-agent:** Enabled (`tools.agentToAgent.enabled=true`)
+
+---
+
+## 🎯 Core Operating Principles (Feb 15)
+
+1. **Push back on over-engineering:** When N designs schemas/visions before user validation → stop him. Mom test first, speak to 10 users, build hacky first.
+2. **Build hacky, ship fast:** Prototypes > perfect systems. Revenue > features. Cash is the signal.
+3. **Agentic velocity:** Think in hours, not weeks. 100-300x faster than human estimates with proper spawning.
+4. **Distribution lens:** Always ask: How do people find solutions? Can agents automate distribution?
+
+---
+
+## 🚀 Active Projects
+
+### JODI (Diaspora Matchmaking)
+- **Status:** Schema deployed, onboarding flow designed
+- **DB:** Supabase (herqdldjaxmfusjjpwdg), 100+ data point framework
+- **GitHub:** https://github.com/nvsudo/jodi
+- **Architecture:** Tier-based onboarding (T1→T2→T3→T4), out-of-order capture, matching in async batch (Phase 2)
+- **Co-founder:** Seema
+
+### Ignition Club (AI Recruitment Intelligence)
+- **Status:** MVP live, email-first
+- **Intake:** talent.haystack@gmail.com
+- **DB:** Supabase (pfqpkxxkpqnhnspxpirp)
+- **Core:** Verify performance (quota docs, W2s), context indexing, fit scoring
+- **Co-founder:** Sam
+
+---
+
+## 🤖 Agent Configurations
+
+### Michael (Executive Assistant)
+- Telegram group: -5152042869
+- Role: Inbox triage, scheduling, CRM-first comms
+- Model: Haiku
+- CRM: https://docs.google.com/spreadsheets/d/1F6BjFpuVrD7-Ai9k9kuUf5n_A5L-Zu-4aTTL5fqBS7M/edit
+- Cron: 15-min inbox monitoring (ea.nikvora@gmail.com)
+
+### Scout (Opportunity Scanner)
+- Runs: Nightly 11:30 PM Dubai
+- Mode: Validation research + distribution lens
+- Features: PAST_IDEAS.md dedup, subreddit rotation, feedback loop
+
+### Greg (Content)
+- Drive folder: https://drive.google.com/drive/folders/1H0oBy-hIorl0EbUsB36mDJuAebp3of37
+- Drafts: https://drive.google.com/drive/folders/1KXBP_Y3UMLzp4s3oqdz0mCzpCEzRiakV
+- Workflow: Creates Google Docs → N reviews → Manual publish
+
+---
+
+## 🔧 Key Tooling
+
+### CRM (Google Sheets)
+- **URL:** https://docs.google.com/spreadsheets/d/1F6BjFpuVrD7-Ai9k9kuUf5n_A5L-Zu-4aTTL5fqBS7M/edit
+- **Sheets:** Main, Cold Prospects, Personal
+- **Rule:** Anyone emailed → move from Cold to Personal
+
+### Network Intel (Hunter.io)
+- **Repo:** `/clawd/ops/network-intel/`
+- **Cost:** ~$0.10/contact (domain search)
+- **Cron:** 7:00 AM Dubai, max 20/run
+- **Key:** `/clawd/ops/credentials/hunter_key.txt`
+
+### Twitter/X API
+- **Access:** Read-only (bearer token)
+- **Cost:** $0.005/tweet
+- **Helper:** `/clawd/twitter_helper.py`
+- **Limits:** Max 20 tweets/search (enforced)
+
+### Google Workspace
+- **Tokens:** `/clawd/ops/credentials/google_tokens.json` (CANONICAL)
+- **Account:** ea.nikvora@gmail.com (working), share to nikunj.vora@gmail.com
+- **Re-auth:** `python3 /clawd/google_reauth.py`
+
+---
+
+## 📝 Recent Decisions
+
+### 2026-02-24
+- **Redis ANZ role:** Mark Peet passed — cited "not intentional" concern despite N's 4-year tenure track record. Clean rejection, no bridge burned.
+- **Xpresso GTM #1:** Outreach sent to Rasmus Rothe (Merantix, lead investor in Xpresso). Exploring GTM role.
+- **CRM rule:** Anyone emailed moves from Cold Prospects → Personal sheet.
+
+### 2026-02-20
+- Network Intel migrated from Apollo to Hunter.io (5x cost reduction)
+
+### 2026-02-19
+- Identity update: "AI Partner" not "AI Assistant"
+- Scout upgraded: Validation research mode + distribution lens
+
+### 2026-02-24 00:10
+- **Agentic velocity lesson:** Behavr MVP shipped in 2 hours vs 8-12 week estimate. 100-300x faster with proper spawning. Default aggressive estimates going forward.
+
+---
+
+## 🔑 Quick Reference
+
+- **GitHub PAT:** `/clawd/.github_pat`
+- **Supabase (JODI):** herqdldjaxmfusjjpwdg (Mumbai)
+- **Supabase (Ignition):** pfqpkxxkpqnhnspxpirp (Ireland)
+- **Google tokens:** `/clawd/ops/credentials/google_tokens.json`
+- **Hunter key:** `/clawd/ops/credentials/hunter_key.txt`

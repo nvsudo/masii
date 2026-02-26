@@ -1,0 +1,97 @@
+Tier,Category,Field/Signal,What We Capture,How Captured,Storage Type,Required/Optional
+Tier 1,1A. Identity & Demographics,Full name / alias,Display name for matches,Direct ask,Column: VARCHAR,Required
+Tier 1,1A. Identity & Demographics,Date of birth,Age, age range for filtering,Direct ask,Column: DATE + index,Required
+Tier 1,1A. Identity & Demographics,Gender identity,Male / Female / Non-binary,Direct ask,Column: VARCHAR + index,Required
+Tier 1,1A. Identity & Demographics,Sexual orientation,Hetero / Gay / Bi / Other,Direct ask,Column: VARCHAR,Required
+Tier 1,1A. Identity & Demographics,City / Location,Current city, willing to relocate?,Direct ask,Column: VARCHAR + index,Required
+Tier 1,1A. Identity & Demographics,Nationality / Passport,Citizenship, visa status,Direct ask,Column: VARCHAR,Required
+Tier 1,1A. Identity & Demographics,Ethnicity / Race,Self-identified,Direct ask (optional),Column: VARCHAR,Optional
+Tier 1,1A. Identity & Demographics,Native language(s),Primary + others spoken,Direct ask,Column: ARRAY,Required
+Tier 1,1A. Identity & Demographics,Photo(s),Min 1 recent face photo,Upload prompt,Object storage URL,Required
+Tier 1,1B. Hard Deal-Breakers,Religion / Faith,Practicing level, denomination,Direct ask,Column: VARCHAR + index,Required
+Tier 1,1B. Hard Deal-Breakers,Partner religion req.,Must match? Open to others?,Direct ask,Preferences JSONB,Required
+Tier 1,1B. Hard Deal-Breakers,Children intent,Want kids / Don't / Already have,Direct ask,Column: VARCHAR + index,Required
+Tier 1,1B. Hard Deal-Breakers,Partner children req.,OK with partner's existing kids?,Direct ask,Preferences JSONB,Required
+Tier 1,1B. Hard Deal-Breakers,Marital history,Never married / Divorced / Widowed,Direct ask,Column: VARCHAR,Required
+Tier 1,1B. Hard Deal-Breakers,Smoking,Current smoker? Tolerance?,Direct ask,Column: VARCHAR,Required
+Tier 1,1B. Hard Deal-Breakers,Drinking,Frequency, tolerance in partner,Direct ask,Column: VARCHAR,Required
+Tier 1,1B. Hard Deal-Breakers,Dietary restrictions,Halal, kosher, vegan, none,Direct ask,Preferences JSONB,Required
+Tier 1,1B. Hard Deal-Breakers,Relationship intent,Marriage / Long-term committed,Direct ask,Column: VARCHAR + index,Required
+Tier 1,1B. Hard Deal-Breakers,Timeline,Ready now / 1–2 years / exploring,Direct ask,Preferences JSONB,Required
+Tier 1,1C. Basic Preferences,Age range preference,Min–Max age for partner,Direct ask,Preferences JSONB,Required
+Tier 1,1C. Basic Preferences,Location preference,Same city? Open to distance?,Direct ask,Preferences JSONB,Required
+Tier 1,1C. Basic Preferences,Height,Own height + preference range,Direct ask (optional),Column + Prefs JSONB,Optional
+Tier 1,1C. Basic Preferences,Education minimum,Degree level that matters,Direct ask,Preferences JSONB,Optional
+Tier 1,1C. Basic Preferences,Caste / Community,Relevant for Indian/Jewish/etc.,Direct ask (if relevant),Column: VARCHAR,Optional
+Tier 1,1C. Basic Preferences,Family involvement,Parents involved in search?,Direct ask,Preferences JSONB,Optional
+Tier 2,2A. Lifestyle & Daily Life,Occupation / Industry,Job title, field, career stage,Direct ask + infer from chat,Column: VARCHAR,Required
+Tier 2,2A. Lifestyle & Daily Life,Work style,Corporate / Startup / Freelance / Govt,Direct ask or infer,Personality JSONB,Optional
+Tier 2,2A. Lifestyle & Daily Life,Work-life balance,Workaholic? 9–5? Flexible?,Inferred from descriptions,Personality JSONB,Optional
+Tier 2,2A. Lifestyle & Daily Life,Income bracket,Range, not exact (gated question),Direct ask (later in T2),Preferences JSONB,Optional
+Tier 2,2A. Lifestyle & Daily Life,Financial style,Saver / Spender / Investor,Inferred + direct,Personality JSONB,Optional
+Tier 2,2A. Lifestyle & Daily Life,Living situation,Alone / Roommates / Family / Owns,Direct ask,Preferences JSONB,Optional
+Tier 2,2A. Lifestyle & Daily Life,Exercise / Fitness,Gym / Sports / None / Active lifestyle,Inferred + direct,Personality JSONB,Optional
+Tier 2,2A. Lifestyle & Daily Life,Diet / Food culture,Foodie? Cook? Eat out? Health-focused?,Inferred from convo,Personality JSONB,Optional
+Tier 2,2A. Lifestyle & Daily Life,Travel frequency,Homebody vs. frequent traveler,Inferred + direct,Personality JSONB,Optional
+Tier 2,2A. Lifestyle & Daily Life,Social energy,Introvert / Extrovert / Ambivert,Inferred from descriptions,Personality JSONB,Optional
+Tier 2,2A. Lifestyle & Daily Life,Weekend pattern,How they spend free time,Open-ended question,Personality JSONB,Optional
+Tier 2,2A. Lifestyle & Daily Life,Pet ownership,Has pets / Wants pets / Allergies,Direct ask,Preferences JSONB,Optional
+Tier 2,2A. Lifestyle & Daily Life,Substance use,Cannabis, recreational, none,Direct ask (gated),Preferences JSONB,Optional
+Tier 2,2B. Values & Worldview,Political orientation,Progressive / Moderate / Conservative,Inferred from views shared,Personality JSONB,Optional
+Tier 2,2B. Values & Worldview,Religious practice level,Devout / Cultural / Spiritual / Secular,Inferred from T1 + conversation,Personality JSONB,Optional
+Tier 2,2B. Values & Worldview,Family values,Traditional / Modern / Blended,Inferred from family discussions,Personality JSONB,Optional
+Tier 2,2B. Values & Worldview,Gender role views,Egalitarian vs. complementarian,Inferred from convo context,Personality JSONB,Optional
+Tier 2,2B. Values & Worldview,Cultural identity strength,How important is cultural heritage?,Inferred + open question,Personality JSONB,Optional
+Tier 2,2B. Values & Worldview,Ambition level,Driven / Balanced / Laid-back,Inferred from career + goals talk,Personality JSONB,Optional
+Tier 2,2B. Values & Worldview,Philanthropy / Giving,Charitable involvement, volunteering,Inferred from activities,Personality JSONB,Optional
+Tier 2,2B. Values & Worldview,Environmental views,Climate-conscious? Sustainable living?,Inferred from lifestyle,Personality JSONB,Optional
+Tier 2,2B. Values & Worldview,Views on education,Importance for self + future children,Inferred + direct,Personality JSONB,Optional
+Tier 2,2B. Values & Worldview,Stance on key issues,"Abortion, guns, immigration, etc.",Inferred from free text,Personality JSONB,Optional
+Tier 2,2C. Relationship Expectations,Love language,Acts of service / Words / Touch / Gifts / Time,Open question + infer,Personality JSONB,Optional
+Tier 2,2C. Relationship Expectations,Conflict style,Avoider / Confronter / Communicator,Inferred from stories,Personality JSONB,Optional
+Tier 2,2C. Relationship Expectations,Independence needs,How much alone time do they need?,Inferred from lifestyle,Personality JSONB,Optional
+Tier 2,2C. Relationship Expectations,Past relationship count,Number + duration of serious ones,Direct ask (gated),Personality JSONB,Optional
+Tier 2,2C. Relationship Expectations,Reason last ended,"What they learned, not just what happened",Open-ended question,Personality JSONB,Optional
+Tier 2,2C. Relationship Expectations,Green flags sought,What excites them in a partner?,Open-ended question,Personality JSONB,Optional
+Tier 2,2C. Relationship Expectations,Red flags cited,What they absolutely cannot tolerate,Open-ended question,Preferences JSONB,Optional
+Tier 2,2C. Relationship Expectations,Physical type preference,"Build, style, appearance notes",Direct ask (gated, optional),Preferences JSONB,Optional
+Tier 2,2C. Relationship Expectations,Intellectual match pref.,Need equal? Complementary? Stimulating?,Inferred from convo depth,Personality JSONB,Optional
+Tier 2,2C. Relationship Expectations,Shared activities pref.,Do everything together vs. own lives?,Inferred from lifestyle,Personality JSONB,Optional
+Tier 3,3A. Psychological Profile,Attachment style,Secure / Anxious / Avoidant / Disorganized,Inferred from relationship stories,Personality JSONB,Optional
+Tier 3,3A. Psychological Profile,Big 5 personality,"Openness, Conscientiousness, Extraversion, Agreeableness, Neuroticism",Inferred from conversation patterns,Personality JSONB,Optional
+Tier 3,3A. Psychological Profile,Emotional intelligence,"Self-awareness, empathy, regulation",Inferred from how they discuss others,Personality JSONB,Optional
+Tier 3,3A. Psychological Profile,Communication style,Direct / Indirect / Verbose / Concise,Inferred from message patterns,Personality JSONB,Optional
+Tier 3,3A. Psychological Profile,Humor style,Dry / Sarcastic / Warm / Slapstick / Dark,Inferred from jokes + reactions,Personality JSONB,Optional
+Tier 3,3A. Psychological Profile,Decision-making style,Analytical / Intuitive / Impulsive / Deliberate,Inferred from how they describe choices,Personality JSONB,Optional
+Tier 3,3A. Psychological Profile,Stress response,How they cope under pressure,Inferred from stories,Personality JSONB,Optional
+Tier 3,3A. Psychological Profile,Optimism spectrum,Optimist / Realist / Pessimist,Inferred from tone analysis,Personality JSONB,Optional
+Tier 3,3A. Psychological Profile,Need for novelty,Routine-loving vs. adventure-seeking,Inferred from lifestyle + travel,Personality JSONB,Optional
+Tier 3,3A. Psychological Profile,Self-awareness level,How accurately they see themselves,Inferred from contradictions in profile,Personality JSONB,Optional
+Tier 3,3B. Family & Background Depth,Family structure,Parents together? Siblings? Close-knit?,Conversational exploration,Personality JSONB,Optional
+Tier 3,3B. Family & Background Depth,Family of origin dynamics,Warm / Distant / Complicated / Abusive,Inferred from how they discuss family,Personality JSONB,Optional
+Tier 3,3B. Family & Background Depth,Parenting philosophy,If wants kids: Strict / Free-range / Balanced?,Open-ended question,Personality JSONB,Optional
+Tier 3,3B. Family & Background Depth,Extended family expect.,In-law involvement expectations,Culturally gated question,Personality JSONB,Optional
+Tier 3,3B. Family & Background Depth,Financial background,Grew up wealthy / middle / modest,Inferred from stories,Personality JSONB,Optional
+Tier 3,3B. Family & Background Depth,Immigration story,First gen? Diaspora? Multicultural?,Inferred from background convo,Personality JSONB,Optional
+Tier 3,3B. Family & Background Depth,Relationship w/ parents,Close / Strained / No contact,Inferred from family conversations,Personality JSONB,Optional
+Tier 3,3B. Family & Background Depth,Community ties,Mosque / Temple / Church / None,Inferred from social descriptions,Personality JSONB,Optional
+Tier 3,3C. Depth Signals from Rich Media,Voice tone / Energy,Warm / Reserved / High-energy / Calm,Voice note analysis (Telegram),Media Signals JSONB,Optional
+Tier 3,3C. Depth Signals from Rich Media,Vocabulary sophistication,Casual / Articulate / Academic,NLP analysis of messages,Media Signals JSONB,Optional
+Tier 3,3C. Depth Signals from Rich Media,Emoji / Expression style,Expressive vs. minimal digital comm.,Pattern analysis,Media Signals JSONB,Optional
+Tier 3,3C. Depth Signals from Rich Media,Response latency patterns,Quick responder? Thoughtful pauser?,Behavioral tracking,Media Signals JSONB,Optional
+Tier 3,3C. Depth Signals from Rich Media,Message length patterns,Brief texter vs. essay writer,Behavioral tracking,Media Signals JSONB,Optional
+Tier 3,3C. Depth Signals from Rich Media,Topic initiation patterns,What do they bring up unprompted?,Conversation analysis,Media Signals JSONB,Optional
+Tier 3,3C. Depth Signals from Rich Media,Emotional disclosure depth,Surface-level vs. vulnerable sharing,Conversation analysis,Media Signals JSONB,Optional
+Tier 3,3C. Depth Signals from Rich Media,Consistency over time,Do preferences/statements stay stable?,Longitudinal comparison,Media Signals JSONB,Optional
+Tier 4,4A. Match Reaction Data,First impression reaction,Excited / Neutral / Disappointed / Surprised,Feedback after match reveal,Match JSONB,Optional
+Tier 4,4A. Match Reaction Data,Photo reaction,Attracted / Not attracted / Neutral,Feedback conversation,Match JSONB,Optional
+Tier 4,4A. Match Reaction Data,Profile reaction,What stood out? What concerned them?,Open-ended feedback,Match JSONB,Optional
+Tier 4,4A. Match Reaction Data,Date willingness,Eager / Willing / Reluctant / Declined,Tracked through action,Match JSONB,Optional
+Tier 4,4A. Match Reaction Data,Post-date feedback,Chemistry? Conversation? Attraction? Energy?,Structured + open feedback,Match JSONB,Optional
+Tier 4,4A. Match Reaction Data,Surprise learnings,What they liked that they didn't expect to,Open-ended question,Personality JSONB update,Optional
+Tier 4,4A. Match Reaction Data,Updated deal-breakers,Things they now realize matter more/less,Inferred from feedback patterns,Preferences JSONB update,Optional
+Tier 4,4B. Revealed Preferences,Stated vs. revealed gaps,Where actual choices differ from stated prefs,Pattern analysis,Match Learnings JSONB,Optional
+Tier 4,4B. Revealed Preferences,Surprise preferences,Traits they respond to but didn't mention,Feedback analysis,Match Learnings JSONB,Optional
+Tier 4,4B. Revealed Preferences,Evolved deal-breakers,What mattered at first vs. after experience,Longitudinal analysis,Match Learnings JSONB,Optional
+Tier 4,4B. Revealed Preferences,Coaching receptiveness,Open to feedback vs. defensive,Behavioral observation,Match Learnings JSONB,Optional
+Tier 4,4B. Revealed Preferences,Preference drift patterns,How tastes evolve over time,Time series analysis,Match Learnings JSONB,Optional

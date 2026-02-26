@@ -1,0 +1,676 @@
+
+
+
+
+DATA CAPTURE FRAMEWORK
+────────────────────────────────────────
+AI Matchmaking Service
+Profile Intelligence & Progressive Intake
+────────────────────────────────────────
+4-Tier Progressive Disclosure Model
+100+ Data Points  ·  Explicit + Inferred Signals  ·  Keeper/3DR Informed
+Telegram-First Architecture
+
+
+
+
+
+
+February 2026  ·  Internal Working Document
+
+1. Design Philosophy
+This framework defines every data point the matchmaking service should capture, how each is obtained, and when in the user journey it becomes available. The design is informed by Keeper.ai (100+ questions, 800+ factors), Three Day Rule (15 years of matchmaker-trained data), and the Indian/Chinese/Jewish matchmaking traditions where family, community, and cultural alignment carry weight.
+
+Core principle: Data points fall into two categories — Explicit (user directly states it) and Inferred (the AI extracts it from conversation, voice, or behavior patterns). The inferred layer is what separates an AI matchmaker from a form. Every casual message is a data capture opportunity.
+
+The filter vs. signal distinction: Some data points are hard filters — they eliminate people outright (age out of range, wrong city, incompatible religion). These must be indexed columns in Postgres. Everything else is a compatibility signal — it increases or decreases match quality but doesn’t eliminate. Signals live in JSONB and feed the scoring engine.
+
+The Keeper lesson: Don’t activate a profile for matching until you have minimum viable data. Users who skip through intake and get poor matches blame the service, not themselves. Better to hold them in a ‘building your profile’ state until you have enough to match confidently.
+
+2. The Four Tiers
+Each tier has a user-facing name, a minimum data threshold, and a clear value proposition communicated to the user. The service does not begin matching until Tier 2 (“Ready”) is complete. Tier names are designed to feel progressive and motivating, not clinical.
+
+Tier
+User-Facing Name
+Time to Complete
+Data Points
+Matching Status
+User Sees
+Tier 1
+“The Basics”
+5–7 min (first session)
+15–20 fields
+NOT active
+“Building your profile…”
+Tier 2
+“Ready”
+2–4 sessions over 3–7 days
+35–50 fields
+ACTIVE — matching begins
+“You’re in. Searching…”
+Tier 3
+“Deep Profile”
+Ongoing, weeks 2–4
+60–80 fields
+Active + higher priority
+“Sharpening matches…”
+Tier 4
+“Calibrated”
+Post-match feedback loops
+80–120+ fields
+Active + best matches
+“Dialed in.”
+
+The progression is communicated to users as a percentage or progress bar: “Your profile is 40% complete — the more I know, the better your matches.” This creates a pull mechanic without blocking access.
+
+●  TIER 1: THE BASICS   Hard filters + identity  ·  5–7 minutes  ·  Required before anything
+These are the non-negotiable fields. They define who you are and who you categorically will or won’t match with. Every field here becomes an indexed Postgres column. The bot collects these conversationally in the first session. No profile is created in the matching pool until Tier 1 is complete.
+
+1A. Identity & Demographics (Explicit)
+Field / Signal
+What We Capture
+How Captured
+Storage
+Full name / alias
+Display name for matches
+Direct ask
+Column: VARCHAR
+Date of birth
+Age, age range for filtering
+Direct ask
+Column: DATE + index
+Gender identity
+Male / Female / Non-binary
+Direct ask
+Column: VARCHAR + index
+Sexual orientation
+Hetero / Gay / Bi / Other
+Direct ask
+Column: VARCHAR
+City / Location
+Current city, willing to relocate?
+Direct ask
+Column: VARCHAR + index
+Nationality / Passport
+Citizenship, visa status
+Direct ask
+Column: VARCHAR
+Ethnicity / Race
+Self-identified
+Direct ask (optional)
+Column: VARCHAR
+Native language(s)
+Primary + others spoken
+Direct ask
+Column: ARRAY
+Photo(s)
+Min 1 recent face photo
+Upload prompt
+Object storage URL
+
+1B. Hard Deal-Breakers (Explicit)
+Field / Signal
+What We Capture
+How Captured
+Storage
+Religion / Faith
+Practicing level, denomination
+Direct ask
+Column: VARCHAR + index
+Partner religion req.
+Must match? Open to others?
+Direct ask
+Preferences JSONB
+Children intent
+Want kids / Don’t / Already have
+Direct ask
+Column: VARCHAR + index
+Partner children req.
+OK with partner’s existing kids?
+Direct ask
+Preferences JSONB
+Marital history
+Never married / Divorced / Widowed
+Direct ask
+Column: VARCHAR
+Smoking
+Current smoker? Tolerance?
+Direct ask
+Column: VARCHAR
+Drinking
+Frequency, tolerance in partner
+Direct ask
+Column: VARCHAR
+Dietary restrictions
+Halal, kosher, vegan, none
+Direct ask
+Preferences JSONB
+Relationship intent
+Marriage / Long-term committed
+Direct ask
+Column: VARCHAR + index
+Timeline
+Ready now / 1–2 years / exploring
+Direct ask
+Preferences JSONB
+
+1C. Basic Preferences (Explicit)
+Field / Signal
+What We Capture
+How Captured
+Storage
+Age range preference
+Min–Max age for partner
+Direct ask
+Preferences JSONB
+Location preference
+Same city? Open to distance?
+Direct ask
+Preferences JSONB
+Height
+Own height + preference range
+Direct ask (optional)
+Column + Prefs JSONB
+Education minimum
+Degree level that matters
+Direct ask
+Preferences JSONB
+Caste / Community
+Relevant for Indian/Jewish/etc.
+Direct ask (if relevant)
+Column: VARCHAR
+Family involvement
+Parents involved in search?
+Direct ask
+Preferences JSONB
+
+●  TIER 2: READY   Lifestyle + values + preferences  ·  3–7 days  ·  Matching activates here
+This tier transforms the profile from a filter set into a matchable person. The bot collects this through conversational drip questions (1–3 per session) and passive extraction from freeform chat. Matching begins once Tier 2 reaches 70%+ completion.
+
+2A. Lifestyle & Daily Life (Mix of Explicit + Inferred)
+Field / Signal
+What We Capture
+How Captured
+Storage
+Occupation / Industry
+Job title, field, career stage
+Direct ask + infer from chat
+Column: VARCHAR
+Work style
+Corporate / Startup / Freelance / Govt
+Direct ask or infer
+Personality JSONB
+Work-life balance
+Workaholic? 9–5? Flexible?
+Inferred from descriptions
+Personality JSONB
+Income bracket
+Range, not exact (gated question)
+Direct ask (later in T2)
+Preferences JSONB
+Financial style
+Saver / Spender / Investor
+Inferred + direct
+Personality JSONB
+Living situation
+Alone / Roommates / Family / Owns
+Direct ask
+Preferences JSONB
+Exercise / Fitness
+Gym / Sports / None / Active lifestyle
+Inferred + direct
+Personality JSONB
+Diet / Food culture
+Foodie? Cook? Eat out? Health-focused?
+Inferred from convo
+Personality JSONB
+Travel frequency
+Homebody vs. frequent traveler
+Inferred + direct
+Personality JSONB
+Social energy
+Introvert / Extrovert / Ambivert
+Inferred from descriptions
+Personality JSONB
+Weekend pattern
+How they spend free time
+Open-ended question
+Personality JSONB
+Pet ownership
+Has pets / Wants pets / Allergies
+Direct ask
+Preferences JSONB
+Substance use
+Cannabis, recreational, none
+Direct ask (gated)
+Preferences JSONB
+
+2B. Values & Worldview (Primarily Inferred)
+Field / Signal
+What We Capture
+How Captured
+Storage
+Political orientation
+Progressive / Moderate / Conservative
+Inferred from views shared
+Personality JSONB
+Religious practice level
+Devout / Cultural / Spiritual / Secular
+Inferred from T1 + conversation
+Personality JSONB
+Family values
+Traditional / Modern / Blended
+Inferred from family discussions
+Personality JSONB
+Gender role views
+Egalitarian vs. complementarian
+Inferred from convo context
+Personality JSONB
+Cultural identity strength
+How important is cultural heritage?
+Inferred + open question
+Personality JSONB
+Ambition level
+Driven / Balanced / Laid-back
+Inferred from career + goals talk
+Personality JSONB
+Philanthropy / Giving
+Charitable involvement, volunteering
+Inferred from activities
+Personality JSONB
+Environmental views
+Climate-conscious? Sustainable living?
+Inferred from lifestyle
+Personality JSONB
+Views on education
+Importance for self + future children
+Inferred + direct
+Personality JSONB
+Stance on key issues
+Abortion, guns, immigration, etc.
+Inferred from free text
+Personality JSONB
+
+2C. Relationship Expectations (Explicit + Inferred)
+Field / Signal
+What We Capture
+How Captured
+Storage
+Love language
+Acts of service / Words / Touch / Gifts / Time
+Open question + infer
+Personality JSONB
+Conflict style
+Avoider / Confronter / Communicator
+Inferred from stories
+Personality JSONB
+Independence needs
+How much alone time do they need?
+Inferred from lifestyle
+Personality JSONB
+Past relationship count
+Number + duration of serious ones
+Direct ask (gated)
+Personality JSONB
+Reason last ended
+What they learned, not just what happened
+Open-ended question
+Personality JSONB
+Green flags sought
+What excites them in a partner?
+Open-ended question
+Personality JSONB
+Red flags cited
+What they absolutely cannot tolerate
+Open-ended question
+Preferences JSONB
+Physical type preference
+Build, style, appearance notes
+Direct ask (gated, optional)
+Preferences JSONB
+Intellectual match pref.
+Need equal? Complementary? Stimulating?
+Inferred from convo depth
+Personality JSONB
+Shared activities pref.
+Do everything together vs. own lives?
+Inferred from lifestyle
+Personality JSONB
+
+●  TIER 3: DEEP PROFILE   Personality depth + psychological signals  ·  Weeks 2–4  ·  Higher match priority
+This is where the AI matchmaker starts to outperform human matchmakers. These signals emerge from sustained conversation, pattern recognition, and explicit deep-dive questions. Users at this tier get priority in matching and access to richer compatibility explanations.
+
+3A. Psychological Profile (Primarily Inferred)
+Field / Signal
+What We Capture
+How Captured
+Storage
+Attachment style
+Secure / Anxious / Avoidant / Disorganized
+Inferred from relationship stories
+Personality JSONB
+Big 5 personality
+Openness, Conscientiousness, Extraversion, Agreeableness, Neuroticism
+Inferred from conversation patterns
+Personality JSONB
+Emotional intelligence
+Self-awareness, empathy, regulation
+Inferred from how they discuss others
+Personality JSONB
+Communication style
+Direct / Indirect / Verbose / Concise
+Inferred from message patterns
+Personality JSONB
+Humor style
+Dry / Sarcastic / Warm / Slapstick / Dark
+Inferred from jokes + reactions
+Personality JSONB
+Decision-making style
+Analytical / Intuitive / Impulsive / Deliberate
+Inferred from how they describe choices
+Personality JSONB
+Stress response
+How they cope under pressure
+Inferred from stories
+Personality JSONB
+Optimism spectrum
+Optimist / Realist / Pessimist
+Inferred from tone analysis
+Personality JSONB
+Need for novelty
+Routine-loving vs. adventure-seeking
+Inferred from lifestyle + travel
+Personality JSONB
+Self-awareness level
+How accurately they see themselves
+Inferred from contradictions in profile
+Personality JSONB
+
+3B. Family & Background Depth (Mix of Explicit + Inferred)
+Field / Signal
+What We Capture
+How Captured
+Storage
+Family structure
+Parents together? Siblings? Close-knit?
+Conversational exploration
+Personality JSONB
+Family of origin dynamics
+Warm / Distant / Complicated / Abusive
+Inferred from how they discuss family
+Personality JSONB
+Parenting philosophy
+If wants kids: Strict / Free-range / Balanced?
+Open-ended question
+Personality JSONB
+Extended family expect.
+In-law involvement expectations
+Culturally gated question
+Personality JSONB
+Financial background
+Grew up wealthy / middle / modest
+Inferred from stories
+Personality JSONB
+Immigration story
+First gen? Diaspora? Multicultural?
+Inferred from background convo
+Personality JSONB
+Relationship w/ parents
+Close / Strained / No contact
+Inferred from family conversations
+Personality JSONB
+Community ties
+Mosque / Temple / Church / None
+Inferred from social descriptions
+Personality JSONB
+
+3C. Depth Signals from Rich Media (Inferred)
+Field / Signal
+What We Capture
+How Captured
+Storage
+Voice tone / Energy
+Warm / Reserved / High-energy / Calm
+Voice note analysis (Telegram)
+Media Signals JSONB
+Vocabulary sophistication
+Casual / Articulate / Academic
+NLP analysis of messages
+Media Signals JSONB
+Emoji / Expression style
+Expressive vs. minimal digital comm.
+Pattern analysis
+Media Signals JSONB
+Response latency patterns
+Quick responder? Thoughtful pauser?
+Behavioral tracking
+Media Signals JSONB
+Message length patterns
+Brief texter vs. essay writer
+Behavioral tracking
+Media Signals JSONB
+Topic initiation patterns
+What do they bring up unprompted?
+Conversation analysis
+Media Signals JSONB
+Emotional disclosure depth
+Surface-level vs. vulnerable sharing
+Conversation analysis
+Media Signals JSONB
+Consistency over time
+Do preferences/statements stay stable?
+Longitudinal comparison
+Media Signals JSONB
+
+●  TIER 4: CALIBRATED   Post-match learning  ·  Ongoing  ·  Best possible matches
+This is the tier that no form or questionnaire can reach. Calibration data comes exclusively from how users react to actual matches — what excites them, what disappoints them, what surprises them. The delta between stated preferences and revealed preferences is the most valuable matching signal in existence.
+
+4A. Match Reaction Data (Post-Match Inferred)
+Field / Signal
+What We Capture
+How Captured
+Storage
+First impression reaction
+Excited / Neutral / Disappointed / Surprised
+Feedback after match reveal
+Match JSONB
+Photo reaction
+Attracted / Not attracted / Neutral
+Feedback conversation
+Match JSONB
+Profile reaction
+What stood out? What concerned them?
+Open-ended feedback
+Match JSONB
+Date willingness
+Eager / Willing / Reluctant / Declined
+Tracked through action
+Match JSONB
+Post-date feedback
+Chemistry? Conversation? Attraction? Energy?
+Structured + open feedback
+Match JSONB
+Surprise learnings
+What they liked that they didn’t expect to
+Open-ended question
+Personality JSONB update
+Updated deal-breakers
+Things they now realize matter more/less
+Inferred from feedback patterns
+Preferences JSONB update
+Stated vs. revealed gap
+Say they want X but react positively to Y
+System-computed from multiple matches
+Personality JSONB
+
+4B. Behavioral Calibration (System-Inferred)
+Field / Signal
+What We Capture
+How Captured
+Storage
+Response speed to matches
+How quickly they engage with match info
+Tracked automatically
+Media Signals JSONB
+Question patterns about matches
+What do they ask first? Looks? Career? Values?
+Conversation analysis
+Personality JSONB
+Rejection reasons evolution
+How rejection language changes over time
+NLP analysis
+Personality JSONB
+Engagement depth variance
+Some matches get long convos, others short
+Behavioral tracking
+Media Signals JSONB
+Return rate after rejection
+How quickly they want the next match
+Tracked automatically
+Media Signals JSONB
+Coaching receptiveness
+Do they act on advice? Resist? Ignore?
+Tracked through conversation
+Personality JSONB
+Self-narrative evolution
+How their self-description changes
+Longitudinal comparison
+Personality JSONB
+Preference drift
+Preferences that shift after real experiences
+Computed from match history
+Preferences JSONB update
+
+3. The Inferred Signal Layer
+This is the AI matchmaker’s competitive advantage over every form-based service. Every message, voice note, and behavioral pattern generates signals that the user never explicitly provides. These signals are extracted by the LLM in real-time and stored with confidence scores (0.0–1.0) that improve with repeated observation.
+
+Signal Categories
+Signal Type
+What It Tells Us
+Source
+Confidence Build
+Linguistic
+Education level, cultural background, emotional state, formality level, thinking style
+All text messages
+Improves per message
+Emotional
+Baseline mood, emotional range, vulnerability comfort, positivity/negativity ratio
+Text + Voice notes
+Needs 10+ interactions
+Behavioral
+Engagement patterns, seriousness, decisiveness, consistency, ghosting risk
+Activity tracking
+Needs 2+ weeks data
+Relational
+How they talk about others (exes, family, friends) reveals attachment style, empathy, emotional maturity
+Conversational context
+Needs relationship topics
+Aspirational
+Gap between current self and desired self; growth mindset vs. fixed; what they’re working toward
+Goals + future talk
+Needs explicit prompting
+Contextual / Cultural
+Unspoken cultural norms, family expectations, community pressures, immigration context
+Background + family convo
+Needs trust (Tier 2+)
+
+4. Activation Rules
+Drawing from Keeper’s approach of not rushing users into matching, the following rules govern when a profile becomes active:
+
+Minimum Viable Profile (MVP) for Matching
+	•	100% of Tier 1 fields populated (all hard filters + at least 1 photo)
+	•	At least 70% of Tier 2 fields populated (minimum: occupation, 3+ values signals, love language, 2+ lifestyle fields)
+	•	At least 2 open-ended responses that generated meaningful personality signals
+	•	Profile completeness score ≥ 45% (weighted across all tiers)
+	•	User has interacted across at least 2 separate sessions (prevents rushed single-session signups)
+Priority Scoring
+Once active, users are prioritized for matching based on profile completeness. A Tier 3 user with 80% completeness will receive match attempts before a Tier 2 user at 50%, because the data quality enables better matches (which protects brand reputation through first-match experience). This creates a natural incentive: share more, get matched sooner and better.
+The Hold State
+Users who complete Tier 1 but haven’t reached the MVP threshold see a message like: “I’m learning a lot about you. I need a little more to start finding great matches — chat with me for a few more minutes and we’ll get there.” This is the Keeper pattern: present, encouraging, not gating with a hard wall. If a user goes dormant before reaching MVP, the bot sends a gentle re-engagement after 48 hours: “Hey, I was thinking about what you told me about [specific thing they shared]. Quick question…”
+
+5. Full Data Point Count
+
+Category
+Explicit
+Inferred
+Total
+Storage
+Tier
+Identity & Demographics
+9
+0
+9
+Columns
+T1
+Hard Deal-Breakers
+10
+0
+10
+Columns
+T1
+Basic Preferences
+6
+0
+6
+Mixed
+T1
+Lifestyle & Daily Life
+5
+8
+13
+JSONB
+T2
+Values & Worldview
+1
+9
+10
+JSONB
+T2
+Relationship Expectations
+4
+6
+10
+JSONB
+T2
+Psychological Profile
+0
+10
+10
+JSONB
+T3
+Family & Background
+2
+6
+8
+JSONB
+T3
+Rich Media Signals
+0
+8
+8
+JSONB
+T3
+Match Reaction Data
+3
+5
+8
+Match JSONB
+T4
+Behavioral Calibration
+0
+8
+8
+JSONB
+T4
+TOTAL
+40
+60
+100+
+
+
+
+Of the 100+ data points, approximately 40% are explicitly collected and 60% are inferred by the AI. This ratio is the key differentiator versus Keeper (which collects most data explicitly through long questionnaires) and Three Day Rule (which relies heavily on human matchmaker intuition). The AI inference layer lets us capture equivalent or superior depth with significantly less user effort.
+
+
+────────────────────────────────────────
+End of Framework  ·  v1.0  ·  February 2026

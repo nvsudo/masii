@@ -1,0 +1,98 @@
+#,Section,Field Name,Question / Label,Options (MCQ),Filter Type,Conditional Logic,Why This Matters
+A. IDENTITY & BASICS,,,,,,,
+  💡 Who you are — the non-negotiable starting point,,,,,,,
+1,Identity,gender_identity,I am a:,Male | Female | Non-binary / Self-describe,Hard Filter,,Core matching axis
+2,Identity,looking_for_gender,Looking for:,Men | Women | Either,Hard Filter,,Core matching axis
+3,Identity,date_of_birth,Your date of birth:,Date picker (DD/MM/YYYY),Hard Filter,,Exact age calc; age-range filtering; legal verification
+4,Identity,marital_status,Marital status:,Never married | Divorced | Widowed | Separated | Annulled,Hard Filter,,Top-3 dealbreaker in Indian matchmaking
+5,Identity,children_existing,Do you have children?,"No | Yes, living with me | Yes, not living with me",Hard Filter,Show if marital_status ≠ Never married,Major dealbreaker; affects lifestyle compatibility
+6,Identity,height_cm,Your height:,< 150cm | 150–155 | 156–160 | 161–165 | 166–170 | 171–175 | 176–180 | 181–185 | 186–190 | 190+,Soft Filter,,Top physical filter in Indian matchmaking
+7,Identity,body_type,Body type:,Slim | Athletic | Average | Curvy | Heavy,Soft Filter,,Physical compatibility signal
+8,Identity,complexion,Complexion:,Fair | Wheatish | Medium | Dusky | Dark | Prefer not to say,Soft Filter,,"Controversial but real Indian filter; ""Prefer not to say"" respects choice"
+9,Identity,disability_status,Any physical disability?,"None | Yes, minor | Yes, significant | Prefer not to say",Hard Filter,,Transparency; avoids awkward reveals later
+B. LOCATION & MOBILITY,,,,,,,
+  💡 Where you are and where you could be,,,,,,,
+10,Location,residency_type,Residency status:,Indian citizen (in India) | NRI | OCI / PIO | Foreign national of Indian origin,Hard Filter,,Drives entire location & legal compatibility branch
+11,Location,country_current,Country you live in:,[Dropdown: India | UAE | USA | UK | Canada | Australia | Singapore | Germany | Other],Hard Filter,Show if residency_type ≠ Indian citizen (in India),"NRI geography matters for timezone, visa, visits"
+12,Location,state_india,State:,[Dropdown: All 28 states + 8 UTs],Soft Filter,Show if residency_type = Indian citizen,"Regional culture, language, cuisine alignment"
+13,Location,city_current,City:,[Autocomplete: Top 100 Indian cities + major global cities],Soft Filter,,Proximity matching; metro vs tier-2 lifestyle gap
+14,Location,hometown_state,Native place / hometown state:,[Dropdown: All 28 states + 8 UTs],Soft Filter,,"""Where are you originally from"" — cultural roots signal"
+15,Location,willing_to_relocate,Open to relocating?,"Yes, anywhere | Yes, within India | Yes, within my state | Yes, to India (NRI returning) | Maybe, depends on partner | No",Hard Filter,,Eliminates geographic dead-ends early
+16,Location,partner_location_pref,Partner location preference:,Same city | Same state/region | Anywhere in India | NRI OK | International OK | No preference,Hard Filter,,Two-way geographic filter
+17,Location,settling_country,Where do you plan to settle long-term?,India | Abroad | Open to either | Haven't decided,Soft Filter,Show if residency_type = NRI or OCI,"NRI-specific: ""are you coming back or staying?"""
+"C. RELIGION, CASTE & CULTURE",,,,,,,
+  💡 The stuff families talk about at the dining table,,,,,,,
+18,Religion & Culture,religion,Your religion:,Hindu | Muslim | Christian | Sikh | Jain | Buddhist | Parsi/Zoroastrian | Jewish | No religion / Atheist | Spiritual but not religious | Other,Hard Filter,,#1 filter in Indian matchmaking
+19,Religion & Culture,religious_practice,How religious are you?,"Very devout (daily practice) | Moderately observant (festivals, rituals) | Culturally identify (not practicing) | Spiritual, not religious | Not at all",Algo Weight,,Devout + non-religious = friction
+20,Religion & Culture,partner_religion_pref,Partner's religion:,"Must be same | Prefer same, open to others | Doesn't matter",Hard Filter,,Two-way religion filter
+21,Religion & Culture,sect_denomination,Sect / denomination:,"[Conditional dropdown] Hindu: Shaivite, Vaishnavite, Arya Samaj, etc. | Muslim: Sunni, Shia, Sufi, Ahmadiyya | Christian: Catholic, Protestant, Orthodox, Evangelical | Sikh: Amritdhari, Keshdhari, Sehajdhari | None / Prefer not to say",Soft Filter,Options change based on religion,"Matters within religions; Sunni-Shia, Catholic-Protestant"
+22,Religion & Culture,caste_community,Caste / community:,"[Conditional dropdown based on religion] Hindu: Brahmin, Kshatriya, Vaishya, SC, ST, OBC, Other | Jain: Digambar, Shwetambar, etc. | Sikh: Jat, Khatri, Ramgarhia, etc. | General | Prefer not to say",Hard Filter,"Show if religion = Hindu, Jain, Sikh, or Buddhist",Real filter Indian families use
+23,Religion & Culture,sub_caste,Sub-caste / gotra (optional):,[Text input or dropdown based on caste],Soft Filter,Show if caste_community answered,Gotra matters for same-gotra exclusion in some communities
+24,Religion & Culture,caste_importance,How important is caste/community match?,Dealbreaker — must match | Strong preference | Slight preference | Doesn't matter at all,Hard Filter,,"Weights the caste filter; ""doesn't matter"" opens the pool"
+25,Religion & Culture,mother_tongue,Mother tongue:,Hindi | Tamil | Telugu | Kannada | Malayalam | Bengali | Marathi | Gujarati | Punjabi | Odia | Assamese | Urdu | Konkani | Sindhi | Kashmiri | English | Other,Soft Filter,,Language = culture; affects daily household dynamics
+26,Religion & Culture,languages_spoken,Languages you speak:,[Multi-select from same list + English],Algo Weight,,Communication compatibility; bilingual couples common
+27,Religion & Culture,manglik_status,Manglik status:,Manglik | Non-Manglik | Anshik Manglik | Don't know | Not applicable,Hard Filter,Show if religion = Hindu or Jain,Kundli-based dealbreaker for many Hindu families
+D. EDUCATION & CAREER,,,,,,,
+  💡 What you do and where you're headed,,,,,,,
+28,Education & Career,education_level,Highest education:,High school / 12th | Diploma / ITI | Bachelor's (BA/BSc/BCom) | Bachelor's (BTech/BE/BBA) | Master's (MA/MSc/MCom) | Master's (MBA/MTech) | Professional (CA/CS/CFA/MBBS/LLB) | PhD / Doctorate,Soft Filter,,Education level = social signaling in India
+29,Education & Career,education_institute_tier,Institute type:,"IIT / IIM / AIIMS / NLU / ISB | NITs / IIITs / Top private (BITS, VIT, etc.) | State university / Other private | Studied abroad | Other",Algo Weight,,"""IIT boy"" is a real filter in Indian matchmaking"
+30,Education & Career,employment_status,Employment:,Employed full-time | Self-employed / Business owner | Freelancer / Consultant | Government job | Student | Between jobs | Homemaker | Retired,Soft Filter,,Stability signal; govt job = prestige in India
+31,Education & Career,work_industry,Industry / field:,IT / Software | Finance / Banking | Healthcare / Pharma | Education / Academia | Government / PSU | Legal | Media / Entertainment | Manufacturing | Real estate | Agriculture / Farming | Startup | E-commerce | Defence / Armed forces | Other,Algo Weight,,Lifestyle & schedule compatibility
+32,Education & Career,career_ambition,Career priority:,Highly ambitious (career comes first) | Career-oriented but balanced | Flexible / adaptable | Prefer homemaking | Planning career break,Algo Weight,,Dual-career vs single-income expectation alignment
+E. FINANCIAL PROFILE,,,,,,,
+"  💡 🔒 Private section — used for matching quality, never shown to matches",,,,,,,
+33,Financial (Private),annual_income,🔒 Your annual income:,Below ₹5L | ₹5–10L | ₹10–20L | ₹20–40L | ₹40–75L | ₹75L–1Cr | ₹1–3Cr | ₹3Cr+ | Prefer not to say,Private,,Income-compatible matching without revealing numbers
+34,Financial (Private),income_currency,🔒 Income currency:,INR | USD | GBP | EUR | AED | SGD | AUD | CAD | Other,Private,Show if residency_type ≠ Indian citizen,NRI incomes need currency context; $80K ≠ ₹80L lifestyle
+35,Financial (Private),net_worth_range,🔒 Approximate net worth:,Below ₹10L | ₹10–50L | ₹50L–1Cr | ₹1–5Cr | ₹5–10Cr | ₹10Cr+ | Prefer not to say,Private,,Wealth = lifestyle match signal
+36,Financial (Private),property_ownership,🔒 Own property?,"Yes, own house/flat | Yes, land/plot | Family property (will inherit) | No | Prefer not to say",Private,,"Asset signal; ""family property"" is very Indian"
+37,Financial (Private),financial_dependents,🔒 Financial dependents?,None | Parents | Siblings | Extended family | Children | Multiple dependents,Private,,Hidden cost that affects couple finances
+F. FAMILY BACKGROUND,,,,,,,
+"  💡 In India, you don't just marry a person — you marry a family",,,,,,,
+38,Family,family_type,Family type:,Nuclear | Joint family | Extended joint family,Soft Filter,,Joint family = very different married life
+39,Family,family_financial_status,Family background:,Upper class | Upper-middle class | Middle class | Lower-middle class | Prefer not to say,Algo Weight,,Lifestyle expectation alignment
+40,Family,father_occupation,Father's occupation:,Business owner | Government / PSU | Private sector | Professional (Doctor/Lawyer/CA) | Agriculture / Farming | Retired | Late | Other,Algo Weight,,"""What does your father do?"" — classic Indian matchmaking Q"
+41,Family,family_values,Family values:,Very traditional / orthodox | Moderate — mix of tradition and modern | Liberal / progressive | We're pretty chill,Algo Weight,,Traditional vs modern household expectations
+42,Family,living_with_parents_post_marriage,"After marriage, live with parents?","Yes, with my parents | Yes, with partner's parents | Open to it | Prefer independent | Definitely not",Hard Filter,,Massive friction point; best to surface early
+43,Family,family_involvement_search,Family involvement in this search:,Parents are driving this | Family knows and supports | Family will be involved later | This is my decision alone,Algo Weight,,Signals independence level and pace of process
+44,Family,siblings,Siblings:,Only child | 1 brother | 1 sister | Multiple siblings | Prefer not to say,Display Only,,Context for family dynamics; inheritance implications
+G. LIFESTYLE & HABITS,,,,,,,
+  💡 How you actually live day-to-day,,,,,,,
+45,Lifestyle,diet,Your diet:,"Pure vegetarian (no eggs) | Vegetarian (eggs OK) | Eggetarian | Non-vegetarian | Vegan | Jain food (no root veg, no onion/garlic) | Halal only | No restrictions",Hard Filter,,Shared kitchen = shared diet rules in Indian homes
+46,Lifestyle,partner_diet_pref,Partner's diet:,Must match mine | Prefer similar | Vegetarian preferred | Non-veg OK | Don't care,Hard Filter,,Two-way diet filter; veg families won't accept non-veg
+47,Lifestyle,smoking,Smoking:,Never | Occasionally / Socially | Regularly | Trying to quit | Prefer not to say,Hard Filter,,Strong dealbreaker for many Indian families
+48,Lifestyle,smoking_partner_ok,Partner smoking:,Dealbreaker | Prefer non-smoker | Don't care,Hard Filter,,Two-way filter
+49,Lifestyle,drinking,Alcohol:,Never | Socially / Occasionally | Regularly | Prefer not to say,Hard Filter,,Cultural + religious sensitivity
+50,Lifestyle,drinking_partner_ok,Partner drinking:,Dealbreaker | Prefer non-drinker | Don't care,Hard Filter,,Two-way filter
+51,Lifestyle,fitness_frequency,Exercise / fitness:,"Daily (gym, yoga, sports) | Few times a week | Occasionally | Rarely / Never",Algo Weight,,Lifestyle compatibility signal
+52,Lifestyle,social_style,Social energy:,Very outgoing — love big gatherings | Social but balanced | Prefer small groups | Homebody — love staying in,Algo Weight,,Introvert-extrovert mismatch = daily friction
+53,Lifestyle,weekend_style,Weekends are for:,"Going out (restaurants, travel, events) | Mix of both | Staying in (family, hobbies, rest) | Working / side hustle | Religious / community activities",Algo Weight,,Practical lifestyle alignment
+54,Lifestyle,pet_ownership,Pets:,"Have pets (dogs) | Have pets (cats) | Have pets (other) | No pets, want one | No pets, don't want one | Allergic",Soft Filter,,Pet allergies/aversion = real incompatibility
+55,Lifestyle,sleep_schedule,Your schedule:,Early bird (up before 6am) | Standard (7-8am) | Night owl (up past midnight) | Shift worker / irregular,Algo Weight,,Different sleep schedules = less couple time
+H. PARTNER PREFERENCES,,,,,,,
+  💡 What you're looking for — filters applied to the other side,,,,,,,
+56,Partner Prefs,pref_age_range,Partner age range:,[Min-Max slider] or Same as me (±2yr) | Younger (up to 5yr) | Older (up to 5yr) | Wide range OK | No preference,Hard Filter,,Age gap expectations; cultural norms around this
+57,Partner Prefs,pref_height,Partner height:,Shorter than me | Similar to me (±5cm) | Taller than me | No preference,Soft Filter,,Physical preference
+58,Partner Prefs,pref_complexion,Partner complexion:,Fair preferred | No preference | Prefer not to answer,Soft Filter,,Real filter; limited options to discourage colorism
+59,Partner Prefs,pref_education_min,Partner education (minimum):,Any education | Graduate (Bachelor's) | Postgraduate (Master's+) | Professional degree (CA/MBBS/LLB) | No preference,Soft Filter,,Education match expectation
+60,Partner Prefs,pref_income_range,Partner income expectation:,Below ₹5L | ₹5–10L | ₹10–20L | ₹20–40L | ₹40L+ | ₹1Cr+ | Doesn't matter,Soft Filter,,Financial expectation alignment
+61,Partner Prefs,pref_marital_status,Partner marital history OK?,Never married only | Divorced OK | Widowed OK | Any | Depends on situation,Hard Filter,,Strong filter in Indian market
+62,Partner Prefs,pref_children_ok,Partner having existing children?,OK | Depends | Prefer not | Dealbreaker,Hard Filter,,Tied to marital history
+63,Partner Prefs,pref_disability_ok,Partner with disability?,"Yes, open to it | Depends on type | Prefer not | No",Hard Filter,,Honest preference capture
+64,Partner Prefs,pref_working_spouse,Want a working partner?,"Yes, must work | Prefer working | Open to either | Prefer homemaker | No preference",Soft Filter,,Dual-income vs single-income household
+I. VALUES & RELATIONSHIP STYLE,,,,,,,
+  💡 How you think about marriage and partnership,,,,,,,
+65,Values,relationship_intent,What are you looking for?,Marriage — ready now | Marriage — in 6-12 months | Marriage — in 1-2 years | Long-term committed relationship | Open to see where it goes,Hard Filter,,Timeline alignment prevents wasted time
+66,Values,children_intent,Want children?,"Yes, definitely | Probably yes | Open to it | Probably not | Definitely not",Hard Filter,,Non-negotiable life decision
+67,Values,children_timeline,Children timeline:,Soon after marriage | 1–2 years | 3–5 years | No rush | Not applicable,Algo Weight,Show if children_intent ≠ Definitely not,Aligned expectations
+68,Values,gender_roles_household,Household responsibilities:,"Should be shared equally | Mostly wife's domain | Mostly husband's domain | Hire help, don't stress | Flexible — figure it out together",Algo Weight,,Modern vs traditional expectation; daily life friction
+69,Values,financial_management,Money in marriage:,"Joint accounts, full transparency | Partially joint, some independence | Completely separate finances | Haven't thought about it",Algo Weight,,Financial compatibility signal
+70,Values,political_leaning,Political leaning:,Very conservative | Center-right | Centrist / moderate | Center-left | Very liberal / progressive | Apolitical,Algo Weight,,Increasingly relevant; affects worldview
+71,Values,astrology_belief,Importance of kundli / astrology:,Very important — must match | Somewhat important | Don't believe but family does | Not important at all,Soft Filter,,India-specific; families block matches over kundli
+72,Values,interfaith_intercaste_openness,Open to inter-faith or inter-caste marriage?,"Yes, fully open | Open but family may resist | Prefer within community | Not open",Hard Filter,,Cross-validates religion & caste filters
+J. HARD DEALBREAKER CHECKBOXES,,,,,,,
+  💡 Quick yes/no — these eliminate matches instantly,,,,,,,
+73,Dealbreakers,db_divorced_ok,OK with divorced partner?,Yes | No,Hard Filter,,Binary dealbreaker
+74,Dealbreakers,db_widowed_ok,OK with widowed partner?,Yes | No,Hard Filter,,Binary dealbreaker
+75,Dealbreakers,db_children_ok,OK with partner who has children?,Yes | No,Hard Filter,,Binary dealbreaker
+76,Dealbreakers,db_nri_ok,OK with NRI partner?,Yes | No | Prefer NRI,Hard Filter,,Geography dealbreaker
+77,Dealbreakers,db_age_gap_max,Maximum age gap acceptable?,±2 years | ±5 years | ±8 years | ±10+ years | No limit,Hard Filter,,Enforced ceiling

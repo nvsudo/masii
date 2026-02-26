@@ -1,0 +1,10 @@
+{
+  "name": "jodi-webform-intake-site",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Jodi intake website with landing page and local hosting server",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  }
+}

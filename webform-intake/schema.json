@@ -1,0 +1,1454 @@
+{
+  "meta": {
+    "name": "Jodi V1 Field Schema",
+    "field_count": 77,
+    "section_count": 10
+  },
+  "sections": [
+    {
+      "code": "A",
+      "title": "IDENTITY & BASICS",
+      "description": "Who you are \u2014 the non-negotiable starting point",
+      "slug": "section_a"
+    },
+    {
+      "code": "B",
+      "title": "LOCATION & MOBILITY",
+      "description": "Where you are and where you could be",
+      "slug": "section_b"
+    },
+    {
+      "code": "C",
+      "title": "RELIGION, CASTE & CULTURE",
+      "description": "The stuff families talk about at the dining table",
+      "slug": "section_c"
+    },
+    {
+      "code": "D",
+      "title": "EDUCATION & CAREER",
+      "description": "What you do and where you're headed",
+      "slug": "section_d"
+    },
+    {
+      "code": "E",
+      "title": "FINANCIAL PROFILE",
+      "description": "\ud83d\udd12 Private section \u2014 used for matching quality, never shown to matches",
+      "slug": "section_e"
+    },
+    {
+      "code": "F",
+      "title": "FAMILY BACKGROUND",
+      "description": "In India, you don't just marry a person \u2014 you marry a family",
+      "slug": "section_f"
+    },
+    {
+      "code": "G",
+      "title": "LIFESTYLE & HABITS",
+      "description": "How you actually live day-to-day",
+      "slug": "section_g"
+    },
+    {
+      "code": "H",
+      "title": "PARTNER PREFERENCES",
+      "description": "What you're looking for \u2014 filters applied to the other side",
+      "slug": "section_h"
+    },
+    {
+      "code": "I",
+      "title": "VALUES & RELATIONSHIP STYLE",
+      "description": "How you think about marriage and partnership",
+      "slug": "section_i"
+    },
+    {
+      "code": "J",
+      "title": "HARD DEALBREAKER CHECKBOXES",
+      "description": "Quick yes/no \u2014 these eliminate matches instantly",
+      "slug": "section_j"
+    }
+  ],
+  "fields": [
+    {
+      "id": 1,
+      "section_code": "A",
+      "section": "Identity",
+      "field_name": "gender_identity",
+      "label": "I am a:",
+      "options": [
+        "Male",
+        "Female",
+        "Non-binary / Self-describe"
+      ],
+      "filter_type": "Hard Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Core matching axis",
+      "question_type": "single_select"
+    },
+    {
+      "id": 2,
+      "section_code": "A",
+      "section": "Identity",
+      "field_name": "looking_for_gender",
+      "label": "Looking for:",
+      "options": [
+        "Men",
+        "Women",
+        "Either"
+      ],
+      "filter_type": "Hard Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Core matching axis",
+      "question_type": "single_select"
+    },
+    {
+      "id": 3,
+      "section_code": "A",
+      "section": "Identity",
+      "field_name": "date_of_birth",
+      "label": "Your date of birth:",
+      "options": [],
+      "filter_type": "Hard Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Exact age calc; age-range filtering; legal verification",
+      "question_type": "date_of_birth"
+    },
+    {
+      "id": 4,
+      "section_code": "A",
+      "section": "Identity",
+      "field_name": "marital_status",
+      "label": "Marital status:",
+      "options": [
+        "Never married",
+        "Divorced",
+        "Widowed",
+        "Separated",
+        "Annulled"
+      ],
+      "filter_type": "Hard Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Top-3 dealbreaker in Indian matchmaking",
+      "question_type": "single_select"
+    },
+    {
+      "id": 5,
+      "section_code": "A",
+      "section": "Identity",
+      "field_name": "children_existing",
+      "label": "Do you have children?",
+      "options": [
+        "No",
+        "Yes, living with me",
+        "Yes, not living with me"
+      ],
+      "filter_type": "Hard Filter",
+      "conditional_logic": "Show if marital_status \u2260 Never married",
+      "why_this_matters": "Major dealbreaker; affects lifestyle compatibility",
+      "question_type": "single_select"
+    },
+    {
+      "id": 6,
+      "section_code": "A",
+      "section": "Identity",
+      "field_name": "height_cm",
+      "label": "Your height:",
+      "options": [
+        "< 150cm",
+        "150\u2013155",
+        "156\u2013160",
+        "161\u2013165",
+        "166\u2013170",
+        "171\u2013175",
+        "176\u2013180",
+        "181\u2013185",
+        "186\u2013190",
+        "190+"
+      ],
+      "filter_type": "Soft Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Top physical filter in Indian matchmaking",
+      "question_type": "single_select"
+    },
+    {
+      "id": 7,
+      "section_code": "A",
+      "section": "Identity",
+      "field_name": "body_type",
+      "label": "Body type:",
+      "options": [
+        "Slim",
+        "Athletic",
+        "Average",
+        "Curvy",
+        "Heavy"
+      ],
+      "filter_type": "Soft Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Physical compatibility signal",
+      "question_type": "single_select"
+    },
+    {
+      "id": 8,
+      "section_code": "A",
+      "section": "Identity",
+      "field_name": "complexion",
+      "label": "Complexion:",
+      "options": [
+        "Fair",
+        "Wheatish",
+        "Medium",
+        "Dusky",
+        "Dark",
+        "Prefer not to say"
+      ],
+      "filter_type": "Soft Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Controversial but real Indian filter; \"Prefer not to say\" respects choice",
+      "question_type": "single_select"
+    },
+    {
+      "id": 9,
+      "section_code": "A",
+      "section": "Identity",
+      "field_name": "disability_status",
+      "label": "Any physical disability?",
+      "options": [
+        "None",
+        "Yes, minor",
+        "Yes, significant",
+        "Prefer not to say"
+      ],
+      "filter_type": "Hard Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Transparency; avoids awkward reveals later",
+      "question_type": "single_select"
+    },
+    {
+      "id": 10,
+      "section_code": "B",
+      "section": "Location",
+      "field_name": "residency_type",
+      "label": "Residency status:",
+      "options": [
+        "Indian citizen (in India)",
+        "NRI",
+        "OCI / PIO",
+        "Foreign national of Indian origin"
+      ],
+      "filter_type": "Hard Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Drives entire location & legal compatibility branch",
+      "question_type": "single_select"
+    },
+    {
+      "id": 11,
+      "section_code": "B",
+      "section": "Location",
+      "field_name": "country_current",
+      "label": "Country you live in:",
+      "options": [
+        "India",
+        "UAE",
+        "USA",
+        "UK",
+        "Canada",
+        "Australia",
+        "Singapore",
+        "Germany",
+        "Other"
+      ],
+      "filter_type": "Hard Filter",
+      "conditional_logic": "Show if residency_type \u2260 Indian citizen (in India)",
+      "why_this_matters": "NRI geography matters for timezone, visa, visits",
+      "question_type": "single_select"
+    },
+    {
+      "id": 12,
+      "section_code": "B",
+      "section": "Location",
+      "field_name": "state_india",
+      "label": "State:",
+      "options": [
+        "All 28 states + 8 UTs"
+      ],
+      "filter_type": "Soft Filter",
+      "conditional_logic": "Show if residency_type = Indian citizen",
+      "why_this_matters": "Regional culture, language, cuisine alignment",
+      "question_type": "single_select"
+    },
+    {
+      "id": 13,
+      "section_code": "B",
+      "section": "Location",
+      "field_name": "city_current",
+      "label": "City:",
+      "options": [
+        "Top 100 Indian cities + major global cities"
+      ],
+      "filter_type": "Soft Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Proximity matching; metro vs tier-2 lifestyle gap",
+      "question_type": "city_autocomplete"
+    },
+    {
+      "id": 14,
+      "section_code": "B",
+      "section": "Location",
+      "field_name": "hometown_state",
+      "label": "Native place / hometown state:",
+      "options": [
+        "All 28 states + 8 UTs"
+      ],
+      "filter_type": "Soft Filter",
+      "conditional_logic": null,
+      "why_this_matters": "\"Where are you originally from\" \u2014 cultural roots signal",
+      "question_type": "single_select"
+    },
+    {
+      "id": 15,
+      "section_code": "B",
+      "section": "Location",
+      "field_name": "willing_to_relocate",
+      "label": "Open to relocating?",
+      "options": [
+        "Yes, anywhere",
+        "Yes, within India",
+        "Yes, within my state",
+        "Yes, to India (NRI returning)",
+        "Maybe, depends on partner",
+        "No"
+      ],
+      "filter_type": "Hard Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Eliminates geographic dead-ends early",
+      "question_type": "single_select"
+    },
+    {
+      "id": 16,
+      "section_code": "B",
+      "section": "Location",
+      "field_name": "partner_location_pref",
+      "label": "Partner location preference:",
+      "options": [
+        "Same city",
+        "Same state/region",
+        "Anywhere in India",
+        "NRI OK",
+        "International OK",
+        "No preference"
+      ],
+      "filter_type": "Hard Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Two-way geographic filter",
+      "question_type": "single_select"
+    },
+    {
+      "id": 17,
+      "section_code": "B",
+      "section": "Location",
+      "field_name": "settling_country",
+      "label": "Where do you plan to settle long-term?",
+      "options": [
+        "India",
+        "Abroad",
+        "Open to either",
+        "Haven't decided"
+      ],
+      "filter_type": "Soft Filter",
+      "conditional_logic": "Show if residency_type = NRI or OCI",
+      "why_this_matters": "NRI-specific: \"are you coming back or staying?\"",
+      "question_type": "single_select"
+    },
+    {
+      "id": 18,
+      "section_code": "C",
+      "section": "Religion & Culture",
+      "field_name": "religion",
+      "label": "Your religion:",
+      "options": [
+        "Hindu",
+        "Muslim",
+        "Christian",
+        "Sikh",
+        "Jain",
+        "Buddhist",
+        "Parsi/Zoroastrian",
+        "Jewish",
+        "No religion / Atheist",
+        "Spiritual but not religious",
+        "Other"
+      ],
+      "filter_type": "Hard Filter",
+      "conditional_logic": null,
+      "why_this_matters": "#1 filter in Indian matchmaking",
+      "question_type": "single_select"
+    },
+    {
+      "id": 19,
+      "section_code": "C",
+      "section": "Religion & Culture",
+      "field_name": "religious_practice",
+      "label": "How religious are you?",
+      "options": [
+        "Very devout (daily practice)",
+        "Moderately observant (festivals, rituals)",
+        "Culturally identify (not practicing)",
+        "Spiritual, not religious",
+        "Not at all"
+      ],
+      "filter_type": "Algo Weight",
+      "conditional_logic": null,
+      "why_this_matters": "Devout + non-religious = friction",
+      "question_type": "single_select"
+    },
+    {
+      "id": 20,
+      "section_code": "C",
+      "section": "Religion & Culture",
+      "field_name": "partner_religion_pref",
+      "label": "Partner's religion:",
+      "options": [
+        "Must be same",
+        "Prefer same, open to others",
+        "Doesn't matter"
+      ],
+      "filter_type": "Hard Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Two-way religion filter",
+      "question_type": "single_select"
+    },
+    {
+      "id": 21,
+      "section_code": "C",
+      "section": "Religion & Culture",
+      "field_name": "sect_denomination",
+      "label": "Sect / denomination:",
+      "options": [
+        "[Conditional dropdown] Hindu: Shaivite, Vaishnavite, Arya Samaj, etc.",
+        "Muslim: Sunni, Shia, Sufi, Ahmadiyya",
+        "Christian: Catholic, Protestant, Orthodox, Evangelical",
+        "Sikh: Amritdhari, Keshdhari, Sehajdhari",
+        "None / Prefer not to say"
+      ],
+      "filter_type": "Soft Filter",
+      "conditional_logic": "Options change based on religion",
+      "why_this_matters": "Matters within religions; Sunni-Shia, Catholic-Protestant",
+      "question_type": "single_select"
+    },
+    {
+      "id": 22,
+      "section_code": "C",
+      "section": "Religion & Culture",
+      "field_name": "caste_community",
+      "label": "Caste / community:",
+      "options": [
+        "[Conditional dropdown based on religion] Hindu: Brahmin, Kshatriya, Vaishya, SC, ST, OBC, Other",
+        "Jain: Digambar, Shwetambar, etc.",
+        "Sikh: Jat, Khatri, Ramgarhia, etc.",
+        "General",
+        "Prefer not to say"
+      ],
+      "filter_type": "Hard Filter",
+      "conditional_logic": "Show if religion = Hindu, Jain, Sikh, or Buddhist",
+      "why_this_matters": "Real filter Indian families use",
+      "question_type": "single_select"
+    },
+    {
+      "id": 23,
+      "section_code": "C",
+      "section": "Religion & Culture",
+      "field_name": "sub_caste",
+      "label": "Sub-caste / gotra (optional):",
+      "options": [
+        "Text input or dropdown based on caste"
+      ],
+      "filter_type": "Soft Filter",
+      "conditional_logic": "Show if caste_community answered",
+      "why_this_matters": "Gotra matters for same-gotra exclusion in some communities",
+      "question_type": "text"
+    },
+    {
+      "id": 24,
+      "section_code": "C",
+      "section": "Religion & Culture",
+      "field_name": "caste_importance",
+      "label": "How important is caste/community match?",
+      "options": [
+        "Dealbreaker \u2014 must match",
+        "Strong preference",
+        "Slight preference",
+        "Doesn't matter at all"
+      ],
+      "filter_type": "Hard Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Weights the caste filter; \"doesn't matter\" opens the pool",
+      "question_type": "single_select"
+    },
+    {
+      "id": 25,
+      "section_code": "C",
+      "section": "Religion & Culture",
+      "field_name": "mother_tongue",
+      "label": "Mother tongue:",
+      "options": [
+        "Hindi",
+        "Tamil",
+        "Telugu",
+        "Kannada",
+        "Malayalam",
+        "Bengali",
+        "Marathi",
+        "Gujarati",
+        "Punjabi",
+        "Odia",
+        "Assamese",
+        "Urdu",
+        "Konkani",
+        "Sindhi",
+        "Kashmiri",
+        "English",
+        "Other"
+      ],
+      "filter_type": "Soft Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Language = culture; affects daily household dynamics",
+      "question_type": "single_select"
+    },
+    {
+      "id": 26,
+      "section_code": "C",
+      "section": "Religion & Culture",
+      "field_name": "languages_spoken",
+      "label": "Languages you speak:",
+      "options": [
+        "Multi-select from same list + English"
+      ],
+      "filter_type": "Algo Weight",
+      "conditional_logic": null,
+      "why_this_matters": "Communication compatibility; bilingual couples common",
+      "question_type": "multi_select"
+    },
+    {
+      "id": 27,
+      "section_code": "C",
+      "section": "Religion & Culture",
+      "field_name": "manglik_status",
+      "label": "Manglik status:",
+      "options": [
+        "Manglik",
+        "Non-Manglik",
+        "Anshik Manglik",
+        "Don't know",
+        "Not applicable"
+      ],
+      "filter_type": "Hard Filter",
+      "conditional_logic": "Show if religion = Hindu or Jain",
+      "why_this_matters": "Kundli-based dealbreaker for many Hindu families",
+      "question_type": "single_select"
+    },
+    {
+      "id": 28,
+      "section_code": "D",
+      "section": "Education & Career",
+      "field_name": "education_level",
+      "label": "Highest education:",
+      "options": [
+        "High school / 12th",
+        "Diploma / ITI",
+        "Bachelor's (BA/BSc/BCom)",
+        "Bachelor's (BTech/BE/BBA)",
+        "Master's (MA/MSc/MCom)",
+        "Master's (MBA/MTech)",
+        "Professional (CA/CS/CFA/MBBS/LLB)",
+        "PhD / Doctorate"
+      ],
+      "filter_type": "Soft Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Education level = social signaling in India",
+      "question_type": "single_select"
+    },
+    {
+      "id": 29,
+      "section_code": "D",
+      "section": "Education & Career",
+      "field_name": "education_institute_tier",
+      "label": "Institute type:",
+      "options": [
+        "IIT / IIM / AIIMS / NLU / ISB",
+        "NITs / IIITs / Top private (BITS, VIT, etc.)",
+        "State university / Other private",
+        "Studied abroad",
+        "Other"
+      ],
+      "filter_type": "Algo Weight",
+      "conditional_logic": null,
+      "why_this_matters": "\"IIT boy\" is a real filter in Indian matchmaking",
+      "question_type": "single_select"
+    },
+    {
+      "id": 30,
+      "section_code": "D",
+      "section": "Education & Career",
+      "field_name": "employment_status",
+      "label": "Employment:",
+      "options": [
+        "Employed full-time",
+        "Self-employed / Business owner",
+        "Freelancer / Consultant",
+        "Government job",
+        "Student",
+        "Between jobs",
+        "Homemaker",
+        "Retired"
+      ],
+      "filter_type": "Soft Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Stability signal; govt job = prestige in India",
+      "question_type": "single_select"
+    },
+    {
+      "id": 31,
+      "section_code": "D",
+      "section": "Education & Career",
+      "field_name": "work_industry",
+      "label": "Industry / field:",
+      "options": [
+        "IT / Software",
+        "Finance / Banking",
+        "Healthcare / Pharma",
+        "Education / Academia",
+        "Government / PSU",
+        "Legal",
+        "Media / Entertainment",
+        "Manufacturing",
+        "Real estate",
+        "Agriculture / Farming",
+        "Startup",
+        "E-commerce",
+        "Defence / Armed forces",
+        "Other"
+      ],
+      "filter_type": "Algo Weight",
+      "conditional_logic": null,
+      "why_this_matters": "Lifestyle & schedule compatibility",
+      "question_type": "single_select"
+    },
+    {
+      "id": 32,
+      "section_code": "D",
+      "section": "Education & Career",
+      "field_name": "career_ambition",
+      "label": "Career priority:",
+      "options": [
+        "Highly ambitious (career comes first)",
+        "Career-oriented but balanced",
+        "Flexible / adaptable",
+        "Prefer homemaking",
+        "Planning career break"
+      ],
+      "filter_type": "Algo Weight",
+      "conditional_logic": null,
+      "why_this_matters": "Dual-career vs single-income expectation alignment",
+      "question_type": "single_select"
+    },
+    {
+      "id": 33,
+      "section_code": "E",
+      "section": "Financial (Private)",
+      "field_name": "annual_income",
+      "label": "\ud83d\udd12 Your annual income:",
+      "options": [
+        "Below \u20b95L",
+        "\u20b95\u201310L",
+        "\u20b910\u201320L",
+        "\u20b920\u201340L",
+        "\u20b940\u201375L",
+        "\u20b975L\u20131Cr",
+        "\u20b91\u20133Cr",
+        "\u20b93Cr+",
+        "Prefer not to say"
+      ],
+      "filter_type": "Private",
+      "conditional_logic": null,
+      "why_this_matters": "Income-compatible matching without revealing numbers",
+      "question_type": "single_select"
+    },
+    {
+      "id": 34,
+      "section_code": "E",
+      "section": "Financial (Private)",
+      "field_name": "income_currency",
+      "label": "\ud83d\udd12 Income currency:",
+      "options": [
+        "INR",
+        "USD",
+        "GBP",
+        "EUR",
+        "AED",
+        "SGD",
+        "AUD",
+        "CAD",
+        "Other"
+      ],
+      "filter_type": "Private",
+      "conditional_logic": "Show if residency_type \u2260 Indian citizen",
+      "why_this_matters": "NRI incomes need currency context; $80K \u2260 \u20b980L lifestyle",
+      "question_type": "single_select"
+    },
+    {
+      "id": 35,
+      "section_code": "E",
+      "section": "Financial (Private)",
+      "field_name": "net_worth_range",
+      "label": "\ud83d\udd12 Approximate net worth:",
+      "options": [
+        "Below \u20b910L",
+        "\u20b910\u201350L",
+        "\u20b950L\u20131Cr",
+        "\u20b91\u20135Cr",
+        "\u20b95\u201310Cr",
+        "\u20b910Cr+",
+        "Prefer not to say"
+      ],
+      "filter_type": "Private",
+      "conditional_logic": null,
+      "why_this_matters": "Wealth = lifestyle match signal",
+      "question_type": "single_select"
+    },
+    {
+      "id": 36,
+      "section_code": "E",
+      "section": "Financial (Private)",
+      "field_name": "property_ownership",
+      "label": "\ud83d\udd12 Own property?",
+      "options": [
+        "Yes, own house/flat",
+        "Yes, land/plot",
+        "Family property (will inherit)",
+        "No",
+        "Prefer not to say"
+      ],
+      "filter_type": "Private",
+      "conditional_logic": null,
+      "why_this_matters": "Asset signal; \"family property\" is very Indian",
+      "question_type": "single_select"
+    },
+    {
+      "id": 37,
+      "section_code": "E",
+      "section": "Financial (Private)",
+      "field_name": "financial_dependents",
+      "label": "\ud83d\udd12 Financial dependents?",
+      "options": [
+        "None",
+        "Parents",
+        "Siblings",
+        "Extended family",
+        "Children",
+        "Multiple dependents"
+      ],
+      "filter_type": "Private",
+      "conditional_logic": null,
+      "why_this_matters": "Hidden cost that affects couple finances",
+      "question_type": "single_select"
+    },
+    {
+      "id": 38,
+      "section_code": "F",
+      "section": "Family",
+      "field_name": "family_type",
+      "label": "Family type:",
+      "options": [
+        "Nuclear",
+        "Joint family",
+        "Extended joint family"
+      ],
+      "filter_type": "Soft Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Joint family = very different married life",
+      "question_type": "single_select"
+    },
+    {
+      "id": 39,
+      "section_code": "F",
+      "section": "Family",
+      "field_name": "family_financial_status",
+      "label": "Family background:",
+      "options": [
+        "Upper class",
+        "Upper-middle class",
+        "Middle class",
+        "Lower-middle class",
+        "Prefer not to say"
+      ],
+      "filter_type": "Algo Weight",
+      "conditional_logic": null,
+      "why_this_matters": "Lifestyle expectation alignment",
+      "question_type": "single_select"
+    },
+    {
+      "id": 40,
+      "section_code": "F",
+      "section": "Family",
+      "field_name": "father_occupation",
+      "label": "Father's occupation:",
+      "options": [
+        "Business owner",
+        "Government / PSU",
+        "Private sector",
+        "Professional (Doctor/Lawyer/CA)",
+        "Agriculture / Farming",
+        "Retired",
+        "Late",
+        "Other"
+      ],
+      "filter_type": "Algo Weight",
+      "conditional_logic": null,
+      "why_this_matters": "\"What does your father do?\" \u2014 classic Indian matchmaking Q",
+      "question_type": "single_select"
+    },
+    {
+      "id": 41,
+      "section_code": "F",
+      "section": "Family",
+      "field_name": "family_values",
+      "label": "Family values:",
+      "options": [
+        "Very traditional / orthodox",
+        "Moderate \u2014 mix of tradition and modern",
+        "Liberal / progressive",
+        "We're pretty chill"
+      ],
+      "filter_type": "Algo Weight",
+      "conditional_logic": null,
+      "why_this_matters": "Traditional vs modern household expectations",
+      "question_type": "single_select"
+    },
+    {
+      "id": 42,
+      "section_code": "F",
+      "section": "Family",
+      "field_name": "living_with_parents_post_marriage",
+      "label": "After marriage, live with parents?",
+      "options": [
+        "Yes, with my parents",
+        "Yes, with partner's parents",
+        "Open to it",
+        "Prefer independent",
+        "Definitely not"
+      ],
+      "filter_type": "Hard Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Massive friction point; best to surface early",
+      "question_type": "single_select"
+    },
+    {
+      "id": 43,
+      "section_code": "F",
+      "section": "Family",
+      "field_name": "family_involvement_search",
+      "label": "Family involvement in this search:",
+      "options": [
+        "Parents are driving this",
+        "Family knows and supports",
+        "Family will be involved later",
+        "This is my decision alone"
+      ],
+      "filter_type": "Algo Weight",
+      "conditional_logic": null,
+      "why_this_matters": "Signals independence level and pace of process",
+      "question_type": "single_select"
+    },
+    {
+      "id": 44,
+      "section_code": "F",
+      "section": "Family",
+      "field_name": "siblings",
+      "label": "Siblings:",
+      "options": [
+        "Only child",
+        "1 brother",
+        "1 sister",
+        "Multiple siblings",
+        "Prefer not to say"
+      ],
+      "filter_type": "Display Only",
+      "conditional_logic": null,
+      "why_this_matters": "Context for family dynamics; inheritance implications",
+      "question_type": "single_select"
+    },
+    {
+      "id": 45,
+      "section_code": "G",
+      "section": "Lifestyle",
+      "field_name": "diet",
+      "label": "Your diet:",
+      "options": [
+        "Pure vegetarian (no eggs)",
+        "Vegetarian (eggs OK)",
+        "Eggetarian",
+        "Non-vegetarian",
+        "Vegan",
+        "Jain food (no root veg, no onion/garlic)",
+        "Halal only",
+        "No restrictions"
+      ],
+      "filter_type": "Hard Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Shared kitchen = shared diet rules in Indian homes",
+      "question_type": "single_select"
+    },
+    {
+      "id": 46,
+      "section_code": "G",
+      "section": "Lifestyle",
+      "field_name": "partner_diet_pref",
+      "label": "Partner's diet:",
+      "options": [
+        "Must match mine",
+        "Prefer similar",
+        "Vegetarian preferred",
+        "Non-veg OK",
+        "Don't care"
+      ],
+      "filter_type": "Hard Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Two-way diet filter; veg families won't accept non-veg",
+      "question_type": "single_select"
+    },
+    {
+      "id": 47,
+      "section_code": "G",
+      "section": "Lifestyle",
+      "field_name": "smoking",
+      "label": "Smoking:",
+      "options": [
+        "Never",
+        "Occasionally / Socially",
+        "Regularly",
+        "Trying to quit",
+        "Prefer not to say"
+      ],
+      "filter_type": "Hard Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Strong dealbreaker for many Indian families",
+      "question_type": "single_select"
+    },
+    {
+      "id": 48,
+      "section_code": "G",
+      "section": "Lifestyle",
+      "field_name": "smoking_partner_ok",
+      "label": "Partner smoking:",
+      "options": [
+        "Dealbreaker",
+        "Prefer non-smoker",
+        "Don't care"
+      ],
+      "filter_type": "Hard Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Two-way filter",
+      "question_type": "single_select"
+    },
+    {
+      "id": 49,
+      "section_code": "G",
+      "section": "Lifestyle",
+      "field_name": "drinking",
+      "label": "Alcohol:",
+      "options": [
+        "Never",
+        "Socially / Occasionally",
+        "Regularly",
+        "Prefer not to say"
+      ],
+      "filter_type": "Hard Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Cultural + religious sensitivity",
+      "question_type": "single_select"
+    },
+    {
+      "id": 50,
+      "section_code": "G",
+      "section": "Lifestyle",
+      "field_name": "drinking_partner_ok",
+      "label": "Partner drinking:",
+      "options": [
+        "Dealbreaker",
+        "Prefer non-drinker",
+        "Don't care"
+      ],
+      "filter_type": "Hard Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Two-way filter",
+      "question_type": "single_select"
+    },
+    {
+      "id": 51,
+      "section_code": "G",
+      "section": "Lifestyle",
+      "field_name": "fitness_frequency",
+      "label": "Exercise / fitness:",
+      "options": [
+        "Daily (gym, yoga, sports)",
+        "Few times a week",
+        "Occasionally",
+        "Rarely / Never"
+      ],
+      "filter_type": "Algo Weight",
+      "conditional_logic": null,
+      "why_this_matters": "Lifestyle compatibility signal",
+      "question_type": "single_select"
+    },
+    {
+      "id": 52,
+      "section_code": "G",
+      "section": "Lifestyle",
+      "field_name": "social_style",
+      "label": "Social energy:",
+      "options": [
+        "Very outgoing \u2014 love big gatherings",
+        "Social but balanced",
+        "Prefer small groups",
+        "Homebody \u2014 love staying in"
+      ],
+      "filter_type": "Algo Weight",
+      "conditional_logic": null,
+      "why_this_matters": "Introvert-extrovert mismatch = daily friction",
+      "question_type": "single_select"
+    },
+    {
+      "id": 53,
+      "section_code": "G",
+      "section": "Lifestyle",
+      "field_name": "weekend_style",
+      "label": "Weekends are for:",
+      "options": [
+        "Going out (restaurants, travel, events)",
+        "Mix of both",
+        "Staying in (family, hobbies, rest)",
+        "Working / side hustle",
+        "Religious / community activities"
+      ],
+      "filter_type": "Algo Weight",
+      "conditional_logic": null,
+      "why_this_matters": "Practical lifestyle alignment",
+      "question_type": "single_select"
+    },
+    {
+      "id": 54,
+      "section_code": "G",
+      "section": "Lifestyle",
+      "field_name": "pet_ownership",
+      "label": "Pets:",
+      "options": [
+        "Have pets (dogs)",
+        "Have pets (cats)",
+        "Have pets (other)",
+        "No pets, want one",
+        "No pets, don't want one",
+        "Allergic"
+      ],
+      "filter_type": "Soft Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Pet allergies/aversion = real incompatibility",
+      "question_type": "single_select"
+    },
+    {
+      "id": 55,
+      "section_code": "G",
+      "section": "Lifestyle",
+      "field_name": "sleep_schedule",
+      "label": "Your schedule:",
+      "options": [
+        "Early bird (up before 6am)",
+        "Standard (7-8am)",
+        "Night owl (up past midnight)",
+        "Shift worker / irregular"
+      ],
+      "filter_type": "Algo Weight",
+      "conditional_logic": null,
+      "why_this_matters": "Different sleep schedules = less couple time",
+      "question_type": "single_select"
+    },
+    {
+      "id": 56,
+      "section_code": "H",
+      "section": "Partner Prefs",
+      "field_name": "pref_age_range",
+      "label": "Partner age range:",
+      "options": [
+        "[Min-Max slider] or Same as me (\u00b12yr)",
+        "Younger (up to 5yr)",
+        "Older (up to 5yr)",
+        "Wide range OK",
+        "No preference"
+      ],
+      "filter_type": "Hard Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Age gap expectations; cultural norms around this",
+      "question_type": "single_select"
+    },
+    {
+      "id": 57,
+      "section_code": "H",
+      "section": "Partner Prefs",
+      "field_name": "pref_height",
+      "label": "Partner height:",
+      "options": [
+        "Shorter than me",
+        "Similar to me (\u00b15cm)",
+        "Taller than me",
+        "No preference"
+      ],
+      "filter_type": "Soft Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Physical preference",
+      "question_type": "single_select"
+    },
+    {
+      "id": 58,
+      "section_code": "H",
+      "section": "Partner Prefs",
+      "field_name": "pref_complexion",
+      "label": "Partner complexion:",
+      "options": [
+        "Fair preferred",
+        "No preference",
+        "Prefer not to answer"
+      ],
+      "filter_type": "Soft Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Real filter; limited options to discourage colorism",
+      "question_type": "single_select"
+    },
+    {
+      "id": 59,
+      "section_code": "H",
+      "section": "Partner Prefs",
+      "field_name": "pref_education_min",
+      "label": "Partner education (minimum):",
+      "options": [
+        "Any education",
+        "Graduate (Bachelor's)",
+        "Postgraduate (Master's+)",
+        "Professional degree (CA/MBBS/LLB)",
+        "No preference"
+      ],
+      "filter_type": "Soft Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Education match expectation",
+      "question_type": "single_select"
+    },
+    {
+      "id": 60,
+      "section_code": "H",
+      "section": "Partner Prefs",
+      "field_name": "pref_income_range",
+      "label": "Partner income expectation:",
+      "options": [
+        "Below \u20b95L",
+        "\u20b95\u201310L",
+        "\u20b910\u201320L",
+        "\u20b920\u201340L",
+        "\u20b940L+",
+        "\u20b91Cr+",
+        "Doesn't matter"
+      ],
+      "filter_type": "Soft Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Financial expectation alignment",
+      "question_type": "single_select"
+    },
+    {
+      "id": 61,
+      "section_code": "H",
+      "section": "Partner Prefs",
+      "field_name": "pref_marital_status",
+      "label": "Partner marital history OK?",
+      "options": [
+        "Never married only",
+        "Divorced OK",
+        "Widowed OK",
+        "Any",
+        "Depends on situation"
+      ],
+      "filter_type": "Hard Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Strong filter in Indian market",
+      "question_type": "single_select"
+    },
+    {
+      "id": 62,
+      "section_code": "H",
+      "section": "Partner Prefs",
+      "field_name": "pref_children_ok",
+      "label": "Partner having existing children?",
+      "options": [
+        "OK",
+        "Depends",
+        "Prefer not",
+        "Dealbreaker"
+      ],
+      "filter_type": "Hard Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Tied to marital history",
+      "question_type": "single_select"
+    },
+    {
+      "id": 63,
+      "section_code": "H",
+      "section": "Partner Prefs",
+      "field_name": "pref_disability_ok",
+      "label": "Partner with disability?",
+      "options": [
+        "Yes, open to it",
+        "Depends on type",
+        "Prefer not",
+        "No"
+      ],
+      "filter_type": "Hard Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Honest preference capture",
+      "question_type": "single_select"
+    },
+    {
+      "id": 64,
+      "section_code": "H",
+      "section": "Partner Prefs",
+      "field_name": "pref_working_spouse",
+      "label": "Want a working partner?",
+      "options": [
+        "Yes, must work",
+        "Prefer working",
+        "Open to either",
+        "Prefer homemaker",
+        "No preference"
+      ],
+      "filter_type": "Soft Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Dual-income vs single-income household",
+      "question_type": "single_select"
+    },
+    {
+      "id": 65,
+      "section_code": "I",
+      "section": "Values",
+      "field_name": "relationship_intent",
+      "label": "What are you looking for?",
+      "options": [
+        "Marriage \u2014 ready now",
+        "Marriage \u2014 in 6-12 months",
+        "Marriage \u2014 in 1-2 years",
+        "Long-term committed relationship",
+        "Open to see where it goes"
+      ],
+      "filter_type": "Hard Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Timeline alignment prevents wasted time",
+      "question_type": "single_select"
+    },
+    {
+      "id": 66,
+      "section_code": "I",
+      "section": "Values",
+      "field_name": "children_intent",
+      "label": "Want children?",
+      "options": [
+        "Yes, definitely",
+        "Probably yes",
+        "Open to it",
+        "Probably not",
+        "Definitely not"
+      ],
+      "filter_type": "Hard Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Non-negotiable life decision",
+      "question_type": "single_select"
+    },
+    {
+      "id": 67,
+      "section_code": "I",
+      "section": "Values",
+      "field_name": "children_timeline",
+      "label": "Children timeline:",
+      "options": [
+        "Soon after marriage",
+        "1\u20132 years",
+        "3\u20135 years",
+        "No rush",
+        "Not applicable"
+      ],
+      "filter_type": "Algo Weight",
+      "conditional_logic": "Show if children_intent \u2260 Definitely not",
+      "why_this_matters": "Aligned expectations",
+      "question_type": "single_select"
+    },
+    {
+      "id": 68,
+      "section_code": "I",
+      "section": "Values",
+      "field_name": "gender_roles_household",
+      "label": "Household responsibilities:",
+      "options": [
+        "Should be shared equally",
+        "Mostly wife's domain",
+        "Mostly husband's domain",
+        "Hire help, don't stress",
+        "Flexible \u2014 figure it out together"
+      ],
+      "filter_type": "Algo Weight",
+      "conditional_logic": null,
+      "why_this_matters": "Modern vs traditional expectation; daily life friction",
+      "question_type": "single_select"
+    },
+    {
+      "id": 69,
+      "section_code": "I",
+      "section": "Values",
+      "field_name": "financial_management",
+      "label": "Money in marriage:",
+      "options": [
+        "Joint accounts, full transparency",
+        "Partially joint, some independence",
+        "Completely separate finances",
+        "Haven't thought about it"
+      ],
+      "filter_type": "Algo Weight",
+      "conditional_logic": null,
+      "why_this_matters": "Financial compatibility signal",
+      "question_type": "single_select"
+    },
+    {
+      "id": 70,
+      "section_code": "I",
+      "section": "Values",
+      "field_name": "political_leaning",
+      "label": "Political leaning:",
+      "options": [
+        "Very conservative",
+        "Center-right",
+        "Centrist / moderate",
+        "Center-left",
+        "Very liberal / progressive",
+        "Apolitical"
+      ],
+      "filter_type": "Algo Weight",
+      "conditional_logic": null,
+      "why_this_matters": "Increasingly relevant; affects worldview",
+      "question_type": "single_select"
+    },
+    {
+      "id": 71,
+      "section_code": "I",
+      "section": "Values",
+      "field_name": "astrology_belief",
+      "label": "Importance of kundli / astrology:",
+      "options": [
+        "Very important \u2014 must match",
+        "Somewhat important",
+        "Don't believe but family does",
+        "Not important at all"
+      ],
+      "filter_type": "Soft Filter",
+      "conditional_logic": null,
+      "why_this_matters": "India-specific; families block matches over kundli",
+      "question_type": "single_select"
+    },
+    {
+      "id": 72,
+      "section_code": "I",
+      "section": "Values",
+      "field_name": "interfaith_intercaste_openness",
+      "label": "Open to inter-faith or inter-caste marriage?",
+      "options": [
+        "Yes, fully open",
+        "Open but family may resist",
+        "Prefer within community",
+        "Not open"
+      ],
+      "filter_type": "Hard Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Cross-validates religion & caste filters",
+      "question_type": "single_select"
+    },
+    {
+      "id": 73,
+      "section_code": "J",
+      "section": "Dealbreakers",
+      "field_name": "db_divorced_ok",
+      "label": "OK with divorced partner?",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "filter_type": "Hard Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Binary dealbreaker",
+      "question_type": "single_select"
+    },
+    {
+      "id": 74,
+      "section_code": "J",
+      "section": "Dealbreakers",
+      "field_name": "db_widowed_ok",
+      "label": "OK with widowed partner?",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "filter_type": "Hard Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Binary dealbreaker",
+      "question_type": "single_select"
+    },
+    {
+      "id": 75,
+      "section_code": "J",
+      "section": "Dealbreakers",
+      "field_name": "db_children_ok",
+      "label": "OK with partner who has children?",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "filter_type": "Hard Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Binary dealbreaker",
+      "question_type": "single_select"
+    },
+    {
+      "id": 76,
+      "section_code": "J",
+      "section": "Dealbreakers",
+      "field_name": "db_nri_ok",
+      "label": "OK with NRI partner?",
+      "options": [
+        "Yes",
+        "No",
+        "Prefer NRI"
+      ],
+      "filter_type": "Hard Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Geography dealbreaker",
+      "question_type": "single_select"
+    },
+    {
+      "id": 77,
+      "section_code": "J",
+      "section": "Dealbreakers",
+      "field_name": "db_age_gap_max",
+      "label": "Maximum age gap acceptable?",
+      "options": [
+        "\u00b12 years",
+        "\u00b15 years",
+        "\u00b18 years",
+        "\u00b110+ years",
+        "No limit"
+      ],
+      "filter_type": "Hard Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Enforced ceiling",
+      "question_type": "single_select"
+    }
+  ]
+}

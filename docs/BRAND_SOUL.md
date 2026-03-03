@@ -45,7 +45,7 @@ A new generation of Indians is waking up. They want to choose their life partner
 
 ## Who It's For
 
-The 26-year-old in Mumbai who wants to choose her partner but also wants her parents to love the person. The 30-year-old in Melbourne who wants someone who gets both worlds. The parent in Ahmedabad who wants to help but doesn't want to force. The engineer in Bangalore who's done with Hinge and can't relate to Shaadi.com.
+The 26-year-old in Mumbai who wants to choose her partner but also wants her parents to love the person. The 30-year-old in Melbourne who wants someone who gets both worlds. The parent in Ahmedabad who wants to help but doesn't want to force. The engineer in Bangalore who's tired of searching and ready for someone to actually understand what they need.
 
 **Primary:** Indians everywhere, 18-40, serious about finding a life partner.
 **The person:** Independent but not cut off. Wants agency AND family harmony.
@@ -170,12 +170,21 @@ Paid tiers unlock:
 
 ## What Masii Is Not
 
-- Not a dating app (no swiping, no browsing, no engagement optimization)
-- Not Shaadi.com (not form-first, not resume-matching, not pay-to-unlock)
-- Not a traditional matchmaker (not $50K, not limited by one person's network)
 - Not a chatbot (Masii is an autonomous agent, not a Q&A bot)
 - Not pretending to be human (transparent about being AI)
-- Not just for NRIs (for Indians everywhere — India, abroad, wherever)
+
+## Brand Rule: Show, Don't Compare
+
+**Never take digs at other apps or platforms.** Not in the bot. Not on the website. Not in content. Not even subtly.
+
+Don't say "unlike other apps" or "where they get it wrong." Don't name Shaadi.com, Hinge, Bumble, or anyone else. Don't define Masii by what she isn't ("no swiping, no browsing"). Define her by what she IS.
+
+If you have to keep saying you're the king, you're no king.
+
+The experience should make the difference obvious. When Masii asks a Hindu user "Are you the daily-puja type, the Diwali-and-Holi type, or the 'it's who I am' type?" — that IS the differentiation. No explanation needed. The user feels it.
+
+**Internal docs** (VISION.md, strategy docs): Competitor analysis is fine for strategic context. Keep it internal.
+**User-facing** (bot, website, blog, social): Zero competitor mentions. Zero negation-based positioning. Only what Masii IS and DOES.
 
 ---
 

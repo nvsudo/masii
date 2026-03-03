@@ -63,8 +63,8 @@ User sends message to Masii's WhatsApp number
 WELCOME MESSAGE
     "Hey! I'm Masii, your AI matchmaker.
      I help Indians everywhere find their
-     person — no swiping, no browsing,
-     just thoughtful matching.
+     person. I ask questions, I listen,
+     and I find your match.
 
      Ready to get started?
      [Yes, let's go]  [Tell me more first]"

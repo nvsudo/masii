@@ -1,0 +1,21 @@
+# fly.toml - Jodi Matchmaker Bot
+app = "jodi-matchmaker"
+primary_region = "bom"  # Mumbai - closest to Dubai
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  APP_ENV = "production"
+
+# HTTP service for Telegram webhooks
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = false
+
+[[vm]]
+  memory = "256mb"
+  cpu_kind = "shared"
+  cpus = 1

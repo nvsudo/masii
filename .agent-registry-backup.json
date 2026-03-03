@@ -1,0 +1,50 @@
+{
+  "description": "BACKUP: Agent registry. If agents ever disappear from moltbot.json, restore from this file.",
+  "generatedAt": "2026-02-11T18:08:00Z",
+  "agents": [
+    {
+      "id": "devops-agent",
+      "name": "DevOps",
+      "workspace": "/Users/nikunjvora/clawd/agents/devops",
+      "model": "openai/gpt-5-mini",
+      "heartbeat": {
+        "every": "1h"
+      }
+    },
+    {
+      "id": "shreya",
+      "name": "Shreya",
+      "workspace": "/Users/nikunjvora/clawd/agents/shreya"
+    },
+    {
+      "id": "kavi",
+      "name": "Kavi",
+      "workspace": "/Users/nikunjvora/clawd/agents/kavi"
+    },
+    {
+      "id": "blitz",
+      "name": "Blitz",
+      "workspace": "/Users/nikunjvora/clawd/agents/blitz"
+    },
+    {
+      "id": "michael",
+      "name": "Michael",
+      "workspace": "/Users/nikunjvora/clawd/agents/michael"
+    },
+    {
+      "id": "scout",
+      "name": "Scout",
+      "workspace": "/Users/nikunjvora/clawd/agents/scout"
+    },
+    {
+      "id": "productivity_journal",
+      "name": "Productivity Journal",
+      "workspace": "/Users/nikunjvora/clawd/agents/productivity_journal"
+    },
+    {
+      "id": "greg",
+      "name": "Greg",
+      "workspace": "/Users/nikunjvora/clawd/agents/greg"
+    }
+  ]
+}

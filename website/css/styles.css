@@ -175,6 +175,26 @@ img {
     font-weight: 400;
     text-decoration: none;
     color: var(--text);
+    position: relative;
+}
+
+.nav-logo .live-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    min-width: 7px;
+    min-height: 7px;
+    background-color: #16A34A;
+    border-radius: 50%;
+    margin-left: 3px;
+    margin-bottom: 12px;
+    vertical-align: middle;
+    animation: pulse-dot 2.5s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
 }
 
 .nav-links {

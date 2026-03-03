@@ -1,5 +1,5 @@
 """
-Database Adapter for JODI Bot
+Database Adapter for Masii Bot
 Handles all database operations for onboarding session and user data
 """
 
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class DatabaseAdapter:
     """
-    Adapter for JODI Supabase Postgres database.
+    Adapter for Masii Supabase Postgres database.
     Handles session state, user data, and onboarding answers.
     """
     
@@ -138,45 +138,63 @@ class DatabaseAdapter:
     async def save_answer(self, telegram_id: int, table: str, field: str, value: Any):
         """
         Save a single answer to the appropriate database table.
-        Handles users, preferences, and personality tables.
+        Handles users, preferences, and signals tables.
         """
         if table == 'users':
             await self._save_to_users_table(telegram_id, field, value)
         elif table == 'preferences':
-            # user_preferences has regular columns, not JSONB
             await self._save_to_preferences_table(telegram_id, field, value)
-        elif table == 'personality':
+        elif table in ('signals', 'personality'):
             await self._save_to_jsonb_table('user_signals', telegram_id, field, value)
     
     async def _save_to_users_table(self, telegram_id: int, field: str, value: Any):
         """Save answer to users table column"""
-        # Map field names to actual column names if needed
+        # Map field names to actual column names
+        # Covers both the old 79-Q fields and the new 36-guna fields
         column_map = {
+            # Identity & basics
+            'first_name': 'first_name',
             'date_of_birth': 'date_of_birth',
             'gender_identity': 'gender_identity',
             'looking_for_gender': 'looking_for_gender',
             'marital_status': 'marital_status',
             'children_existing': 'children_existing',
-            'height_cm': 'height_cm',
-            'body_type': 'body_type',
-            'complexion': 'complexion',
-            'disability_status': 'disability_status',
-            'residency_type': 'residency_type',
+            'relationship_intent': 'relationship_intent',
+            # Location
             'country_current': 'country_current',
             'state_india': 'state_india',
             'city_current': 'city_current',
-            'hometown_state': 'hometown_state',
             'willing_to_relocate': 'willing_to_relocate',
-            'settling_country': 'settling_country',
+            # Religion & culture
             'religion': 'religion',
             'religious_practice': 'religious_practice',
             'sect_denomination': 'sect_denomination',
             'caste_community': 'caste_community',
-            'sub_caste': 'sub_caste',
             'mother_tongue': 'mother_tongue',
+            # Family
+            'family_type': 'family_type',
+            'family_involvement_search': 'family_involvement_search',
+            'living_with_parents_post_marriage': 'living_with_parents_post_marriage',
+            'children_intent': 'children_intent',
+            'children_timeline': 'children_timeline',
+            # Lifestyle
+            'diet': 'diet',
+            'drinking': 'drinking',
+            'smoking': 'smoking',
+            'education_level': 'education_level',
+            'work_industry': 'work_industry',
+            'career_ambition': 'career_ambition',
+            'social_style': 'social_style',
+            # Legacy fields (kept for backward compatibility)
+            'height_cm': 'height_cm',
+            'body_type': 'body_type',
+            'complexion': 'complexion',
+            'residency_type': 'residency_type',
+            'hometown_state': 'hometown_state',
+            'settling_country': 'settling_country',
+            'sub_caste': 'sub_caste',
             'languages_spoken': 'languages_spoken',
             'manglik_status': 'manglik_status',
-            # Add more mappings as needed
         }
         
         column = column_map.get(field, field)
@@ -343,8 +361,128 @@ class DatabaseAdapter:
             "missing": missing
         }
     
+    # ============== WEB FORM INTAKE ==============
+
+    def get_or_create_user_by_phone(self, phone: str, name: str = "", channel: str = "web") -> int:
+        """
+        Find existing user by phone or create a new one.
+        Returns the user's id (UUID from users table).
+        """
+        # Check if user exists by phone
+        query = "SELECT id FROM users WHERE phone = %s LIMIT 1"
+        result = self._execute(query, (phone,), fetch=True)
+
+        if result:
+            user_id = result['id']
+        else:
+            # Create new user with phone and name
+            query = """
+                INSERT INTO users (phone, first_name, created_at, updated_at)
+                VALUES (%s, %s, NOW(), NOW())
+                RETURNING id
+            """
+            result = self._execute(query, (phone, name or None), fetch=True)
+            user_id = result['id']
+            logger.info(f"Created new user via web form: {user_id}")
+
+        # Ensure user_channels entry exists
+        channel_query = """
+            INSERT INTO user_channels (user_id, channel, channel_user_id)
+            VALUES (%s, %s, %s)
+            ON CONFLICT (user_id, channel) DO NOTHING
+        """
+        self._execute(channel_query, (user_id, channel, phone))
+
+        return user_id
+
+    def save_web_intake(self, user_id, answers: Dict, meta: Dict = None):
+        """
+        Bulk save all answers from the web form.
+        answers format: { field_name: { value: "...", table: "users|preferences|signals" } }
+        """
+        # Column mappings (same as used in save_answer methods)
+        users_columns = {
+            'first_name', 'date_of_birth', 'gender_identity', 'looking_for_gender',
+            'marital_status', 'children_existing', 'relationship_intent',
+            'country_current', 'state_india', 'city_current', 'willing_to_relocate',
+            'religion', 'religious_practice', 'sect_denomination', 'caste_community',
+            'mother_tongue', 'family_type', 'family_involvement_search',
+            'living_with_parents_post_marriage', 'children_intent', 'children_timeline',
+            'diet', 'drinking', 'smoking', 'education_level', 'work_industry',
+            'career_ambition', 'social_style',
+        }
+
+        preferences_columns = {
+            'partner_location_pref', 'partner_religion_pref', 'caste_importance',
+            'partner_diet_pref',
+        }
+
+        signals_fields = {}
+        users_updates = {}
+        preferences_updates = {}
+
+        for field, info in answers.items():
+            value = info.get('value') if isinstance(info, dict) else info
+            table = info.get('table', 'users') if isinstance(info, dict) else 'users'
+
+            if table == 'users' and field in users_columns:
+                users_updates[field] = value
+            elif table == 'preferences' and field in preferences_columns:
+                preferences_updates[field] = value
+            elif table in ('signals', 'personality'):
+                signals_fields[field] = value
+
+        # Batch update users table
+        if users_updates:
+            set_clauses = ", ".join(f"{col} = %s" for col in users_updates.keys())
+            values = list(users_updates.values()) + [user_id]
+            query = f"UPDATE users SET {set_clauses}, updated_at = NOW() WHERE id = %s"
+            self._execute(query, tuple(values))
+
+        # Ensure preferences row exists, then update
+        if preferences_updates:
+            self._execute(
+                "INSERT INTO user_preferences (user_id) VALUES (%s) ON CONFLICT (user_id) DO NOTHING",
+                (user_id,)
+            )
+            set_clauses = ", ".join(f"{col} = %s" for col in preferences_updates.keys())
+            values = list(preferences_updates.values()) + [user_id]
+            query = f"UPDATE user_preferences SET {set_clauses}, updated_at = NOW() WHERE user_id = %s"
+            self._execute(query, tuple(values))
+
+        # Save signals as JSONB merge
+        if signals_fields:
+            self._execute(
+                "INSERT INTO user_signals (user_id, signals) VALUES (%s, '{}'::jsonb) ON CONFLICT (user_id) DO NOTHING",
+                (user_id,)
+            )
+            query = """
+                UPDATE user_signals
+                SET signals = signals || %s::jsonb, updated_at = NOW()
+                WHERE user_id = %s
+            """
+            self._execute(query, (json.dumps(signals_fields), user_id))
+
+        # Save meta (intent, proxy info) to signals if present
+        if meta and any(v for v in meta.values() if v is not None):
+            meta_clean = {k: v for k, v in meta.items() if v is not None}
+            self._execute(
+                "INSERT INTO user_signals (user_id, signals) VALUES (%s, '{}'::jsonb) ON CONFLICT (user_id) DO NOTHING",
+                (user_id,)
+            )
+            query = """
+                UPDATE user_signals
+                SET signals = signals || %s::jsonb, updated_at = NOW()
+                WHERE user_id = %s
+            """
+            self._execute(query, (json.dumps({"web_meta": meta_clean}), user_id))
+
+        logger.info(f"Web intake saved: {len(users_updates)} user fields, "
+                     f"{len(preferences_updates)} pref fields, "
+                     f"{len(signals_fields)} signal fields for user {user_id}")
+
     # ============== UTILITY ==============
-    
+
     def close(self):
         """Close database connection"""
         if self.conn:

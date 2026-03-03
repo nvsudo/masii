@@ -1,0 +1,387 @@
+/* Masii Form Styles
+   Matches the website aesthetic: warm off-white, saffron accent,
+   Instrument Serif headings, mobile-first. */
+
+/* ============================================
+   PROGRESS BAR
+   ============================================ */
+.form-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--border);
+    z-index: 200;
+}
+
+.form-progress-fill {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.4s ease;
+}
+
+.form-progress-text {
+    position: fixed;
+    top: 8px;
+    right: var(--space-md);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    z-index: 201;
+}
+
+/* ============================================
+   FORM CONTAINER
+   ============================================ */
+.form-wrapper {
+    min-height: calc(100vh - 200px);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: var(--space-lg) var(--space-md) var(--space-2xl);
+}
+
+#form-container {
+    width: 100%;
+    max-width: 520px;
+}
+
+/* ============================================
+   FORM CARD
+   ============================================ */
+.form-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: var(--space-lg) var(--space-md);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.form-card.fade-in {
+    animation: fadeUp 0.3s ease forwards;
+}
+
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================
+   FORM QUESTION / MESSAGE
+   ============================================ */
+.form-question {
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    font-weight: 400;
+    line-height: 1.3;
+    margin-bottom: var(--space-md);
+    color: var(--text);
+}
+
+.form-message {
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: var(--text);
+    margin-bottom: var(--space-md);
+    white-space: pre-line;
+}
+
+.form-note {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: var(--space-md);
+    line-height: 1.5;
+}
+
+/* ============================================
+   OPTION BUTTONS
+   ============================================ */
+.form-options {
+    display: grid;
+    gap: 10px;
+}
+
+.form-options.cols-2 {
+    grid-template-columns: 1fr 1fr;
+}
+
+.form-options.cols-3 {
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
+.form-btn {
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    font-weight: 500;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.form-btn-option {
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 14px 16px;
+    min-height: 48px;
+}
+
+.form-btn-option:hover {
+    border-color: var(--accent);
+    background: var(--accent-light);
+}
+
+.form-btn-option:active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+.form-btn-primary {
+    background: var(--bg-dark);
+    color: white;
+    padding: 14px 28px;
+    margin-top: var(--space-sm);
+    width: 100%;
+}
+
+.form-btn-primary:hover {
+    background: var(--accent);
+}
+
+.form-btn-secondary {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 14px 28px;
+    margin-top: 8px;
+    width: 100%;
+}
+
+.form-btn-secondary:hover {
+    border-color: var(--text);
+}
+
+/* ============================================
+   TEXT INPUTS
+   ============================================ */
+.form-input {
+    width: 100%;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+    resize: vertical;
+    line-height: 1.5;
+    margin-bottom: 4px;
+    transition: border-color 0.2s;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.form-input-single {
+    resize: none;
+}
+
+.form-input::placeholder {
+    color: var(--text-muted);
+}
+
+textarea.form-input {
+    min-height: 80px;
+}
+
+/* ============================================
+   PHONE INPUT
+   ============================================ */
+.phone-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.phone-code {
+    width: 130px;
+    flex-shrink: 0;
+}
+
+.form-select {
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    padding: 14px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2378716C' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 28px;
+}
+
+.form-select:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.phone-number {
+    flex: 1;
+}
+
+/* ============================================
+   SUCCESS STATE
+   ============================================ */
+.success-check {
+    font-size: 3rem;
+    color: var(--green);
+    margin-bottom: var(--space-sm);
+    text-align: center;
+}
+
+/* ============================================
+   ANIMATION: SHAKE (validation error)
+   ============================================ */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+}
+
+.shake {
+    animation: shake 0.4s ease;
+    border-color: #EF4444 !important;
+}
+
+/* ============================================
+   START PAGE — CHANNEL CARDS
+   ============================================ */
+.channel-hero {
+    padding: var(--space-2xl) 0 var(--space-xl);
+    text-align: center;
+}
+
+.channel-hero h1 {
+    font-family: var(--font-serif);
+    font-size: 2.5rem;
+    font-weight: 400;
+    margin-bottom: var(--space-xs);
+}
+
+.channel-hero p {
+    color: var(--text-muted);
+    font-size: 1.05rem;
+}
+
+.channel-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-md);
+    max-width: 520px;
+    margin: var(--space-lg) auto 0;
+    padding: 0 var(--space-md);
+}
+
+.channel-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: var(--space-md);
+    text-align: center;
+    text-decoration: none;
+    color: var(--text);
+    transition: all 0.2s;
+}
+
+.channel-card:hover {
+    border-color: var(--accent);
+    box-shadow: 0 2px 8px rgba(220, 107, 47, 0.1);
+}
+
+.channel-card .channel-icon {
+    font-size: 2rem;
+    margin-bottom: var(--space-sm);
+}
+
+.channel-card h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.channel-card p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+    .form-wrapper {
+        padding: var(--space-md) var(--space-sm) var(--space-xl);
+    }
+
+    .form-card {
+        padding: var(--space-md) var(--space-sm);
+    }
+
+    .form-question {
+        font-size: 1.3rem;
+    }
+
+    .form-options.cols-3 {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .channel-hero h1 {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .form-question {
+        font-size: 1.2rem;
+    }
+
+    .form-message {
+        font-size: 0.95rem;
+    }
+
+    .form-options.cols-2 {
+        grid-template-columns: 1fr;
+    }
+
+    .form-options.cols-3 {
+        grid-template-columns: 1fr;
+    }
+
+    .channel-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .phone-row {
+        flex-direction: column;
+    }
+
+    .phone-code {
+        width: 100%;
+    }
+}

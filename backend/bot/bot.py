@@ -1,5 +1,5 @@
 """
-JODI Telegram Bot - Main Entry Point
+Masii Telegram Bot - Main Entry Point
 Handles Telegram bot initialization and message routing
 """
 
@@ -43,7 +43,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /help command"""
-    help_text = """**Jodi - Your Matchmaking Companion** 🙏
+    help_text = """**Masii - Your AI Matchmaker** 🪷
 
 **Commands:**
 /start - Start or continue your journey
@@ -51,12 +51,12 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 /help - Show this help message
 
 **How it works:**
-1. I'll ask you some quick questions (about 10 minutes)
-2. Then we'll have real conversations to understand what you're looking for
-3. When I find someone promising, I'll introduce you
-4. No swiping. No endless scrolling. Just thoughtful introductions.
+1. I'll ask you 36 questions — the 36 gunas (about 10 minutes)
+2. Then I search the community for someone who fits
+3. When I find someone, I'll message you with my reasoning
+4. Both say yes? I make the introduction. For free.
 
-Just tap the buttons to answer questions, and we'll chat naturally after that. 💫"""
+Just tap the buttons to answer. Take your time. 💫"""
     
     await update.message.reply_text(help_text, parse_mode='Markdown')
 
@@ -75,7 +75,7 @@ async def progress_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     
     current_q = session.get('current_question', 0)
-    total_q = 77
+    total_q = 36
     skip_count = len(session.get('skip_questions', []))
     actual_total = total_q - skip_count
     
@@ -111,16 +111,14 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     current_section = session.get('current_section', '')
     
     # Route based on current section
-    if current_section in ['identity_basics', 'location_mobility', 'religion_culture',
-                           'education_career', 'financial', 'family', 'lifestyle',
-                           'partner_prefs', 'values', 'dealbreakers']:
-        # In button-based onboarding
+    if current_section in ['niyat', 'parichay', 'dharam', 'parivar',
+                           'jeevan_shaili', 'soch', 'intro']:
+        # In 36-guna onboarding
         await onboarding_handler.handle_text_input(update, context)
-    
-    elif current_section == 'conversational':
-        # In conversational mode (to be implemented later)
+
+    elif current_section == 'complete':
         await update.message.reply_text(
-            "Conversational mode coming soon! For now, complete the quick questions first."
+            "Your 36 gunas are done! I'm looking for your match. I'll message you when I find someone."
         )
     
     else:
@@ -214,9 +212,9 @@ async def _finish_photo_upload(query, context: ContextTypes.DEFAULT_TYPE):
     name = user.get('first_name', query.from_user.first_name) if user else query.from_user.first_name
     
     # Build summary
-    from config import FINAL_TRANSITION
-    
-    summary_text = FINAL_TRANSITION.format(name=name)
+    from config import CLOSE_MESSAGE
+
+    summary_text = CLOSE_MESSAGE.format(name=name)
     
     # Show transition to conversational mode
     from telegram import InlineKeyboardButton, InlineKeyboardMarkup
@@ -243,10 +241,8 @@ async def handle_sticker(update: Update, context: ContextTypes.DEFAULT_TYPE):
     telegram_id = update.effective_user.id
     session = db_adapter.get_session(telegram_id)
     
-    if session and session.get('current_section') in ['identity_basics', 'location_mobility', 
-                                                       'religion_culture', 'education_career',
-                                                       'financial', 'family', 'lifestyle',
-                                                       'partner_prefs', 'values', 'dealbreakers']:
+    if session and session.get('current_section') in ['niyat', 'parichay', 'dharam', 'parivar',
+                                                       'jeevan_shaili', 'soch', 'intro']:
         # User sent sticker during button phase
         await update.message.reply_text(ERROR_MESSAGES['sticker_during_buttons'])
     else:
@@ -304,7 +300,7 @@ def main():
     application.add_error_handler(error_handler)
     
     # Start bot
-    logger.info("Starting JODI bot...")
+    logger.info("Starting Masii bot...")
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 

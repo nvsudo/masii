@@ -1,4 +1,4 @@
-# Jodi — Matching Protocol
+# Masii — Matching Protocol
 
 **Last updated:** 2026-03-03
 **Status:** Draft v1
@@ -7,7 +7,7 @@
 
 ## Overview
 
-The matching protocol is Jodi's core engine. It determines who sees whom, when, and why. It runs autonomously — no human in the loop for standard matches.
+The matching protocol is Masii's core engine. It determines who sees whom, when, and why. It runs autonomously — no human in the loop for standard matches.
 
 The goal is not "give them options." The goal is "find the right person." Fewer, better matches. Conviction, not volume.
 
@@ -17,7 +17,7 @@ The goal is not "give them options." The goal is "find the right person." Fewer,
 
 ### 1. Fewer matches, higher conviction
 Traditional apps: "Here are 50 profiles. Good luck."
-Jodi: "Here's one person. Here's why. Both of you said yes."
+Masii: "Here's one person. Here's why. Both of you said yes."
 
 ### 2. Hard filters are non-negotiable
 If someone says "Hindu only" — that's absolute. No "but they're great otherwise." Respecting dealbreakers builds trust.
@@ -301,14 +301,14 @@ MATCH FOUND (score ≥ 75, confidence high)
 ┌─────────────────────────────────────┐
 │  PERSON A receives message:         │
 │                                     │
-│  "Seema found someone for you.      │
+│  "Masii found someone for you.      │
 │                                     │
 │   Name: [First name only]           │
 │   Age: [Age]                        │
 │   Location: [City, Country]         │
 │   Match strength: 89%               │
 │                                     │
-│   Why Seema thinks you'd click:     │
+│   Why Masii thinks you'd click:     │
 │   - Both value family time          │
 │   - Both Gujarati speakers          │
 │   - Similar career ambition         │
@@ -367,7 +367,7 @@ BOTH SAID YES
 │   (or) We'll connect you in a       │
 │   group chat.                       │
 │                                     │
-│   Seema's tip: Ask about [shared    │
+│   Masii's tip: Ask about [shared    │
 │   interest]. That's what makes      │
 │   you two a great match."           │
 └──────────────┬──────────────────────┘
@@ -403,7 +403,7 @@ BOTH SAID YES
 - Photos (if uploaded)
 - Detailed profile
 - Contact info (WhatsApp number)
-- Seema's conversation starter suggestion
+- Masii's conversation starter suggestion
 
 **Never shown:**
 - Income (unless both Verified tier)
@@ -437,7 +437,7 @@ Chemistry:  [1-5 stars]
 Conversation: [1-5 stars]
 Would you meet again? [Yes / Maybe / No]
 
-Anything Seema should know for future matches?"
+Anything Masii should know for future matches?"
 ```
 
 ### How Feedback Improves Matching
@@ -463,11 +463,11 @@ if user_said_yes_but_date_was_bad:
 
 ---
 
-## Match Presentation: What Seema Says
+## Match Presentation: What Masii Says
 
 ### The Explanation Template
 
-Seema doesn't just say "87% match." She tells a story:
+Masii doesn't just say "87% match." She tells a story:
 
 ```
 "I think you two would really get along. Here's why:
@@ -509,17 +509,17 @@ Person A scores Person B at 90%. Person B scores Person A at 72%.
 ### Small Pool
 Early days: may not have enough profiles for high-confidence matches.
 - Lower threshold to 70% for first 100 profiles
-- Be transparent: "Seema is still building the community. Fewer matches, but they'll be meaningful."
+- Be transparent: "Masii is still building the community. Fewer matches, but they'll be meaningful."
 - Never pad with low-quality matches just to show activity
 
 ### Repeated Rejections
 User has rejected 5+ matches in a row.
-- Seema checks in: "I notice the last few matches haven't felt right. Can you help me understand what I'm missing?"
+- Masii checks in: "I notice the last few matches haven't felt right. Can you help me understand what I'm missing?"
 - Trigger a mini re-profiling conversation
 - Adjust weights based on rejection patterns
 
 ### No Matches Available
-- Don't ghost the user. Seema messages: "I haven't found the right match yet. I'm looking. I'll reach out when I find someone worth your time."
+- Don't ghost the user. Masii messages: "I haven't found the right match yet. I'm looking. I'll reach out when I find someone worth your time."
 - Weekly "still searching" update if >2 weeks without a match
 
 ---

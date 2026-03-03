@@ -420,13 +420,16 @@ class TestJSONBOperations:
         """Test saving to JSONB updates field"""
         conn, cursor = mock_connection
         mock_connect.return_value = conn
-        
+
+        # Mock the user lookup to return a user_id
+        cursor.fetchone.return_value = {'id': 42}
+
         db = DatabaseAdapter("postgresql://test:test@localhost/testdb")
         await db._save_to_jsonb_table('user_signals', 123456789, 'communication_style', 'Direct')
-        
-        # Should execute queries
+
+        # Should execute queries (SELECT + INSERT + UPDATE)
         assert cursor.execute.called
-        
+
         # Check that UPDATE query contains jsonb operation
         calls = cursor.execute.call_args_list
         update_call = [c for c in calls if 'UPDATE' in str(c)]

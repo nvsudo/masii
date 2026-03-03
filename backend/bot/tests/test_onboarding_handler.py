@@ -74,10 +74,10 @@ class TestStartOnboarding:
     
     async def test_start_completed_user(self, mock_db, mock_update, mock_context):
         """Test starting for user who completed onboarding"""
-        # User completed all 77 questions
+        # User completed all 36 gunas
         mock_db.get_session.return_value = {
             'user_id': 123456789,
-            'current_question': 77,
+            'current_question': 37,
             'answers': {}
         }
         
@@ -105,25 +105,17 @@ class TestIntroFlow:
         assert 'reply_markup' in call_args
     
     async def test_intro_completion(self, mock_db, mock_context):
-        """Test transition from intro to questions"""
-        # Create a session
-        session = {
-            'user_id': 123456789,
-            'current_section': 'intro',
-            'answers': {},
-            'skip_questions': []
-        }
-        mock_db.get_session.return_value = session
-        
+        """Test transition from intro to intent question"""
         handler = OnboardingHandler(mock_db)
-        
-        # Try to show intro beyond last message
+
+        # Show intro beyond last message → should transition to intent
         from config import INTRO_MESSAGES
         await handler._show_intro_message(123456789, mock_context, len(INTRO_MESSAGES), 123456789)
-        
-        # Should transition to questions
-        # Session should be updated to questions
-        assert mock_db.save_session.called
+
+        # Should send intent question (send_message called for intent)
+        assert mock_context.bot.send_message.called
+        call_args = mock_context.bot.send_message.call_args[1]
+        assert 'reply_markup' in call_args
 
 
 @pytest.mark.asyncio
@@ -163,23 +155,24 @@ class TestQuestionFlow:
         assert 'text' in call_args
     
     async def test_skip_question_logic(self, mock_db, mock_context):
-        """Test that questions are skipped correctly"""
-        # User is never married, so Q5 should be skipped
+        """Test that gunas are skipped correctly based on religion"""
+        # Buddhist → guna 11 (practice) should be skipped
         session = {
             'user_id': 123456789,
-            'current_question': 4,
-            'answers': {'marital_status': 'Never married'},
-            'skip_questions': []
+            'current_question': 10,
+            'answers': {'religion': 'Buddhist'},
+            'skip_questions': [],
+            'asked_questions': list(range(1, 11)),
         }
         mock_db.get_session.return_value = session
-        
+
         handler = OnboardingHandler(mock_db)
-        
-        # Ask question 5 (should skip to 6)
-        await handler._ask_question(123456789, mock_context, 5, session)
-        
-        # Q5 should be added to skip_questions
-        assert 5 in session['skip_questions']
+
+        # Ask guna 11 (should skip — practice skipped for Buddhist)
+        await handler._ask_question(123456789, mock_context, 11, session)
+
+        # Guna 11 should be added to skip_questions
+        assert 11 in session['skip_questions']
 
 
 @pytest.mark.asyncio
@@ -211,21 +204,21 @@ class TestButtonCallbacks:
         }
         mock_db.get_session.return_value = session
         
-        # User selects "Female" for Q1
-        mock_callback_query.data = "q1_female"
-        
+        # User selects "Marriage" for Q1 (relationship_intent)
+        mock_callback_query.data = "q1_marriage"
+
         handler = OnboardingHandler(mock_db)
-        
+
         update = Mock()
         update.callback_query = mock_callback_query
-        
+
         await handler.handle_button_callback(update, mock_context)
-        
+
         # Should save answer
         assert mock_db.save_answer.called
-        
+
         # Should update session
-        assert 'gender_identity' in session['answers'] or mock_db.save_session.called
+        assert 'relationship_intent' in session['answers'] or mock_db.save_session.called
     
     async def test_resume_callback(self, mock_db, mock_context, mock_callback_query):
         """Test resume onboarding callback"""
@@ -273,36 +266,38 @@ class TestTextInputHandling:
     """Test text input handling"""
     
     async def test_valid_text_input(self, mock_db, mock_update, mock_context):
-        """Test valid text input"""
+        """Test valid text input for name question"""
         session = {
             'user_id': 123456789,
-            'current_question': 3,  # DOB question
+            'current_question': 5,  # first_name (text_input)
             'answers': {},
-            'skip_questions': []
+            'skip_questions': [],
+            'asked_questions': [1, 2, 3, 4, 5],
         }
         mock_db.get_session.return_value = session
-        
-        # User enters valid DOB
-        mock_update.message.text = "15/06/1995"
-        
+
+        # User enters their name
+        mock_update.message.text = "Priya"
+
         handler = OnboardingHandler(mock_db)
         await handler.handle_text_input(mock_update, mock_context)
-        
+
         # Should save answer
         assert mock_db.save_answer.called
     
     async def test_invalid_text_input(self, mock_db, mock_update, mock_context):
-        """Test invalid text input"""
+        """Test text input when button expected"""
         session = {
             'user_id': 123456789,
-            'current_question': 3,  # DOB question
+            'current_question': 1,  # single_select — expects button not text
             'answers': {},
-            'skip_questions': []
+            'skip_questions': [],
+            'asked_questions': [1],
         }
         mock_db.get_session.return_value = session
-        
-        # User enters invalid DOB
-        mock_update.message.text = "invalid date"
+
+        # User types text when button is expected
+        mock_update.message.text = "some text"
         
         handler = OnboardingHandler(mock_db)
         await handler.handle_text_input(mock_update, mock_context)
@@ -320,10 +315,11 @@ class TestTextInputHandling:
             'user_id': 123456789,
             'current_question': 1,  # Single select question
             'answers': {},
-            'skip_questions': []
+            'skip_questions': [],
+            'asked_questions': [1],
         }
         mock_db.get_session.return_value = session
-        
+
         mock_update.message.text = "some text"
         
         handler = OnboardingHandler(mock_db)
@@ -396,20 +392,21 @@ class TestMultiSelect:
 
 
 @pytest.mark.asyncio
-class TestPhotoUpload:
-    """Test photo upload flow"""
-    
-    async def test_show_photo_upload(self, mock_db, mock_context, sample_session):
-        """Test showing photo upload prompt"""
+class TestCloseFlow:
+    """Test close flow after all 36 gunas"""
+
+    async def test_show_close(self, mock_db, mock_context, sample_session):
+        """Test showing close message after 36 gunas"""
+        sample_session['answers']['first_name'] = 'Test'
         handler = OnboardingHandler(mock_db)
-        
-        await handler._show_photo_upload(123456789, mock_context, sample_session)
-        
-        # Should send photo upload message
+
+        await handler._show_close(123456789, mock_context, sample_session)
+
+        # Should send close message
         assert mock_context.bot.send_message.called
-        
-        # Should update session section
-        assert sample_session['current_section'] == 'photo_upload'
+
+        # Should update session to complete
+        assert sample_session['current_section'] == 'complete'
 
 
 class TestHelperMethods:

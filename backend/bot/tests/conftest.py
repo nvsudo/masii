@@ -1,18 +1,15 @@
 """
-Pytest configuration and shared fixtures
+Pytest configuration and shared fixtures for 36-guna Masii bot tests
 """
 
 import pytest
-import os
-from unittest.mock import Mock, AsyncMock
+from unittest.mock import Mock, AsyncMock, MagicMock
 from datetime import datetime
 
 
 @pytest.fixture
 def mock_db():
     """Mock database adapter"""
-    from unittest.mock import MagicMock
-    
     db = MagicMock()
     db.get_session = MagicMock(return_value=None)
     db.save_session = MagicMock()
@@ -20,26 +17,27 @@ def mock_db():
     db.save_answer = AsyncMock()
     db.get_user = MagicMock(return_value=None)
     db.create_user = MagicMock()
-    
     return db
 
 
 @pytest.fixture
 def sample_session():
-    """Sample onboarding session"""
+    """Sample onboarding session (36-guna flow)"""
     return {
         "user_id": 123456789,
         "username": "test_user",
         "first_name": "Test",
-        "current_section": "identity_basics",
+        "current_section": "niyat",
         "current_question": 1,
         "intro_index": 0,
         "answers": {},
         "skip_questions": [],
+        "asked_questions": [],
         "multi_select_buffer": {},
-        "photo_urls": [],
+        "location_buffer": {},
+        "proxy": None,
         "started_at": datetime.utcnow().isoformat(),
-        "last_active": datetime.utcnow().isoformat()
+        "last_active": datetime.utcnow().isoformat(),
     }
 
 
@@ -56,7 +54,6 @@ def mock_update():
     update.message.chat.id = 123456789
     update.message.text = ""
     update.message.reply_text = AsyncMock()
-    
     return update
 
 
@@ -66,7 +63,6 @@ def mock_context():
     context = Mock()
     context.bot = Mock()
     context.bot.send_message = AsyncMock()
-    
     return context
 
 
@@ -80,47 +76,50 @@ def mock_callback_query():
     query.message = Mock()
     query.message.chat = Mock()
     query.message.chat.id = 123456789
+    query.message.reply_text = AsyncMock()
     query.data = ""
-    
     return query
 
 
+# ============== SAMPLE ANSWER SETS ==============
+
 @pytest.fixture
-def hindu_never_married_india():
-    """Sample answers: Hindu, never married, in India"""
+def hindu_never_married():
+    """Hindu, never married"""
     return {
         "marital_status": "Never married",
-        "residency_type": "Indian citizen (in India)",
-        "religion": "Hindu"
+        "religion": "Hindu",
+        "caste_community": "Brahmin",
+        "children_intent": "Yes",
     }
 
 
 @pytest.fixture
-def muslim_never_married_india():
-    """Sample answers: Muslim, never married, in India"""
+def muslim_never_married():
+    """Muslim, never married"""
     return {
         "marital_status": "Never married",
-        "residency_type": "Indian citizen (in India)",
-        "religion": "Muslim"
+        "religion": "Muslim",
+        "children_intent": "Yes",
     }
 
 
 @pytest.fixture
-def nri_hindu():
-    """Sample answers: NRI Hindu"""
+def jain_never_married():
+    """Jain, never married"""
     return {
         "marital_status": "Never married",
-        "residency_type": "NRI",
-        "religion": "Hindu"
+        "religion": "Jain",
+        "caste_community": "Oswal",
+        "children_intent": "Open",
     }
 
 
 @pytest.fixture
-def divorced_with_children():
-    """Sample answers: Divorced with children"""
+def buddhist_divorced():
+    """Buddhist, divorced"""
     return {
         "marital_status": "Divorced",
-        "residency_type": "Indian citizen (in India)",
-        "religion": "Hindu",
-        "children_intent": "Already have"
+        "religion": "Buddhist",
+        "children_intent": "No",
     }

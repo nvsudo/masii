@@ -38,6 +38,9 @@ ALTER TABLE users RENAME COLUMN languages_spoken_arr TO languages_spoken;
 
 -- ============================================================================
 -- PART 3: USERS TABLE — Drop unused columns
+
+DROP TRIGGER IF EXISTS update_users_full_name ON users;
+DROP TRIGGER IF EXISTS update_completeness_on_user_change ON users;
 -- ============================================================================
 -- These fields are not in the question flow and were part of the old
 -- generic Western matchmaking framework.
@@ -56,7 +59,7 @@ ALTER TABLE users DROP COLUMN IF EXISTS looking_for_gender;
 ALTER TABLE users DROP COLUMN IF EXISTS body_type;
 ALTER TABLE users DROP COLUMN IF EXISTS complexion;
 ALTER TABLE users DROP COLUMN IF EXISTS residency_type;
-ALTER TABLE users DROP COLUMN IF EXISTS state_india;
+-- KEEP state_india — used by Q2 location tree (India → state → city)
 ALTER TABLE users DROP COLUMN IF EXISTS sub_caste;
 ALTER TABLE users DROP COLUMN IF EXISTS education_institute_tier;
 ALTER TABLE users DROP COLUMN IF EXISTS employment_status;
@@ -259,8 +262,8 @@ ALTER TABLE users DROP COLUMN IF EXISTS manglik_status;
 -- PART 10: USER_CHANNELS TABLE — Renames for consistency
 -- ============================================================================
 
-ALTER TABLE user_channels RENAME COLUMN channel_type TO channel;
-ALTER TABLE user_channels RENAME COLUMN channel_identifier TO channel_id;
+-- ALTER TABLE user_channels RENAME COLUMN channel_type TO channel;
+-- ALTER TABLE user_channels RENAME COLUMN channel_identifier TO channel_id;
 
 -- ============================================================================
 -- PART 11: Update indexes for renamed columns

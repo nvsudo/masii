@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Why we started on Telegram — Masii</title>
+    <meta name="description" content="Masii started on Telegram instead of building an app. Conversational matchmaking on a messaging platform feels more natural. WhatsApp is next. Web form is live.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪷</text></svg>">
+</head>
+<body>
+    <nav class="nav">
+        <a href="../index.html" class="nav-logo">Masii</a>
+        <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+        <ul class="nav-links">
+            <li><a href="../index.html#how">How it works</a></li>
+            <li><a href="../index.html#why">Why Masii</a></li>
+            <li><a href="../stories/">Stories</a></li>
+            <li><a href="./">Blog</a></li>
+            <li><a href="../about.html">About</a></li>
+            <li><a href="../start.html" class="nav-cta">Start with Masii</a></li>
+        </ul>
+    </nav>
+    <article class="blog-post">
+        <div class="container">
+            <span class="post-meta">February 3, 2026</span>
+            <h1>Why we started on Telegram</h1>
+            <div class="content">
+                <p>When people hear that Masii lives on a messaging platform instead of a dedicated app, the first reaction is usually surprise. Sometimes skepticism. You are building a matchmaker and you did not build an app?</p>
+
+                <p>No. And that was a deliberate choice, not a shortcut.</p>
+
+                <h2>The app graveyard</h2>
+
+                <p>Think about the last ten apps you downloaded. How many are still on your phone? How many do you actually open? The average person uses about nine apps daily, and almost all of them are ones that were there six months ago.</p>
+
+                <p>Matchmaking is not a daily-use product. If it is working correctly, you use it intensely for a short period and then never again. Asking someone to download a dedicated app for that — to find it in the App Store, create an account, learn a new interface, grant permissions, deal with notifications — is a lot of friction for something that should feel as natural as texting a friend.</p>
+
+                <p>Every Indian matchmaker in history operated through conversation. Your masi did not have an app. She had a phone and a mental database. She called you, asked questions, listened to the answers, and then called you back when she had someone in mind. The interface was a conversation. We just preserved that.</p>
+
+                <h2>Why messaging works for matchmaking</h2>
+
+                <p>There is something specific about messaging that makes it better for the kind of intake matchmaking requires. It is asynchronous. It is low-pressure. And it allows people to be more honest than they would be face-to-face or on a form.</p>
+
+                <p>When Masii asks you about your relationship with your parents, you can take twenty minutes to think about your answer. You can start typing, delete it, and try again. You can answer at midnight when the house is quiet and you are being honest with yourself. There is no interviewer watching you, no timer counting down, no form field that limits you to 250 characters.</p>
+
+                <p>This matters especially for the questions that are hardest to answer. Questions about dealbreakers. About past relationships. About the gap between what your family expects and what you actually want. These answers come out better in a text thread than in any other format we tested.</p>
+
+                <p>We also found that the conversational format naturally produces richer data. When someone fills out a form, they give you the minimum. When someone is in a conversation, they elaborate. They add context. They say things like "well, it is complicated because..." and then tell you the thing that actually matters. That unprompted context is gold for matching.</p>
+
+                <blockquote>The best matchmaking conversations feel like talking to a wise friend at 11 PM — honest, unhurried, and free of performance. Messaging makes that possible in a way that apps and forms never could.</blockquote>
+
+                <h2>Why Telegram first</h2>
+
+                <p>If messaging is the right medium, why Telegram and not WhatsApp? This is the question we get most often, and the answer is practical, not philosophical.</p>
+
+                <p>Telegram's bot API is open, well-documented, and free. It allows rich interactions — buttons, inline responses, file sharing — without any approval process or business verification. We could build, test, and iterate on Masii's conversational intake in weeks rather than months.</p>
+
+                <p>WhatsApp's Business API, by contrast, requires Meta business verification, has strict message template approval processes, charges per conversation, and limits what you can do in terms of interactive elements. It is the right platform for scale, but the wrong platform for a product that is still learning what questions to ask and how to ask them.</p>
+
+                <p>For our early users, Telegram also offered a practical benefit: separation. Your Masii conversations live in Telegram, distinct from the WhatsApp threads with your family, your work groups, your college friends. There is a psychological comfort in having your matchmaking journey in its own space, not sandwiched between your mom's forwarded messages and your office group chat.</p>
+
+                <p>That said, we always knew Telegram was the starting point, not the destination.</p>
+
+                <h2>WhatsApp is next</h2>
+
+                <p>WhatsApp has over two billion users globally and near-universal adoption among the Indian diaspora. Your parents are on it. Your cousins are on it. The family group that will eventually celebrate your engagement is on it. For Masii to reach the people who need it most, WhatsApp is not optional — it is essential.</p>
+
+                <p>We are building toward WhatsApp integration now. The conversational framework we developed on Telegram transfers directly — the questions, the flow, the way Masii responds and follows up. The platform changes, but the experience should feel identical. Same wise-friend tone. Same unhurried pace. Same depth of understanding.</p>
+
+                <p>WhatsApp also unlocks something Telegram cannot: reach through existing networks. When your bua sends a WhatsApp forward to every unmarried person she knows — and she will — the barrier to responding is zero. No new app to download. No new account to create. Just open the message and start talking.</p>
+
+                <p>For now, if you prefer not to use Telegram, our web intake form is live on the site. It captures the same core information through a structured but conversational flow. You fill it out at your own pace, and Masii follows up through whatever channel you prefer.</p>
+
+                <h2>The channel is not the product</h2>
+
+                <p>Here is the thing people sometimes miss about our approach: Telegram is not the product. WhatsApp will not be the product. The web form is not the product.</p>
+
+                <p>The product is the conversation. The understanding that emerges from it. The match that results from that understanding. The channel is just plumbing — important plumbing that needs to work well, but plumbing nonetheless.</p>
+
+                <p>We spent our energy on the things that actually determine whether you find the right person: the questions we ask, the patterns we recognize in your answers, the compatibility model that connects your story to someone else's. Whether that conversation happens on Telegram, WhatsApp, a web browser, or eventually a voice call does not change the substance of what Masii does.</p>
+
+                <p>This is also why we are platform-agnostic by design. Your data, your conversation history, your compatibility profile — none of it is locked to a platform. If you start on Telegram and want to continue on WhatsApp, everything comes with you. If you want to switch to the web form halfway through, that works too. Masii remembers the conversation regardless of where it happens.</p>
+
+                <h2>Meeting people where they are</h2>
+
+                <p>There is an old product principle: meet users where they are, not where you want them to be. For the Indian diaspora, "where they are" is messaging apps. It is WhatsApp groups and Telegram channels and the occasional Instagram DM. It is not another app in the App Store competing for attention with the fifty others they already ignore.</p>
+
+                <p>We built Masii on messaging because that is where honest conversations happen. Not on profiles designed for strangers to evaluate. Not on forms designed for databases to process. In message threads, where people talk the way they actually talk — with caveats and contradictions and the messy specificity that makes them who they are.</p>
+
+                <p>Download another app, or open a conversation. We think the choice is obvious.</p>
+            </div>
+        </div>
+    </article>
+    <section class="cta-section">
+        <div class="container">
+            <h2>Ready to meet your person?</h2>
+            <p>Tell Masii about yourself. 10 minutes. Free to start.</p>
+            <a href="../start.html" class="btn-primary">Start with Masii <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+        </div>
+    </section>
+    <footer>
+        <div class="container-wide">
+            <div class="footer-content">
+                <span>Masii &copy; 2026</span>
+                <ul class="footer-links">
+                    <li><a href="../about.html">About</a></li>
+                    <li><a href="../stories/">Stories</a></li>
+                    <li><a href="./">Blog</a></li>
+                    <li><a href="#">Privacy</a></li>
+                    <li><a href="#">Terms</a></li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+    <script src="../js/main.js"></script>
+</body>
+</html>

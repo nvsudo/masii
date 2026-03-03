@@ -1,6 +1,7 @@
 """
 Database Adapter for Masii Bot
-Handles all database operations for onboarding session and user data
+Handles all database operations for onboarding session and user data.
+Column names aligned with docs/question-flow.md and migration 13.
 """
 
 import json
@@ -19,16 +20,16 @@ class DatabaseAdapter:
     Adapter for Masii Supabase Postgres database.
     Handles session state, user data, and onboarding answers.
     """
-    
+
     def __init__(self, database_url: str = None):
         """Initialize database connection"""
         self.database_url = database_url or os.getenv('DATABASE_URL')
         if not self.database_url:
             raise ValueError("DATABASE_URL not set")
-        
+
         self.conn = None
         self._connect()
-    
+
     def _connect(self):
         """Establish database connection"""
         try:
@@ -41,7 +42,7 @@ class DatabaseAdapter:
         except Exception as e:
             logger.error(f"Database connection failed: {e}")
             raise
-    
+
     def _execute(self, query: str, params: tuple = None, fetch: bool = False) -> Any:
         """Execute a database query with error handling"""
         try:
@@ -54,52 +55,41 @@ class DatabaseAdapter:
             logger.error(f"Database query failed: {e}")
             logger.error(f"Query: {query}")
             logger.error(f"Params: {params}")
-            
-            # Try to reconnect
+
             try:
                 self._connect()
             except:
                 pass
-            
+
             raise
-    
+
     # ============== SESSION MANAGEMENT ==============
-    
+
     def get_session(self, telegram_id: int) -> Optional[Dict]:
-        """
-        Retrieve onboarding session state for a user.
-        Returns None if no session exists.
-        """
+        """Retrieve onboarding session state for a user."""
         query = """
             SELECT session_data, last_active
             FROM conversation_state
             WHERE user_id = %s
         """
-        
         result = self._execute(query, (telegram_id,), fetch=True)
-        
+
         if result:
             return {
                 'user_id': telegram_id,
                 **result['session_data'],
                 'last_active': result['last_active'].isoformat() if result['last_active'] else None
             }
-        
         return None
-    
+
     def save_session(self, session: Dict):
-        """
-        Save or update onboarding session state.
-        Uses upsert to handle both new and existing sessions.
-        """
+        """Save or update onboarding session state."""
         user_id = session['user_id']
-        
-        # Extract fields
         session_data = {
             k: v for k, v in session.items()
             if k not in ['user_id', 'last_active']
         }
-        
+
         query = """
             INSERT INTO conversation_state (user_id, session_data, last_active)
             VALUES (%s, %s, NOW())
@@ -108,33 +98,32 @@ class DatabaseAdapter:
                 session_data = EXCLUDED.session_data,
                 last_active = EXCLUDED.last_active
         """
-        
         self._execute(query, (user_id, Json(session_data)))
         logger.debug(f"Session saved for user {user_id}")
-    
+
     def clear_session(self, telegram_id: int):
         """Delete session state (for restart)"""
         query = "DELETE FROM conversation_state WHERE user_id = %s"
         self._execute(query, (telegram_id,))
         logger.info(f"Session cleared for user {telegram_id}")
-    
+
     # ============== USER DATA ==============
-    
+
     def get_user(self, telegram_id: int) -> Optional[Dict]:
         """Get user record"""
         query = "SELECT * FROM users WHERE telegram_id = %s"
         return self._execute(query, (telegram_id,), fetch=True)
-    
+
     def create_user(self, telegram_id: int, username: str = None, first_name: str = None):
         """Create new user record"""
         query = """
-            INSERT INTO users (telegram_id, username, first_name, created_at)
+            INSERT INTO users (telegram_id, username, full_name, created_at)
             VALUES (%s, %s, %s, NOW())
             ON CONFLICT (telegram_id) DO NOTHING
         """
         self._execute(query, (telegram_id, username, first_name))
         logger.info(f"User created: {telegram_id}")
-    
+
     async def save_answer(self, telegram_id: int, table: str, field: str, value: Any):
         """
         Save a single answer to the appropriate database table.
@@ -144,170 +133,226 @@ class DatabaseAdapter:
             await self._save_to_users_table(telegram_id, field, value)
         elif table == 'preferences':
             await self._save_to_preferences_table(telegram_id, field, value)
-        elif table in ('signals', 'personality'):
-            await self._save_to_jsonb_table('user_signals', telegram_id, field, value)
-    
+        elif table == 'signals':
+            await self._save_to_signals_table(telegram_id, field, value)
+        elif table == 'meta':
+            # Meta fields (like sensitive_gate) are stored in session only
+            pass
+
     async def _save_to_users_table(self, telegram_id: int, field: str, value: Any):
         """Save answer to users table column"""
-        # Map field names to actual column names
-        # Covers both the old 79-Q fields and the new 36-guna fields
+        # Column map: field name → actual column name
+        # All fields from question-flow.md that go to users table
         column_map = {
-            # Identity & basics
-            'first_name': 'first_name',
+            # Setup
+            'full_name': 'full_name',
+            'gender': 'gender',
+            # Basics
             'date_of_birth': 'date_of_birth',
-            'gender_identity': 'gender_identity',
-            'looking_for_gender': 'looking_for_gender',
-            'marital_status': 'marital_status',
-            'children_existing': 'children_existing',
-            'relationship_intent': 'relationship_intent',
-            # Location
             'country_current': 'country_current',
             'state_india': 'state_india',
             'city_current': 'city_current',
-            'willing_to_relocate': 'willing_to_relocate',
-            # Religion & culture
+            'hometown_state': 'hometown_state',
+            'hometown_city': 'hometown_city',
+            'mother_tongue': 'mother_tongue',
+            'languages_spoken': 'languages_spoken',
+            'marital_status': 'marital_status',
+            'children_existing': 'children_existing',
+            'height_cm': 'height_cm',
+            'weight_kg': 'weight_kg',
+            # Background
             'religion': 'religion',
+            # Education & Career
+            'education_level': 'education_level',
+            'education_field': 'education_field',
+            'occupation_sector': 'occupation_sector',
+            'annual_income': 'annual_income',
+            # Family
+            'family_type': 'family_type',
+            'family_status': 'family_status',
+            'father_occupation': 'father_occupation',
+            'mother_occupation': 'mother_occupation',
+            'siblings': 'siblings',
+            # Sensitive
+            'known_conditions': 'known_conditions',
+        }
+
+        column = column_map.get(field)
+        if not column:
+            logger.warning(f"Unknown users field: {field}")
+            return
+
+        # Handle array fields (languages_spoken is TEXT[])
+        if field == 'languages_spoken' and isinstance(value, list):
+            query = f"""
+                UPDATE users
+                SET {column} = %s::text[], updated_at = NOW()
+                WHERE telegram_id = %s
+            """
+            self._execute(query, (value, telegram_id))
+        # Handle int fields
+        elif field in ('height_cm', 'weight_kg'):
+            query = f"""
+                UPDATE users
+                SET {column} = %s::int, updated_at = NOW()
+                WHERE telegram_id = %s
+            """
+            self._execute(query, (value, telegram_id))
+        else:
+            query = f"""
+                UPDATE users
+                SET {column} = %s, updated_at = NOW()
+                WHERE telegram_id = %s
+            """
+            self._execute(query, (value, telegram_id))
+
+        logger.debug(f"Saved {field} = {value} for user {telegram_id}")
+
+    async def _save_to_preferences_table(self, telegram_id: int, field: str, value: Any):
+        """Save answer to user_preferences table column"""
+        user_id_query = "SELECT id FROM users WHERE telegram_id = %s"
+        result = self._execute(user_id_query, (telegram_id,), fetch=True)
+        if not result:
+            logger.error(f"User not found for telegram_id {telegram_id}")
+            return
+
+        user_id = result['id']
+
+        # Ensure row exists
+        self._execute(
+            "INSERT INTO user_preferences (user_id) VALUES (%s) ON CONFLICT (user_id) DO NOTHING",
+            (user_id,)
+        )
+
+        # Column map for user_preferences table
+        column_map = {
+            # Background (moved from users per migration 13)
             'religious_practice': 'religious_practice',
             'sect_denomination': 'sect_denomination',
             'caste_community': 'caste_community',
-            'mother_tongue': 'mother_tongue',
-            # Family
-            'family_type': 'family_type',
-            'family_involvement_search': 'family_involvement_search',
-            'living_with_parents_post_marriage': 'living_with_parents_post_marriage',
+            'caste_importance': 'caste_importance',
+            # Partner Background Preferences
+            'pref_religion': 'pref_religion',
+            'pref_religion_exclude': 'pref_religion_exclude',
+            'pref_caste': 'pref_caste',
+            'pref_caste_exclude': 'pref_caste_exclude',
+            'pref_mother_tongue': 'pref_mother_tongue',
+            # Education prefs
+            'pref_education_min': 'pref_education_min',
+            'pref_income_min': 'pref_income_min',
+            # Lifestyle prefs
+            'pref_diet': 'pref_diet',
+            'pref_drinking': 'pref_drinking',
+            'pref_smoking': 'pref_smoking',
+            # Marriage & Living
+            'marriage_timeline': 'marriage_timeline',
             'children_intent': 'children_intent',
             'children_timeline': 'children_timeline',
-            # Lifestyle
+            'living_arrangement': 'living_arrangement',
+            'relocation_willingness': 'relocation_willingness',
+            'family_involvement': 'family_involvement',
+            # Partner Physical
+            'pref_age_min': 'pref_age_min',
+            'pref_age_max': 'pref_age_max',
+            'pref_height_min': 'pref_height_min',
+            'pref_height_max': 'pref_height_max',
+            # Household (Male only)
+            'partner_working': 'partner_working',
+            # Household (Female only)
+            'pref_partner_cooking': 'pref_partner_cooking',
+            'pref_partner_household': 'pref_partner_household',
+            # Sensitive
+            'pref_manglik': 'pref_manglik',
+            'pref_gotra_exclude': 'pref_gotra_exclude',
+            'pref_family_status': 'pref_family_status',
+            'pref_conditions': 'pref_conditions',
+        }
+
+        column = column_map.get(field)
+        if not column:
+            logger.warning(f"Unknown preferences field: {field}")
+            return
+
+        # Handle array fields (TEXT[])
+        if field in ('pref_religion_exclude', 'pref_caste_exclude', 'pref_gotra_exclude') and isinstance(value, list):
+            query = f"""
+                UPDATE user_preferences
+                SET {column} = %s::text[], updated_at = NOW()
+                WHERE user_id = %s
+            """
+            self._execute(query, (value, user_id))
+        # Handle int fields
+        elif field in ('pref_age_min', 'pref_age_max', 'pref_height_min', 'pref_height_max'):
+            query = f"""
+                UPDATE user_preferences
+                SET {column} = %s::int, updated_at = NOW()
+                WHERE user_id = %s
+            """
+            self._execute(query, (value, user_id))
+        else:
+            query = f"""
+                UPDATE user_preferences
+                SET {column} = %s, updated_at = NOW()
+                WHERE user_id = %s
+            """
+            self._execute(query, (value, user_id))
+
+        logger.debug(f"Saved {field} = {value} to user_preferences for user {user_id}")
+
+    async def _save_to_signals_table(self, telegram_id: int, field: str, value: Any):
+        """Save answer to user_signals table as a flat column"""
+        user_id_query = "SELECT id FROM users WHERE telegram_id = %s"
+        result = self._execute(user_id_query, (telegram_id,), fetch=True)
+        if not result:
+            logger.error(f"User not found for telegram_id {telegram_id}")
+            return
+
+        user_id = result['id']
+
+        # Ensure row exists
+        self._execute(
+            "INSERT INTO user_signals (user_id) VALUES (%s) ON CONFLICT (user_id) DO NOTHING",
+            (user_id,)
+        )
+
+        # Column map for user_signals flat columns (per migration 13)
+        column_map = {
             'diet': 'diet',
             'drinking': 'drinking',
             'smoking': 'smoking',
-            'education_level': 'education_level',
-            'work_industry': 'work_industry',
-            'career_ambition': 'career_ambition',
+            'fitness_frequency': 'fitness_frequency',
             'social_style': 'social_style',
-            # Legacy fields (kept for backward compatibility)
-            'height_cm': 'height_cm',
-            'body_type': 'body_type',
-            'complexion': 'complexion',
-            'residency_type': 'residency_type',
-            'hometown_state': 'hometown_state',
-            'settling_country': 'settling_country',
-            'sub_caste': 'sub_caste',
-            'languages_spoken': 'languages_spoken',
+            'conflict_style': 'conflict_style',
+            'family_values': 'family_values',
+            'financial_planning': 'financial_planning',
             'manglik_status': 'manglik_status',
+            'gotra': 'gotra',
+            'family_property': 'family_property',
+            # Gender-forked: Men
+            'cooking_contribution': 'cooking_contribution',
+            'household_contribution': 'household_contribution',
+            # Gender-forked: Women
+            'do_you_cook': 'do_you_cook',
+            'career_after_marriage': 'career_after_marriage',
+            'financial_contribution': 'financial_contribution',
+            'live_with_inlaws': 'live_with_inlaws',
         }
-        
-        column = column_map.get(field, field)
-        
-        # Build update query
-        query = f"""
-            UPDATE users
-            SET {column} = %s, updated_at = NOW()
-            WHERE telegram_id = %s
-        """
-        
-        self._execute(query, (value, telegram_id))
-        logger.debug(f"Saved {field} = {value} for user {telegram_id}")
-    
-    async def _save_to_preferences_table(self, telegram_id: int, field: str, value: Any):
-        """Save answer to user_preferences table column"""
-        # First get user_id from telegram_id
-        user_id_query = "SELECT id FROM users WHERE telegram_id = %s"
-        result = self._execute(user_id_query, (telegram_id,), fetch=True)
-        if not result:
-            logger.error(f"User not found for telegram_id {telegram_id}")
+
+        column = column_map.get(field)
+        if not column:
+            logger.warning(f"Unknown signals field: {field}")
             return
-        
-        # result is a dict-like RealDictRow, not a list
-        user_id = result['id']
-        
-        # Ensure row exists in user_preferences
-        create_query = """
-            INSERT INTO user_preferences (user_id)
-            VALUES (%s)
-            ON CONFLICT (user_id) DO NOTHING
-        """
-        self._execute(create_query, (user_id,))
-        
-        # Column mapping for user_preferences table
-        column_map = {
-            'partner_location_pref': 'partner_location_pref',
-            'partner_religion_pref': 'partner_religion_pref',
-            'caste_importance': 'caste_importance',
-            'partner_diet_pref': 'partner_diet_pref',
-            'smoking_partner_ok': 'smoking_partner_ok',
-            'drinking_partner_ok': 'drinking_partner_ok',
-            'pref_age_range': 'pref_age_range',
-            'pref_height': 'pref_height',
-            'pref_complexion': 'pref_complexion',
-            'pref_education_min': 'pref_education_min',
-            'pref_income_range': 'pref_income_range',
-            'pref_marital_status': 'pref_marital_status',
-            'pref_children_ok': 'pref_children_ok',
-            'pref_disability_ok': 'pref_disability_ok',
-            'pref_working_spouse': 'pref_working_spouse',
-            'db_divorced_ok': 'db_divorced_ok',
-            'db_widowed_ok': 'db_widowed_ok',
-            'db_children_ok': 'db_children_ok',
-            'db_nri_ok': 'db_nri_ok',
-            'db_age_gap_max': 'db_age_gap_max',
-        }
-        
-        column = column_map.get(field, field)
-        
-        # Build update query
+
         query = f"""
-            UPDATE user_preferences
+            UPDATE user_signals
             SET {column} = %s, updated_at = NOW()
             WHERE user_id = %s
         """
-        
         self._execute(query, (value, user_id))
-        logger.debug(f"Saved {field} = {value} to user_preferences for user {user_id}")
-    
-    async def _save_to_jsonb_table(self, table: str, telegram_id: int, field: str, value: Any):
-        """Save answer to JSONB column in preferences or signals table"""
-        # Get user_id from telegram_id (both tables reference users.id, not telegram_id)
-        user_id_query = "SELECT id FROM users WHERE telegram_id = %s"
-        result = self._execute(user_id_query, (telegram_id,), fetch=True)
-        if not result:
-            logger.error(f"User not found for telegram_id {telegram_id}")
-            return
-        
-        user_id = result['id']
-        
-        # First, ensure row exists
-        if table == 'user_preferences':
-            create_query = """
-                INSERT INTO user_preferences (user_id, preferences)
-                VALUES (%s, '{}'::jsonb)
-                ON CONFLICT (user_id) DO NOTHING
-            """
-        else:  # user_signals
-            create_query = """
-                INSERT INTO user_signals (user_id, signals)
-                VALUES (%s, '{}'::jsonb)
-                ON CONFLICT (user_id) DO NOTHING
-            """
-        
-        self._execute(create_query, (user_id,))
-        
-        # Update JSONB field
-        column = 'preferences' if table == 'user_preferences' else 'signals'
-        
-        query = f"""
-            UPDATE {table}
-            SET {column} = {column} || %s::jsonb,
-                updated_at = NOW()
-            WHERE user_id = %s
-        """
-        
-        jsonb_value = json.dumps({field: value})
-        self._execute(query, (jsonb_value, user_id))
-        logger.debug(f"Saved {field} to {table}.{column} for user {user_id}")
-    
+        logger.debug(f"Saved {field} = {value} to user_signals for user {user_id}")
+
     # ============== PHOTO STORAGE ==============
-    
+
     def save_photo_url(self, telegram_id: int, photo_url: str, photo_type: str = 'profile'):
         """Save photo URL to database"""
         query = """
@@ -316,7 +361,7 @@ class DatabaseAdapter:
         """
         self._execute(query, (telegram_id, photo_url, photo_type))
         logger.info(f"Photo saved for user {telegram_id}")
-    
+
     def get_photos(self, telegram_id: int) -> List[Dict]:
         """Get all photos for a user"""
         query = """
@@ -326,41 +371,36 @@ class DatabaseAdapter:
             ORDER BY uploaded_at DESC
         """
         return self._execute(query, (telegram_id,), fetch=True) or []
-    
+
     # ============== PROFILE COMPLETION ==============
-    
+
     def get_profile_completion(self, telegram_id: int) -> Dict:
-        """
-        Calculate profile completion status.
-        Returns dict with completion percentage and missing fields.
-        """
-        # Get user data
+        """Calculate profile completion status."""
         user = self.get_user(telegram_id)
         if not user:
             return {"completion": 0, "missing": []}
-        
-        # Required fields for Tier 1 (basic profile)
-        tier1_fields = [
-            'gender_identity', 'looking_for_gender', 'date_of_birth',
-            'city_current', 'religion', 'children_intent', 'marital_status',
-            'smoking', 'drinking', 'relationship_intent'
+
+        # Required fields aligned to question-flow.md
+        required_fields = [
+            'full_name', 'gender', 'date_of_birth',
+            'city_current', 'religion', 'marital_status',
+            'height_cm', 'mother_tongue',
+            'education_level', 'occupation_sector',
         ]
-        
-        # Check which fields are filled
-        filled = sum(1 for field in tier1_fields if user.get(field))
-        total = len(tier1_fields)
-        
-        missing = [field for field in tier1_fields if not user.get(field)]
-        
+
+        filled = sum(1 for field in required_fields if user.get(field))
+        total = len(required_fields)
+        missing = [field for field in required_fields if not user.get(field)]
+
         completion_pct = (filled / total * 100) if total > 0 else 0
-        
+
         return {
             "completion": round(completion_pct, 1),
             "filled_count": filled,
             "total_count": total,
             "missing": missing
         }
-    
+
     # ============== WEB FORM INTAKE ==============
 
     def get_or_create_user_by_phone(self, phone: str, name: str = "", channel: str = "web") -> int:
@@ -368,16 +408,14 @@ class DatabaseAdapter:
         Find existing user by phone or create a new one.
         Returns the user's id (UUID from users table).
         """
-        # Check if user exists by phone
         query = "SELECT id FROM users WHERE phone = %s LIMIT 1"
         result = self._execute(query, (phone,), fetch=True)
 
         if result:
             user_id = result['id']
         else:
-            # Create new user with phone and name
             query = """
-                INSERT INTO users (phone, first_name, created_at, updated_at)
+                INSERT INTO users (phone, full_name, created_at, updated_at)
                 VALUES (%s, %s, NOW(), NOW())
                 RETURNING id
             """
@@ -387,7 +425,7 @@ class DatabaseAdapter:
 
         # Ensure user_channels entry exists
         channel_query = """
-            INSERT INTO user_channels (user_id, channel, channel_user_id)
+            INSERT INTO user_channels (user_id, channel, channel_id)
             VALUES (%s, %s, %s)
             ON CONFLICT (user_id, channel) DO NOTHING
         """
@@ -400,26 +438,58 @@ class DatabaseAdapter:
         Bulk save all answers from the web form.
         answers format: { field_name: { value: "...", table: "users|preferences|signals" } }
         """
-        # Column mappings (same as used in save_answer methods)
+        # Column sets aligned to migration 13
         users_columns = {
-            'first_name', 'date_of_birth', 'gender_identity', 'looking_for_gender',
-            'marital_status', 'children_existing', 'relationship_intent',
-            'country_current', 'state_india', 'city_current', 'willing_to_relocate',
-            'religion', 'religious_practice', 'sect_denomination', 'caste_community',
-            'mother_tongue', 'family_type', 'family_involvement_search',
-            'living_with_parents_post_marriage', 'children_intent', 'children_timeline',
-            'diet', 'drinking', 'smoking', 'education_level', 'work_industry',
-            'career_ambition', 'social_style',
+            'full_name', 'gender', 'date_of_birth',
+            'country_current', 'state_india', 'city_current',
+            'hometown_state', 'hometown_city',
+            'mother_tongue', 'languages_spoken',
+            'marital_status', 'children_existing',
+            'height_cm', 'weight_kg',
+            'religion',
+            'education_level', 'education_field',
+            'occupation_sector', 'annual_income',
+            'family_type', 'family_status',
+            'father_occupation', 'mother_occupation', 'siblings',
+            'known_conditions',
         }
 
         preferences_columns = {
-            'partner_location_pref', 'partner_religion_pref', 'caste_importance',
-            'partner_diet_pref',
+            'religious_practice', 'sect_denomination',
+            'caste_community', 'caste_importance',
+            'pref_religion', 'pref_religion_exclude',
+            'pref_caste', 'pref_caste_exclude',
+            'pref_mother_tongue',
+            'pref_education_min', 'pref_income_min',
+            'pref_diet', 'pref_drinking', 'pref_smoking',
+            'marriage_timeline', 'children_intent', 'children_timeline',
+            'living_arrangement', 'relocation_willingness', 'family_involvement',
+            'pref_age_min', 'pref_age_max',
+            'pref_height_min', 'pref_height_max',
+            'partner_working',
+            'pref_partner_cooking', 'pref_partner_household',
+            'pref_manglik', 'pref_gotra_exclude',
+            'pref_family_status', 'pref_conditions',
         }
 
-        signals_fields = {}
+        signals_columns = {
+            'diet', 'drinking', 'smoking', 'fitness_frequency',
+            'social_style', 'conflict_style',
+            'family_values', 'financial_planning',
+            'manglik_status', 'gotra', 'family_property',
+            'cooking_contribution', 'household_contribution',
+            'do_you_cook', 'career_after_marriage',
+            'financial_contribution', 'live_with_inlaws',
+        }
+
         users_updates = {}
         preferences_updates = {}
+        signals_updates = {}
+
+        # Fields that are TEXT[] arrays
+        array_fields = {'languages_spoken', 'pref_religion_exclude', 'pref_caste_exclude', 'pref_gotra_exclude'}
+        # Fields that are INT
+        int_fields = {'height_cm', 'weight_kg', 'pref_age_min', 'pref_age_max', 'pref_height_min', 'pref_height_max'}
 
         for field, info in answers.items():
             value = info.get('value') if isinstance(info, dict) else info
@@ -429,14 +499,23 @@ class DatabaseAdapter:
                 users_updates[field] = value
             elif table == 'preferences' and field in preferences_columns:
                 preferences_updates[field] = value
-            elif table in ('signals', 'personality'):
-                signals_fields[field] = value
+            elif table == 'signals' and field in signals_columns:
+                signals_updates[field] = value
 
         # Batch update users table
         if users_updates:
-            set_clauses = ", ".join(f"{col} = %s" for col in users_updates.keys())
-            values = list(users_updates.values()) + [user_id]
-            query = f"UPDATE users SET {set_clauses}, updated_at = NOW() WHERE id = %s"
+            set_clauses = []
+            values = []
+            for col, val in users_updates.items():
+                if col in array_fields:
+                    set_clauses.append(f"{col} = %s::text[]")
+                elif col in int_fields:
+                    set_clauses.append(f"{col} = %s::int")
+                else:
+                    set_clauses.append(f"{col} = %s")
+                values.append(val)
+            values.append(user_id)
+            query = f"UPDATE users SET {', '.join(set_clauses)}, updated_at = NOW() WHERE id = %s"
             self._execute(query, tuple(values))
 
         # Ensure preferences row exists, then update
@@ -445,41 +524,49 @@ class DatabaseAdapter:
                 "INSERT INTO user_preferences (user_id) VALUES (%s) ON CONFLICT (user_id) DO NOTHING",
                 (user_id,)
             )
-            set_clauses = ", ".join(f"{col} = %s" for col in preferences_updates.keys())
-            values = list(preferences_updates.values()) + [user_id]
-            query = f"UPDATE user_preferences SET {set_clauses}, updated_at = NOW() WHERE user_id = %s"
+            set_clauses = []
+            values = []
+            for col, val in preferences_updates.items():
+                if col in array_fields:
+                    set_clauses.append(f"{col} = %s::text[]")
+                elif col in int_fields:
+                    set_clauses.append(f"{col} = %s::int")
+                else:
+                    set_clauses.append(f"{col} = %s")
+                values.append(val)
+            values.append(user_id)
+            query = f"UPDATE user_preferences SET {', '.join(set_clauses)}, updated_at = NOW() WHERE user_id = %s"
             self._execute(query, tuple(values))
 
-        # Save signals as JSONB merge
-        if signals_fields:
+        # Save signals as flat columns
+        if signals_updates:
             self._execute(
-                "INSERT INTO user_signals (user_id, signals) VALUES (%s, '{}'::jsonb) ON CONFLICT (user_id) DO NOTHING",
+                "INSERT INTO user_signals (user_id) VALUES (%s) ON CONFLICT (user_id) DO NOTHING",
                 (user_id,)
             )
-            query = """
-                UPDATE user_signals
-                SET signals = signals || %s::jsonb, updated_at = NOW()
-                WHERE user_id = %s
-            """
-            self._execute(query, (json.dumps(signals_fields), user_id))
+            set_clauses = ", ".join(f"{col} = %s" for col in signals_updates.keys())
+            values = list(signals_updates.values()) + [user_id]
+            query = f"UPDATE user_signals SET {set_clauses}, updated_at = NOW() WHERE user_id = %s"
+            self._execute(query, tuple(values))
 
-        # Save meta (intent, proxy info) to signals if present
+        # Save meta (intent, proxy info) to signals JSONB if present
         if meta and any(v for v in meta.values() if v is not None):
             meta_clean = {k: v for k, v in meta.items() if v is not None}
             self._execute(
-                "INSERT INTO user_signals (user_id, signals) VALUES (%s, '{}'::jsonb) ON CONFLICT (user_id) DO NOTHING",
+                "INSERT INTO user_signals (user_id) VALUES (%s) ON CONFLICT (user_id) DO NOTHING",
                 (user_id,)
             )
+            # Use the JSONB signals column for meta (not a flat column)
             query = """
                 UPDATE user_signals
-                SET signals = signals || %s::jsonb, updated_at = NOW()
+                SET signals = COALESCE(signals, '{}'::jsonb) || %s::jsonb, updated_at = NOW()
                 WHERE user_id = %s
             """
             self._execute(query, (json.dumps({"web_meta": meta_clean}), user_id))
 
         logger.info(f"Web intake saved: {len(users_updates)} user fields, "
                      f"{len(preferences_updates)} pref fields, "
-                     f"{len(signals_fields)} signal fields for user {user_id}")
+                     f"{len(signals_updates)} signal fields for user {user_id}")
 
     # ============== UTILITY ==============
 

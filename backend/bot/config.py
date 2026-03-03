@@ -1,21 +1,26 @@
 """
-Masii Bot Configuration — The 36 Gunas
-Data-driven question config for the Masii onboarding flow.
-36 gunas across 6 sections, with conditional tree branching.
+Masii Bot Configuration — Question Flow
+Source of truth: docs/question-flow.md
+All channels (Telegram, Web, WhatsApp) derive from this config.
 """
 
 from enum import Enum
 from typing import Dict, List, Optional
 
 
-class OnboardingSection(Enum):
-    INTRO = "intro"
-    NIYAT = "niyat"              # Section 1: Intent (gunas 1-4)
-    PARICHAY = "parichay"        # Section 2: Introduction (gunas 5-9)
-    DHARAM = "dharam"            # Section 3: Faith & Culture (gunas 10-16)
-    PARIVAR = "parivar"          # Section 4: Family (gunas 17-21)
-    JEEVAN_SHAILI = "jeevan_shaili"  # Section 5: Lifestyle (gunas 22-28)
-    SOCH = "soch"                # Section 6: Values & Connection (gunas 29-36)
+class Phase(Enum):
+    SETUP = "setup"                    # Phase 0: Intent, Name, Gender
+    BASICS = "basics"                  # Phase 1: Parichay
+    BACKGROUND = "background"          # Phase 2: Dharam
+    PARTNER_BG = "partner_bg"          # Phase 3: Partner Background
+    EDUCATION = "education"            # Phase 4: Vidya
+    FAMILY = "family"                  # Phase 5: Parivar
+    LIFESTYLE = "lifestyle"            # Phase 6: Jeevan Shaili
+    MARRIAGE = "marriage"              # Phase 7: Shaadi
+    PARTNER_PHYS = "partner_physical"  # Phase 8: Partner Physical
+    HOUSEHOLD = "household"            # Phase 9: Household (gender-forked)
+    SENSITIVE = "sensitive"            # Phase 10: Sensitive (opt-in)
+    SOCIAL = "social"                  # Phase 11: Social
     COMPLETE = "complete"
 
 
@@ -35,9 +40,8 @@ and never forgets what you told her.""",
     {
         "text": """Here's how this works:
 
-I'll ask you 36 questions — like the 36 gunas,
-but for real life. Not your horoscope. Your values,
-your lifestyle, your family, your future.
+I'll ask you a set of questions about your life —
+your values, your lifestyle, your family, your future.
 
 Takes about 10 minutes. Then I go to work.
 
@@ -51,8 +55,8 @@ I make the introduction. For free.""",
 
 Everything you tell me stays between us. I use
 your answers to find matches, never to judge.
-Some questions are personal — you can skip any
-of them. But the more I know, the better the match.
+
+The more I know, the better the match.
 
 Your data is never sold. Never shared without
 your permission.""",
@@ -60,7 +64,9 @@ your permission.""",
     },
 ]
 
-# Message 4 is the intent/proxy question — handled separately in the handler
+
+# ============== PHASE 0: SETUP ==============
+
 INTENT_MESSAGE = {
     "text": """Before we start —
 
@@ -68,128 +74,159 @@ Are you filling this out for yourself
 or for someone else?""",
     "options": [
         {"label": "For myself", "value": "self"},
-        {"label": "For a family member / friend", "value": "proxy"}
+        {"label": "For someone else", "value": "proxy"}
     ]
 }
 
-PROXY_MESSAGES = [
-    {
-        "text": """That's sweet. How are you connected to them?""",
-        "options": [
-            {"label": "I'm their parent", "value": "parent"},
-            {"label": "I'm their sibling", "value": "sibling"},
-            {"label": "I'm their friend", "value": "friend"},
-            {"label": "Other relative", "value": "other_relative"}
-        ]
-    },
-    {
-        "text": """Do they know you're doing this?""",
-        "options": [
-            {"label": "Yes, they asked me to", "value": "asked"},
-            {"label": "Yes, they're okay with it", "value": "okay"},
-            {"label": "Not yet, I'll tell them", "value": "not_yet"}
-        ]
-    }
-]
-
-PROXY_NO_CONSENT_MESSAGE = """No worries. Fill everything out — I'll save it.
-But I won't start matching until they say yes.
-When they're ready, have them message me and
-I'll activate their profile."""
-
-
-# ============== QUESTION DEFINITIONS — THE 36 GUNAS ==============
-
-QUESTIONS = {
-
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # SECTION 1: NIYAT (Intent) — Gunas 1-4
-    # "Not your name, not your age. What you actually want."
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-    1: {
-        "section": "niyat",
-        "field": "relationship_intent",
-        "db_table": "users",
-        "text": "What are you looking for?",
-        "type": "single_select",
-        "options": [
-            {"label": "Marriage", "value": "Marriage"},
-            {"label": "Long-term partner", "value": "Long-term partner"},
-            {"label": "Open to both", "value": "Open to both"}
-        ]
-    },
-
-    2: {
-        "section": "niyat",
-        "field": "timeline",
-        "db_table": "signals",
-        "text": "How soon?",
-        "type": "single_select",
-        "options": [
-            {"label": "Ready now", "value": "Ready now"},
-            {"label": "6 months", "value": "6 months"},
-            {"label": "1 year", "value": "1 year"},
-            {"label": "No rush", "value": "No rush"}
-        ]
-    },
-
-    3: {
-        "section": "niyat",
-        "field": "looking_for_gender",
-        "db_table": "users",
-        "text": "Looking for a...",
-        "type": "single_select",
-        "options": [
-            {"label": "Man", "value": "Men"},
-            {"label": "Woman", "value": "Women"}
-        ]
-    },
-
-    4: {
-        "section": "niyat",
-        "field": "match_priority",
-        "db_table": "signals",
-        "text": "What matters MOST in a partner? (pick one)",
-        "type": "single_select",
-        "options": [
-            {"label": "Cultural fit", "value": "Cultural fit"},
-            {"label": "Values alignment", "value": "Values alignment"},
-            {"label": "Lifestyle match", "value": "Lifestyle match"},
-            {"label": "Family compatibility", "value": "Family compatibility"},
-            {"label": "Ambition match", "value": "Ambition match"}
-        ]
-    },
-
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # SECTION 2: PARICHAY (Introduction) — Gunas 5-9
-    # "The basics. Fast. Buttons only."
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-    5: {
-        "section": "parichay",
-        "field": "first_name",
+# After intent = "self", ask name and gender before numbered questions
+SETUP_QUESTIONS = {
+    "full_name": {
+        "field": "full_name",
         "db_table": "users",
         "text": "What's your name?",
         "type": "text_input",
         "placeholder": "Your first name"
     },
-
-    6: {
-        "section": "parichay",
-        "field": "gender_identity",
+    "gender": {
+        "field": "gender",
         "db_table": "users",
-        "text": "Gender",
+        "text": "Are you male or female?",
         "type": "single_select",
         "options": [
             {"label": "Male", "value": "Male"},
-            {"label": "Female", "value": "Female"},
-            {"label": "Non-binary", "value": "Non-binary"}
+            {"label": "Female", "value": "Female"}
         ]
     },
+}
 
-    7: {
-        "section": "parichay",
+
+# ============== PROXY FLOW ==============
+
+PROXY_QUESTIONS = [
+    {
+        "field": "proxy_relation",
+        "text": "What's your relationship to them?",
+        "type": "single_select",
+        "options": [
+            {"label": "Parent", "value": "parent"},
+            {"label": "Sibling", "value": "sibling"},
+            {"label": "Relative", "value": "relative"},
+            {"label": "Friend", "value": "friend"}
+        ]
+    },
+    {
+        "field": "person_name",
+        "text": "What's their name?",
+        "type": "text_input",
+        "placeholder": "Their first name"
+    },
+    {
+        "field": "person_gender",
+        "text": "Male or female?",
+        "type": "single_select",
+        "options": [
+            {"label": "Male", "value": "Male"},
+            {"label": "Female", "value": "Female"}
+        ]
+    },
+    {
+        "field": "person_phone",
+        "text": "What's their phone number? (I'll send them a message to complete their profile.)",
+        "type": "phone_input",
+        "placeholder": "Phone number"
+    },
+    {
+        "field": "person_age",
+        "text": "How old are they?",
+        "type": "single_select",
+        "options": "birth_years"
+    },
+    {
+        "field": "person_location",
+        "text": "Where do they live?",
+        "type": "location_tree",
+    },
+    {
+        "field": "person_religion",
+        "text": "What's their religion?",
+        "type": "single_select",
+        "options": [
+            {"label": "Hindu", "value": "Hindu"},
+            {"label": "Muslim", "value": "Muslim"},
+            {"label": "Sikh", "value": "Sikh"},
+            {"label": "Jain", "value": "Jain"},
+            {"label": "Christian", "value": "Christian"},
+            {"label": "Buddhist", "value": "Buddhist"},
+            {"label": "Parsi", "value": "Parsi"},
+            {"label": "No religion", "value": "No religion"},
+            {"label": "Other", "value": "Other"}
+        ]
+    },
+    {
+        "field": "person_caste",
+        "text": "What's their caste/community?",
+        "type": "single_select",
+        "options": "castes_by_religion",  # conditional on person_religion
+    },
+    {
+        "field": "person_marital_status",
+        "text": "Marital status?",
+        "type": "single_select",
+        "options": [
+            {"label": "Never married", "value": "Never married"},
+            {"label": "Divorced", "value": "Divorced"},
+            {"label": "Widowed", "value": "Widowed"},
+            {"label": "Awaiting divorce", "value": "Awaiting divorce"}
+        ]
+    },
+    {
+        "field": "person_education",
+        "text": "Highest education?",
+        "type": "single_select",
+        "options": [
+            {"label": "High school", "value": "High school"},
+            {"label": "Diploma", "value": "Diploma"},
+            {"label": "Bachelor's", "value": "Bachelor's"},
+            {"label": "Master's", "value": "Master's"},
+            {"label": "Doctorate / PhD", "value": "Doctorate / PhD"},
+            {"label": "Professional (CA, CS, MBBS, LLB)", "value": "Professional (CA, CS, MBBS, LLB)"}
+        ]
+    },
+    {
+        "field": "person_occupation",
+        "text": "What do they do?",
+        "type": "single_select",
+        "options": [
+            {"label": "Public / Government", "value": "Public / Government"},
+            {"label": "Private", "value": "Private"},
+            {"label": "Professional (Doctor, Lawyer, CA)", "value": "Professional (Doctor, Lawyer, CA)"},
+            {"label": "Business / Self-employed", "value": "Business / Self-employed"},
+            {"label": "Startup", "value": "Startup"},
+            {"label": "Not working", "value": "Not working"},
+            {"label": "Student", "value": "Student"},
+            {"label": "Other", "value": "Other"}
+        ]
+    },
+]
+
+PROXY_CLOSE_MESSAGE = """Thanks! I'll send {person_name} a message at their number to complete the rest. Their answers will be private \u2014 you won't see them. I'll let you know when their profile is ready.
+
+\u2014 Masii"""
+
+
+# ============== QUESTION DEFINITIONS ==============
+# Sequential integer keys 1-60. Handler iterates in order.
+# Questions with a "gender" field are only shown to that gender.
+# Questions with "skip_if" logic are handled by conditional_logic.py.
+
+QUESTIONS = {
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # PHASE 1: BASICS (Parichay)
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    1: {
+        "section": "basics",
         "field": "date_of_birth",
         "db_table": "users",
         "type": "two_step_date",
@@ -220,16 +257,16 @@ QUESTIONS = {
             ],
             "columns": 2
         },
-        "response_template": "{age} — got it \u2713"
+        "response_template": "{age} \u2014 got it \u2713"
     },
 
-    8: {
-        "section": "parichay",
+    2: {
+        "section": "basics",
         "field": "location",
         "db_table": "users",
         "type": "location_tree",
         "step1": {
-            "text": "Where are you based?",
+            "text": "Where do you live right now?",
             "type": "single_select",
             "field": "location_type",
             "options": [
@@ -259,418 +296,897 @@ QUESTIONS = {
         }
     },
 
-    9: {
-        "section": "parichay",
-        "field": "marital_status",
+    3: {
+        "section": "basics",
+        "field": "hometown",
         "db_table": "users",
-        "text": "Have you been married before?",
-        "type": "single_select",
-        "options": [
-            {"label": "Never married", "value": "Never married"},
-            {"label": "Divorced", "value": "Divorced"},
-            {"label": "Widowed", "value": "Widowed"},
-            {"label": "Separated", "value": "Separated"}
-        ]
+        "type": "two_step_location",
+        "step1": {
+            "text": "Where is your family originally from? (State)",
+            "type": "single_select",
+            "field": "hometown_state",
+            "options": "states_india_full",
+            "columns": 2
+        },
+        "step2": {
+            "text": "Which city or town?",
+            "type": "text_input",
+            "field": "hometown_city",
+            "placeholder": "e.g. Ahmedabad, Jaipur, Lucknow..."
+        }
     },
 
-    # 9b: children — conditional, asked only if not "Never married"
-    # Handled via conditional_logic skip + a sub-question
-
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # SECTION 3: DHARAM (Faith & Culture) — Gunas 10-16
-    # "Not the checkbox version. The real one."
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-    10: {
-        "section": "dharam",
-        "field": "religion",
-        "db_table": "users",
-        "text": "Your faith / religion",
-        "type": "single_select",
-        "options": [
-            {"label": "Hindu", "value": "Hindu"},
-            {"label": "Muslim", "value": "Muslim"},
-            {"label": "Christian", "value": "Christian"},
-            {"label": "Sikh", "value": "Sikh"},
-            {"label": "Jain", "value": "Jain"},
-            {"label": "Buddhist", "value": "Buddhist"},
-            {"label": "Other", "value": "Other"},
-            {"label": "None / Atheist", "value": "None"}
-        ],
-        "columns": 2
-    },
-
-    11: {
-        "section": "dharam",
-        "field": "religious_practice",
-        "db_table": "users",
-        "text": "How practicing are you?",
-        "type": "single_select",
-        "options": "practice_by_religion",  # Dynamic — conditional on religion
-    },
-
-    12: {
-        "section": "dharam",
-        "field": "sect_denomination",
-        "db_table": "users",
-        "text": "Which tradition do you follow?",
-        "type": "single_select",
-        "options": "sects_by_religion",  # Dynamic — conditional on religion
-    },
-
-    13: {
-        "section": "dharam",
-        "field": "caste_community",
-        "db_table": "users",
-        "text": "Your community:",
-        "type": "single_select",
-        "options": "castes_by_religion",  # Dynamic — conditional on religion
-    },
-
-    14: {
-        "section": "dharam",
+    4: {
+        "section": "basics",
         "field": "mother_tongue",
         "db_table": "users",
-        "text": "What's your mother tongue?",
+        "text": "What is your mother tongue?",
         "type": "single_select",
         "options": [
             {"label": "Hindi", "value": "Hindi"},
             {"label": "Gujarati", "value": "Gujarati"},
+            {"label": "Marathi", "value": "Marathi"},
             {"label": "Tamil", "value": "Tamil"},
             {"label": "Telugu", "value": "Telugu"},
             {"label": "Kannada", "value": "Kannada"},
             {"label": "Malayalam", "value": "Malayalam"},
             {"label": "Bengali", "value": "Bengali"},
-            {"label": "Marathi", "value": "Marathi"},
             {"label": "Punjabi", "value": "Punjabi"},
             {"label": "Urdu", "value": "Urdu"},
             {"label": "Odia", "value": "Odia"},
             {"label": "Assamese", "value": "Assamese"},
-            {"label": "Konkani", "value": "Konkani"},
             {"label": "Sindhi", "value": "Sindhi"},
-            {"label": "English", "value": "English"},
-            {"label": "Other \u2192", "value": "Other", "requires_text": True}
+            {"label": "Konkani", "value": "Konkani"},
+            {"label": "Tulu", "value": "Tulu"},
+            {"label": "Other", "value": "Other"}
         ],
         "columns": 2
     },
 
-    15: {
-        "section": "dharam",
-        "field": "partner_religion_pref",
-        "db_table": "preferences",
-        "text": "Partner's religion \u2014 preference?",
+    5: {
+        "section": "basics",
+        "field": "languages_spoken",
+        "db_table": "users",
+        "text": "What other languages do you speak?",
+        "type": "multi_select",
+        "options": "languages_minus_mother_tongue",
+        "done_label": "Done \u2713"
+    },
+
+    6: {
+        "section": "basics",
+        "field": "marital_status",
+        "db_table": "users",
+        "text": "What's your current marital status?",
         "type": "single_select",
         "options": [
-            {"label": "Same only", "value": "Same only"},
-            {"label": "Same preferred", "value": "Same preferred"},
-            {"label": "Open", "value": "Open"},
-            {"label": "Specific", "value": "Specific", "requires_text": True}
+            {"label": "Never married", "value": "Never married"},
+            {"label": "Divorced", "value": "Divorced"},
+            {"label": "Widowed", "value": "Widowed"},
+            {"label": "Awaiting divorce", "value": "Awaiting divorce"}
         ]
     },
 
-    16: {
-        "section": "dharam",
-        "field": "partner_religiosity",
-        "db_table": "signals",
-        "text": "How important is their practice level?",
+    7: {
+        "section": "basics",
+        "field": "height_cm",
+        "db_table": "users",
+        "text": "How tall are you?",
+        "type": "single_select",
+        "options": "height_by_gender",
+    },
+
+    8: {
+        "section": "basics",
+        "field": "weight_kg",
+        "db_table": "users",
+        "text": "What is your weight?",
+        "type": "single_select",
+        "options": "weight_by_gender",
+    },
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # PHASE 2: BACKGROUND (Dharam)
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    9: {
+        "section": "background",
+        "field": "religion",
+        "db_table": "users",
+        "text": "What is your religion?",
         "type": "single_select",
         "options": [
-            {"label": "Must match mine", "value": "Must match"},
-            {"label": "Somewhat important", "value": "Somewhat important"},
+            {"label": "Hindu", "value": "Hindu"},
+            {"label": "Muslim", "value": "Muslim"},
+            {"label": "Sikh", "value": "Sikh"},
+            {"label": "Jain", "value": "Jain"},
+            {"label": "Christian", "value": "Christian"},
+            {"label": "Buddhist", "value": "Buddhist"},
+            {"label": "Parsi", "value": "Parsi"},
+            {"label": "No religion", "value": "No religion"},
+            {"label": "Other", "value": "Other"}
+        ],
+        "columns": 2
+    },
+
+    10: {
+        "section": "background",
+        "field": "religious_practice",
+        "db_table": "preferences",
+        "text": "How would you describe your religious practice?",
+        "type": "single_select",
+        "options": "practice_by_religion",
+    },
+
+    11: {
+        "section": "background",
+        "field": "sect_denomination",
+        "db_table": "preferences",
+        "text": "What is your sect or denomination?",
+        "type": "single_select",
+        "options": "sects_by_religion",
+    },
+
+    12: {
+        "section": "background",
+        "field": "caste_community",
+        "db_table": "preferences",
+        "text": "What is your caste or community?",
+        "type": "single_select",
+        "options": "castes_by_religion",
+    },
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # PHASE 3: PARTNER BACKGROUND PREFERENCES
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    13: {
+        "section": "partner_bg",
+        "field": "pref_religion",
+        "db_table": "preferences",
+        "text": "Partner's religion preference?",
+        "type": "single_select",
+        "options": [
+            {"label": "Same religion only", "value": "Same religion only"},
+            {"label": "Open to all", "value": "Open to all"},
+            {"label": "Open, but not...", "value": "Open, but not..."}
+        ]
+    },
+
+    14: {
+        "section": "partner_bg",
+        "field": "pref_caste",
+        "db_table": "preferences",
+        "text": "Partner's caste preference?",
+        "type": "single_select",
+        "options": [
+            {"label": "Same caste only", "value": "Same caste only"},
+            {"label": "Same community, any caste", "value": "Same community, any caste"},
+            {"label": "Open to all", "value": "Open to all"},
+            {"label": "Open, but not...", "value": "Open, but not..."}
+        ]
+    },
+
+    15: {
+        "section": "partner_bg",
+        "field": "pref_mother_tongue",
+        "db_table": "preferences",
+        "text": "Partner's mother tongue preference?",
+        "type": "single_select",
+        "options": [
+            {"label": "Same language only", "value": "Same language only"},
+            {"label": "Same or Hindi", "value": "Same or Hindi"},
             {"label": "Doesn't matter", "value": "Doesn't matter"}
         ]
     },
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # SECTION 4: PARIVAR (Family) — Gunas 17-21
-    # "Choose your person. Family happy too. Matching for both."
+    # PHASE 4: EDUCATION & CAREER (Vidya)
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-    17: {
-        "section": "parivar",
-        "field": "family_type",
-        "db_table": "users",
-        "text": "Family structure",
-        "type": "single_select",
-        "options": [
-            {"label": "Nuclear", "value": "Nuclear"},
-            {"label": "Joint family", "value": "Joint family"},
-            {"label": "Extended joint family", "value": "Extended joint family"}
-        ]
-    },
-
-    18: {
-        "section": "parivar",
-        "field": "family_involvement_search",
-        "db_table": "users",
-        "text": "How involved should family be in your search?",
-        "type": "single_select",
-        "options": [
-            {"label": "Very involved", "value": "Very involved"},
-            {"label": "Somewhat", "value": "Somewhat"},
-            {"label": "I'll tell them after", "value": "I'll tell them after"},
-            {"label": "Not at all", "value": "Not at all"}
-        ]
-    },
-
-    19: {
-        "section": "parivar",
-        "field": "living_with_parents_post_marriage",
-        "db_table": "users",
-        "text": "Open to living with/near parents?",
-        "type": "single_select",
-        "options": [
-            {"label": "Yes", "value": "Yes"},
-            {"label": "Open to it", "value": "Open to it"},
-            {"label": "Prefer not", "value": "Prefer not"}
-        ]
-    },
-
-    20: {
-        "section": "parivar",
-        "field": "children_intent",
-        "db_table": "users",
-        "text": "Do you want children?",
-        "type": "single_select",
-        "options": [
-            {"label": "Yes", "value": "Yes"},
-            {"label": "No", "value": "No"},
-            {"label": "Already have", "value": "Already have"},
-            {"label": "Open", "value": "Open"}
-        ]
-    },
-
-    21: {
-        "section": "parivar",
-        "field": "children_timeline",
-        "db_table": "users",
-        "text": "When?",
-        "type": "single_select",
-        "options": [
-            {"label": "Soon", "value": "Soon"},
-            {"label": "2\u20133 years", "value": "2-3 years"},
-            {"label": "Eventually", "value": "Eventually"},
-            {"label": "Not sure", "value": "Not sure"}
-        ]
-    },
-
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # SECTION 5: JEEVAN SHAILI (Lifestyle) — Gunas 22-28
-    # "The practical compatibility layer."
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-    22: {
-        "section": "jeevan_shaili",
-        "field": "diet",
-        "db_table": "users",
-        "text": "Your diet",
-        "type": "single_select",
-        "options": "diet_by_religion",  # Dynamic — conditional on religion
-    },
-
-    23: {
-        "section": "jeevan_shaili",
-        "field": "drinking",
-        "db_table": "users",
-        "text": "Alcohol?",
-        "type": "single_select",
-        "options": [
-            {"label": "Never", "value": "Never"},
-            {"label": "Social", "value": "Socially / Occasionally"},
-            {"label": "Regular", "value": "Regularly"}
-        ]
-    },
-
-    24: {
-        "section": "jeevan_shaili",
-        "field": "smoking",
-        "db_table": "users",
-        "text": "Smoking?",
-        "type": "single_select",
-        "options": [
-            {"label": "Never", "value": "Never"},
-            {"label": "Social", "value": "Occasionally / Socially"},
-            {"label": "Regular", "value": "Regularly"}
-        ]
-    },
-
-    25: {
-        "section": "jeevan_shaili",
+    16: {
+        "section": "education",
         "field": "education_level",
         "db_table": "users",
-        "text": "Highest education",
+        "text": "What is your highest education?",
         "type": "single_select",
         "options": [
-            {"label": "High school", "value": "High school / 12th"},
+            {"label": "High school", "value": "High school"},
+            {"label": "Diploma", "value": "Diploma"},
             {"label": "Bachelor's", "value": "Bachelor's"},
             {"label": "Master's", "value": "Master's"},
-            {"label": "PhD", "value": "PhD / Doctorate"},
-            {"label": "Professional (MD/JD/CA)", "value": "Professional (CA/CS/CFA/MBBS/LLB)"},
+            {"label": "Doctorate / PhD", "value": "Doctorate / PhD"},
+            {"label": "Professional (CA, CS, MBBS, LLB)", "value": "Professional (CA, CS, MBBS, LLB)"}
+        ],
+        "columns": 2
+    },
+
+    17: {
+        "section": "education",
+        "field": "education_field",
+        "db_table": "users",
+        "text": "What field?",
+        "type": "single_select",
+        "options": [
+            {"label": "Engineering / IT", "value": "Engineering / IT"},
+            {"label": "Medicine / Healthcare", "value": "Medicine / Healthcare"},
+            {"label": "Business / MBA", "value": "Business / MBA"},
+            {"label": "Law", "value": "Law"},
+            {"label": "Finance / CA / CS", "value": "Finance / CA / CS"},
+            {"label": "Arts / Humanities", "value": "Arts / Humanities"},
+            {"label": "Science", "value": "Science"},
+            {"label": "Design / Architecture", "value": "Design / Architecture"},
+            {"label": "Government / Civil Services", "value": "Government / Civil Services"},
             {"label": "Other", "value": "Other"}
         ],
         "columns": 2
     },
 
-    26: {
-        "section": "jeevan_shaili",
-        "field": "work_industry",
+    18: {
+        "section": "education",
+        "field": "occupation_sector",
         "db_table": "users",
-        "text": "What do you do?",
+        "text": "What sector do you work in?",
         "type": "single_select",
         "options": [
-            {"label": "Tech", "value": "IT / Software"},
-            {"label": "Finance", "value": "Finance / Banking"},
-            {"label": "Medicine", "value": "Healthcare / Pharma"},
-            {"label": "Law", "value": "Legal"},
-            {"label": "Business", "value": "Self-employed / Business owner"},
-            {"label": "Creative", "value": "Media / Entertainment"},
-            {"label": "Government", "value": "Government / PSU"},
-            {"label": "Education", "value": "Education / Academia"},
+            {"label": "Public / Government", "value": "Public / Government"},
+            {"label": "Private", "value": "Private"},
+            {"label": "Professional (Doctor, Lawyer, CA)", "value": "Professional (Doctor, Lawyer, CA)"},
+            {"label": "Business / Self-employed", "value": "Business / Self-employed"},
+            {"label": "Startup", "value": "Startup"},
+            {"label": "Not working", "value": "Not working"},
+            {"label": "Student", "value": "Student"},
             {"label": "Other", "value": "Other"}
         ],
-        "columns": 3
+        "columns": 2
+    },
+
+    19: {
+        "section": "education",
+        "field": "annual_income",
+        "db_table": "users",
+        "text": "What is your annual income? (This is only used for matching, never displayed.)",
+        "type": "single_select",
+        "options": "income_by_location",
+    },
+
+    20: {
+        "section": "education",
+        "field": "pref_education_min",
+        "db_table": "preferences",
+        "text": "Minimum education you'd want in a partner?",
+        "type": "single_select",
+        "options": [
+            {"label": "Doesn't matter", "value": "Doesn't matter"},
+            {"label": "At least Bachelor's", "value": "At least Bachelor's"},
+            {"label": "At least Master's", "value": "At least Master's"},
+            {"label": "At least Professional degree", "value": "At least Professional degree"}
+        ]
+    },
+
+    21: {
+        "section": "education",
+        "field": "pref_income_min",
+        "db_table": "preferences",
+        "text": "Minimum income you'd want in a partner?",
+        "type": "single_select",
+        "options": "income_by_location_with_doesnt_matter",
+    },
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # PHASE 5: FAMILY (Parivar)
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    22: {
+        "section": "family",
+        "field": "family_type",
+        "db_table": "users",
+        "text": "What type of family do you come from?",
+        "type": "single_select",
+        "options": [
+            {"label": "Nuclear", "value": "Nuclear"},
+            {"label": "Joint", "value": "Joint"},
+            {"label": "Semi-joint", "value": "Semi-joint"}
+        ]
+    },
+
+    23: {
+        "section": "family",
+        "field": "family_status",
+        "db_table": "users",
+        "text": "How would you describe your family's financial status?",
+        "type": "single_select",
+        "options": [
+            {"label": "Middle class", "value": "Middle class"},
+            {"label": "Upper middle class", "value": "Upper middle class"},
+            {"label": "Affluent", "value": "Affluent"},
+            {"label": "Prefer not to say", "value": "Prefer not to say"}
+        ]
+    },
+
+    24: {
+        "section": "family",
+        "field": "family_values",
+        "db_table": "signals",
+        "text": "How would you describe your family's values?",
+        "type": "single_select",
+        "options": [
+            {"label": "Traditional", "value": "Traditional"},
+            {"label": "Moderate", "value": "Moderate"},
+            {"label": "Liberal", "value": "Liberal"}
+        ]
+    },
+
+    25: {
+        "section": "family",
+        "field": "father_occupation",
+        "db_table": "users",
+        "text": "Father's occupation?",
+        "type": "single_select",
+        "options": [
+            {"label": "Business / Self-employed", "value": "Business / Self-employed"},
+            {"label": "Service / Salaried", "value": "Service / Salaried"},
+            {"label": "Professional (Doctor, Lawyer, CA)", "value": "Professional (Doctor, Lawyer, CA)"},
+            {"label": "Government", "value": "Government"},
+            {"label": "Retired", "value": "Retired"},
+            {"label": "Not alive", "value": "Not alive"},
+            {"label": "Prefer not to say", "value": "Prefer not to say"}
+        ]
+    },
+
+    26: {
+        "section": "family",
+        "field": "mother_occupation",
+        "db_table": "users",
+        "text": "Mother's occupation?",
+        "type": "single_select",
+        "options": [
+            {"label": "Homemaker", "value": "Homemaker"},
+            {"label": "Working professional", "value": "Working professional"},
+            {"label": "Business", "value": "Business"},
+            {"label": "Government", "value": "Government"},
+            {"label": "Retired", "value": "Retired"},
+            {"label": "Not alive", "value": "Not alive"},
+            {"label": "Prefer not to say", "value": "Prefer not to say"}
+        ]
     },
 
     27: {
-        "section": "jeevan_shaili",
-        "field": "willing_to_relocate",
+        "section": "family",
+        "field": "siblings",
         "db_table": "users",
-        "text": "Open to relocating for the right person?",
+        "text": "Do you have siblings?",
         "type": "single_select",
         "options": [
-            {"label": "Yes", "value": "Yes, anywhere"},
-            {"label": "Maybe", "value": "Maybe"},
-            {"label": "No", "value": "No, prefer to stay here"}
+            {"label": "Only child", "value": "Only child"},
+            {"label": "1 sibling", "value": "1 sibling"},
+            {"label": "2 siblings", "value": "2 siblings"},
+            {"label": "3+ siblings", "value": "3+ siblings"}
         ]
     },
 
     28: {
-        "section": "jeevan_shaili",
-        "field": "partner_diet_pref",
+        "section": "family",
+        "field": "family_involvement",
         "db_table": "preferences",
-        "text": "Partner's diet \u2014 preference?",
+        "text": "How involved will your family be in the decision?",
         "type": "single_select",
         "options": [
-            {"label": "Must match mine", "value": "Must match mine"},
-            {"label": "Prefer similar", "value": "Prefer similar"},
-            {"label": "Flexible", "value": "Don't care"}
+            {"label": "Very \u2014 their approval matters", "value": "Very \u2014 their approval matters"},
+            {"label": "Moderate \u2014 I'll decide but they have input", "value": "Moderate \u2014 I'll decide but they have input"},
+            {"label": "Independent \u2014 my decision entirely", "value": "Independent \u2014 my decision entirely"}
         ]
     },
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # SECTION 6: SOCH (Values & Connection) — Gunas 29-36
-    # "Not what you look like on paper, but who you actually are."
+    # PHASE 6: LIFESTYLE (Jeevan Shaili)
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
     29: {
-        "section": "soch",
-        "field": "what_matters",
+        "section": "lifestyle",
+        "field": "diet",
         "db_table": "signals",
-        "text": "What matters most to you in a partner? In your own words.",
-        "type": "text_input",
-        "placeholder": "Take your time. The more you write, the better your match."
+        "text": "What is your diet?",
+        "type": "single_select",
+        "options": "diet_by_religion",
     },
 
     30: {
-        "section": "soch",
-        "field": "dealbreakers_text",
+        "section": "lifestyle",
+        "field": "drinking",
         "db_table": "signals",
-        "text": "Anything that's a dealbreaker? Be honest.",
-        "type": "text_input",
-        "placeholder": "What would be a non-starter for you?"
+        "text": "Do you drink alcohol?",
+        "type": "single_select",
+        "options": [
+            {"label": "Never", "value": "Never"},
+            {"label": "Socially / Occasionally", "value": "Socially / Occasionally"},
+            {"label": "Regularly", "value": "Regularly"}
+        ]
     },
 
     31: {
-        "section": "soch",
-        "field": "financial_outlook",
+        "section": "lifestyle",
+        "field": "smoking",
         "db_table": "signals",
-        "text": "How important is partner's financial stability?",
+        "text": "Do you smoke?",
         "type": "single_select",
         "options": [
-            {"label": "Very important", "value": "Very"},
-            {"label": "Somewhat", "value": "Somewhat"},
-            {"label": "Not important", "value": "Not important"}
+            {"label": "Never", "value": "Never"},
+            {"label": "Socially / Occasionally", "value": "Socially / Occasionally"},
+            {"label": "Regularly", "value": "Regularly"}
         ]
     },
 
     32: {
-        "section": "soch",
-        "field": "career_ambition",
-        "db_table": "users",
-        "text": "Where are you in your career?",
+        "section": "lifestyle",
+        "field": "fitness_frequency",
+        "db_table": "signals",
+        "text": "How often do you exercise or play sports?",
         "type": "single_select",
         "options": [
-            {"label": "Climbing", "value": "Highly ambitious (career comes first)"},
-            {"label": "Stable", "value": "Career-oriented but balanced"},
-            {"label": "Building something", "value": "Building something"},
-            {"label": "Figuring it out", "value": "Figuring it out"}
+            {"label": "Daily", "value": "Daily"},
+            {"label": "3-5 times a week", "value": "3-5 times a week"},
+            {"label": "1-2 times a week", "value": "1-2 times a week"},
+            {"label": "Rarely", "value": "Rarely"},
+            {"label": "Never", "value": "Never"}
         ]
     },
 
     33: {
-        "section": "soch",
-        "field": "social_style",
-        "db_table": "users",
-        "text": "You're more...",
+        "section": "lifestyle",
+        "field": "pref_diet",
+        "db_table": "preferences",
+        "text": "Partner's diet preference?",
         "type": "single_select",
         "options": [
-            {"label": "Introvert", "value": "Prefer small groups"},
-            {"label": "Extrovert", "value": "Very outgoing \u2014 love big gatherings"},
-            {"label": "Depends on the day", "value": "Social but balanced"}
+            {"label": "Same as mine", "value": "Same as mine"},
+            {"label": "Vegetarian or above", "value": "Vegetarian or above"},
+            {"label": "Doesn't matter", "value": "Doesn't matter"}
         ]
     },
 
     34: {
-        "section": "soch",
-        "field": "conflict_style",
-        "db_table": "signals",
-        "text": "When you disagree with someone, you...",
+        "section": "lifestyle",
+        "field": "pref_drinking",
+        "db_table": "preferences",
+        "text": "Partner's drinking \u2014 dealbreaker?",
         "type": "single_select",
         "options": [
-            {"label": "Talk it out", "value": "Talk it out"},
-            {"label": "Need space first", "value": "Need space first"},
-            {"label": "Avoid conflict", "value": "Avoid"},
-            {"label": "Compromise fast", "value": "Compromise fast"}
+            {"label": "Must not drink", "value": "Must not drink"},
+            {"label": "Social drinking OK", "value": "Social drinking OK"},
+            {"label": "Doesn't matter", "value": "Doesn't matter"}
         ]
     },
 
     35: {
-        "section": "soch",
-        "field": "love_language",
-        "db_table": "signals",
-        "text": "How do you show love?",
+        "section": "lifestyle",
+        "field": "pref_smoking",
+        "db_table": "preferences",
+        "text": "Partner's smoking \u2014 dealbreaker?",
         "type": "single_select",
         "options": [
-            {"label": "Words", "value": "Words of affirmation"},
-            {"label": "Touch", "value": "Physical touch"},
-            {"label": "Quality time", "value": "Quality time"},
-            {"label": "Gifts", "value": "Gifts"},
-            {"label": "Acts of service", "value": "Acts of service"}
+            {"label": "Must not smoke", "value": "Must not smoke"},
+            {"label": "Social smoking OK", "value": "Social smoking OK"},
+            {"label": "Doesn't matter", "value": "Doesn't matter"}
         ]
     },
 
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # PHASE 7: MARRIAGE & LIVING (Shaadi)
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
     36: {
-        "section": "soch",
-        "field": "the_one_thing",
+        "section": "marriage",
+        "field": "marriage_timeline",
+        "db_table": "preferences",
+        "text": "How soon are you looking to get married?",
+        "type": "single_select",
+        "options": [
+            {"label": "Within 6 months", "value": "Within 6 months"},
+            {"label": "In the next 1 year", "value": "In the next 1 year"},
+            {"label": "In the next 2-3 years", "value": "In the next 2-3 years"},
+            {"label": "Just exploring", "value": "Just exploring"}
+        ]
+    },
+
+    37: {
+        "section": "marriage",
+        "field": "children_intent",
+        "db_table": "preferences",
+        "text": "Do you want children?",
+        "type": "single_select",
+        "options": [
+            {"label": "Yes", "value": "Yes"},
+            {"label": "Maybe / Open to it", "value": "Maybe / Open to it"},
+            {"label": "No", "value": "No"}
+        ]
+    },
+
+    38: {
+        "section": "marriage",
+        "field": "living_arrangement",
+        "db_table": "preferences",
+        "text": "After marriage, where would you want to live?",
+        "type": "single_select",
+        "options": [
+            {"label": "With parents (joint family)", "value": "With parents (joint family)"},
+            {"label": "Near parents but separate", "value": "Near parents but separate"},
+            {"label": "Independent \u2014 wherever life takes us", "value": "Independent \u2014 wherever life takes us"},
+            {"label": "Open to discussion", "value": "Open to discussion"}
+        ]
+    },
+
+    39: {
+        "section": "marriage",
+        "field": "relocation_willingness",
+        "db_table": "preferences",
+        "text": "Would you relocate for the right match?",
+        "type": "single_select",
+        "options": [
+            {"label": "Yes, anywhere", "value": "Yes, anywhere"},
+            {"label": "Yes, within India", "value": "Yes, within India"},
+            {"label": "Yes, within my state/country", "value": "Yes, within my state/country"},
+            {"label": "No, I'm settled where I am", "value": "No, I'm settled where I am"}
+        ]
+    },
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # PHASE 8: PARTNER PREFERENCES \u2014 Physical
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    40: {
+        "section": "partner_physical",
+        "field": "pref_age_range",
+        "db_table": "preferences",
+        "type": "two_step_range",
+        "step1": {
+            "text": "Partner's minimum age?",
+            "type": "single_select",
+            "field": "pref_age_min",
+            "options": "age_range_min",
+            "columns": 3
+        },
+        "step2": {
+            "text": "Partner's maximum age?",
+            "type": "single_select",
+            "field": "pref_age_max",
+            "options": "age_range_max",
+            "columns": 3
+        }
+    },
+
+    41: {
+        "section": "partner_physical",
+        "field": "pref_height_range",
+        "db_table": "preferences",
+        "type": "two_step_range",
+        "has_doesnt_matter": True,
+        "step1": {
+            "text": "Partner's minimum height?",
+            "type": "single_select",
+            "field": "pref_height_min",
+            "options": "height_opposite_gender",
+            "columns": 2
+        },
+        "step2": {
+            "text": "Partner's maximum height?",
+            "type": "single_select",
+            "field": "pref_height_max",
+            "options": "height_opposite_gender",
+            "columns": 2
+        },
+        "doesnt_matter_option": {"label": "Doesn't matter", "value": "doesnt_matter"}
+    },
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # PHASE 9: HOUSEHOLD (Gender-forked)
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    # --- Men only ---
+
+    42: {
+        "section": "household",
+        "field": "cooking_contribution",
         "db_table": "signals",
-        "text": "One thing Masii should know about you that no question above captured.",
-        "type": "text_input",
-        "placeholder": "Anything. Something that makes you, you."
+        "gender": "Male",
+        "text": "Out of 15 meals in a week, how many are you willing to cook?",
+        "type": "single_select",
+        "options": [
+            {"label": "0", "value": "0"},
+            {"label": "1-3", "value": "1-3"},
+            {"label": "4-7", "value": "4-7"},
+            {"label": "8-10", "value": "8-10"},
+            {"label": "More than 10", "value": "More than 10"}
+        ]
+    },
+
+    43: {
+        "section": "household",
+        "field": "household_contribution",
+        "db_table": "signals",
+        "gender": "Male",
+        "text": "How do you see household responsibilities?",
+        "type": "single_select",
+        "options": [
+            {"label": "Mostly her", "value": "Mostly her"},
+            {"label": "Shared equally", "value": "Shared equally"},
+            {"label": "Mostly outsourced (cook/maid)", "value": "Mostly outsourced (cook/maid)"},
+            {"label": "Flexible \u2014 whatever works", "value": "Flexible \u2014 whatever works"}
+        ]
+    },
+
+    44: {
+        "section": "household",
+        "field": "partner_working",
+        "db_table": "preferences",
+        "gender": "Male",
+        "text": "Do you want your partner to work?",
+        "type": "single_select",
+        "options": [
+            {"label": "Yes, she should have a career", "value": "Yes, she should have a career"},
+            {"label": "Her choice", "value": "Her choice"},
+            {"label": "Prefer she focuses on home", "value": "Prefer she focuses on home"}
+        ]
+    },
+
+    # --- Women only ---
+
+    45: {
+        "section": "household",
+        "field": "do_you_cook",
+        "db_table": "signals",
+        "gender": "Female",
+        "text": "Do you know how to cook?",
+        "type": "single_select",
+        "options": [
+            {"label": "Yes, I cook regularly", "value": "Yes, I cook regularly"},
+            {"label": "Yes, but I don't cook often", "value": "Yes, but I don't cook often"},
+            {"label": "No, but I'm willing to learn", "value": "No, but I'm willing to learn"},
+            {"label": "No", "value": "No"}
+        ]
+    },
+
+    46: {
+        "section": "household",
+        "field": "cooking_contribution",
+        "db_table": "signals",
+        "gender": "Female",
+        "text": "Out of 15 meals in a week, how many are you willing to cook?",
+        "type": "single_select",
+        "options": [
+            {"label": "0", "value": "0"},
+            {"label": "1-3", "value": "1-3"},
+            {"label": "4-7", "value": "4-7"},
+            {"label": "8-10", "value": "8-10"},
+            {"label": "More than 10", "value": "More than 10"}
+        ]
+    },
+
+    47: {
+        "section": "household",
+        "field": "pref_partner_cooking",
+        "db_table": "preferences",
+        "gender": "Female",
+        "text": "How often do you need your partner to cook?",
+        "type": "single_select",
+        "options": [
+            {"label": "Regularly (7+ meals a week)", "value": "Regularly (7+ meals a week)"},
+            {"label": "Sometimes (3-6 meals)", "value": "Sometimes (3-6 meals)"},
+            {"label": "Rarely (1-2 meals)", "value": "Rarely (1-2 meals)"},
+            {"label": "Never \u2014 I'll handle it or we'll outsource", "value": "Never \u2014 I'll handle it or we'll outsource"}
+        ]
+    },
+
+    48: {
+        "section": "household",
+        "field": "pref_partner_household",
+        "db_table": "preferences",
+        "gender": "Female",
+        "text": "How much do you need your partner to contribute to household chores?",
+        "type": "single_select",
+        "options": [
+            {"label": "Equal share", "value": "Equal share"},
+            {"label": "Significant help", "value": "Significant help"},
+            {"label": "Some help", "value": "Some help"},
+            {"label": "Not needed \u2014 I'll manage or outsource", "value": "Not needed \u2014 I'll manage or outsource"}
+        ]
+    },
+
+    49: {
+        "section": "household",
+        "field": "career_after_marriage",
+        "db_table": "signals",
+        "gender": "Female",
+        "text": "Do you plan to continue working after marriage?",
+        "type": "single_select",
+        "options": [
+            {"label": "Yes, definitely", "value": "Yes, definitely"},
+            {"label": "Yes, but open to a break for kids", "value": "Yes, but open to a break for kids"},
+            {"label": "Undecided", "value": "Undecided"},
+            {"label": "No, prefer homemaking", "value": "No, prefer homemaking"}
+        ]
+    },
+
+    50: {
+        "section": "household",
+        "field": "financial_contribution",
+        "db_table": "signals",
+        "gender": "Female",
+        "text": "How do you see financial contribution in a marriage?",
+        "type": "single_select",
+        "options": [
+            {"label": "Equal partnership", "value": "Equal partnership"},
+            {"label": "I'll contribute, he leads", "value": "I'll contribute, he leads"},
+            {"label": "His responsibility primarily", "value": "His responsibility primarily"},
+            {"label": "Flexible \u2014 depends on situation", "value": "Flexible \u2014 depends on situation"}
+        ]
+    },
+
+    51: {
+        "section": "household",
+        "field": "live_with_inlaws",
+        "db_table": "signals",
+        "gender": "Female",
+        "text": "Would you be OK living with his parents?",
+        "type": "single_select",
+        "options": [
+            {"label": "Yes, happy to", "value": "Yes, happy to"},
+            {"label": "For some time, not permanently", "value": "For some time, not permanently"},
+            {"label": "Prefer not to", "value": "Prefer not to"},
+            {"label": "Depends on the situation", "value": "Depends on the situation"}
+        ]
+    },
+
+    # --- Both ---
+
+    52: {
+        "section": "household",
+        "field": "financial_planning",
+        "db_table": "signals",
+        "text": "How should finances work in a marriage?",
+        "type": "single_select",
+        "options": [
+            {"label": "Fully joint", "value": "Fully joint"},
+            {"label": "Joint for household, separate for personal", "value": "Joint for household, separate for personal"},
+            {"label": "Mostly separate", "value": "Mostly separate"}
+        ]
+    },
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # PHASE 10: SENSITIVE (Opt-in gate)
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    53: {
+        "section": "sensitive",
+        "field": "sensitive_gate",
+        "db_table": "meta",
+        "text": """The next few questions cover criteria that traditional matchmakers ask. Some families consider these important.
+
+Your answers are only used for matching and never published or shared with anyone \u2014 not even your match.
+
+Skip this section if you'd rather not answer.
+
+Would you like to answer these?""",
+        "type": "single_select",
+        "is_gate": True,
+        "options": [
+            {"label": "Yes", "value": "yes"},
+            {"label": "No, skip", "value": "no"}
+        ]
+    },
+
+    54: {
+        "section": "sensitive",
+        "field": "manglik_status",
+        "db_table": "signals",
+        "text": "Are you Manglik?",
+        "type": "single_select",
+        "options": [
+            {"label": "Yes", "value": "Yes"},
+            {"label": "No", "value": "No"},
+            {"label": "Don't know", "value": "Don't know"},
+            {"label": "Not applicable", "value": "Not applicable"}
+        ]
+    },
+
+    55: {
+        "section": "sensitive",
+        "field": "gotra",
+        "db_table": "signals",
+        "text": "What is your gotra?",
+        "type": "single_select",
+        "options": "gotras_by_religion",
+    },
+
+    56: {
+        "section": "sensitive",
+        "field": "family_property",
+        "db_table": "signals",
+        "text": "Does your family own property?",
+        "type": "single_select",
+        "options": [
+            {"label": "Rented home", "value": "Rented home"},
+            {"label": "Own flat/apartment", "value": "Own flat/apartment"},
+            {"label": "Own independent house", "value": "Own independent house"},
+            {"label": "Own bungalow/villa", "value": "Own bungalow/villa"},
+            {"label": "Agricultural land", "value": "Agricultural land"},
+            {"label": "Multiple properties", "value": "Multiple properties"},
+            {"label": "Prefer not to say", "value": "Prefer not to say"}
+        ]
+    },
+
+    57: {
+        "section": "sensitive",
+        "field": "pref_family_status",
+        "db_table": "preferences",
+        "text": "Partner's family financial status preference?",
+        "type": "single_select",
+        "options": [
+            {"label": "Same or higher", "value": "Same or higher"},
+            {"label": "Doesn't matter", "value": "Doesn't matter"}
+        ]
+    },
+
+    58: {
+        "section": "sensitive",
+        "field": "known_conditions",
+        "db_table": "users",
+        "text": "Do you have any known medical conditions or disabilities?",
+        "type": "single_select",
+        "options": [
+            {"label": "No", "value": "No"},
+            {"label": "Yes", "value": "Yes"},
+            {"label": "Prefer not to say", "value": "Prefer not to say"}
+        ]
+    },
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # PHASE 11: SOCIAL & PERSONALITY
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    59: {
+        "section": "social",
+        "field": "social_style",
+        "db_table": "signals",
+        "text": "How social are you?",
+        "type": "single_select",
+        "options": [
+            {"label": "Very social \u2014 love big gatherings", "value": "Very social \u2014 love big gatherings"},
+            {"label": "Social \u2014 enjoy going out but need downtime", "value": "Social \u2014 enjoy going out but need downtime"},
+            {"label": "Introverted \u2014 prefer small groups", "value": "Introverted \u2014 prefer small groups"},
+            {"label": "Very introverted \u2014 homebody", "value": "Very introverted \u2014 homebody"}
+        ]
+    },
+
+    60: {
+        "section": "social",
+        "field": "conflict_style",
+        "db_table": "signals",
+        "text": "When there's a disagreement, you tend to...",
+        "type": "single_select",
+        "options": [
+            {"label": "Talk it out immediately", "value": "Talk it out immediately"},
+            {"label": "Take some time, then discuss", "value": "Take some time, then discuss"},
+            {"label": "Avoid conflict", "value": "Avoid conflict"},
+            {"label": "Get heated, then cool down", "value": "Get heated, then cool down"}
+        ]
     },
 }
 
-# Total gunas
-TOTAL_GUNAS = 36
+TOTAL_QUESTIONS = 60
+TOTAL_GUNAS = TOTAL_QUESTIONS  # backward compat
 
-# Sub-questions that don't count as gunas but are part of the tree
+
+# ============== SUB-QUESTIONS ==============
+
 SUB_QUESTIONS = {
     "children_existing": {
-        "section": "parichay",
+        "section": "basics",
         "field": "children_existing",
         "db_table": "users",
         "text": "Do you have children?",
         "type": "single_select",
-        "after_guna": 9,
+        "after_guna": 6,
         "condition": "marital_status != 'Never married'",
         "options": [
             {"label": "No", "value": "No"},
@@ -679,17 +1195,100 @@ SUB_QUESTIONS = {
         ]
     },
     "caste_importance": {
-        "section": "dharam",
+        "section": "background",
         "field": "caste_importance",
         "db_table": "preferences",
         "text": "How important is caste in your partner?",
         "type": "single_select",
-        "after_guna": 13,
+        "after_guna": 12,
         "condition": "caste_community is not None and caste_community != 'Prefer not to say'",
         "options": [
-            {"label": "Very important", "value": "Dealbreaker \u2014 must match"},
-            {"label": "Somewhat", "value": "Slight preference"},
-            {"label": "Doesn't matter", "value": "Doesn't matter at all"}
+            {"label": "Must be same caste", "value": "Must be same caste"},
+            {"label": "Prefer same, open to others", "value": "Prefer same, open to others"},
+            {"label": "Doesn't matter", "value": "Doesn't matter"}
+        ]
+    },
+    "pref_religion_exclude": {
+        "section": "partner_bg",
+        "field": "pref_religion_exclude",
+        "db_table": "preferences",
+        "text": "Which religions would you NOT want to match with?",
+        "type": "multi_select",
+        "after_guna": 13,
+        "condition": "pref_religion == 'Open, but not...'",
+        "options": [
+            {"label": "Hindu", "value": "Hindu"},
+            {"label": "Muslim", "value": "Muslim"},
+            {"label": "Sikh", "value": "Sikh"},
+            {"label": "Jain", "value": "Jain"},
+            {"label": "Christian", "value": "Christian"},
+            {"label": "Buddhist", "value": "Buddhist"},
+            {"label": "Parsi", "value": "Parsi"},
+            {"label": "No religion", "value": "No religion"}
+        ],
+        "done_label": "Done \u2713"
+    },
+    "pref_caste_exclude": {
+        "section": "partner_bg",
+        "field": "pref_caste_exclude",
+        "db_table": "preferences",
+        "text": "Which castes would you NOT want to match with?",
+        "type": "multi_select",
+        "after_guna": 14,
+        "condition": "pref_caste == 'Open, but not...'",
+        "options": "castes_by_religion",
+        "done_label": "Done \u2713"
+    },
+    "children_timeline": {
+        "section": "marriage",
+        "field": "children_timeline",
+        "db_table": "preferences",
+        "text": "When would you want children?",
+        "type": "single_select",
+        "after_guna": 37,
+        "condition": "children_intent != 'No'",
+        "options": [
+            {"label": "Soon after marriage", "value": "Soon after marriage"},
+            {"label": "After 2-3 years", "value": "After 2-3 years"},
+            {"label": "After 4+ years", "value": "After 4+ years"}
+        ]
+    },
+    "pref_manglik": {
+        "section": "sensitive",
+        "field": "pref_manglik",
+        "db_table": "preferences",
+        "text": "Is Manglik status important in your partner?",
+        "type": "single_select",
+        "after_guna": 54,
+        "condition": "manglik_status is not None and manglik_status != 'Not applicable'",
+        "options": [
+            {"label": "Must match", "value": "Must match"},
+            {"label": "Prefer, but flexible", "value": "Prefer, but flexible"},
+            {"label": "Doesn't matter", "value": "Doesn't matter"}
+        ]
+    },
+    "pref_gotra_exclude": {
+        "section": "sensitive",
+        "field": "pref_gotra_exclude",
+        "db_table": "preferences",
+        "text": "Any gotras you cannot match with?",
+        "type": "multi_select",
+        "after_guna": 55,
+        "condition": "gotra is not None and gotra != 'Don\\'t know' and gotra != 'Not applicable'",
+        "options": "gotras_by_religion",
+        "done_label": "None / Doesn't matter"
+    },
+    "pref_conditions": {
+        "section": "sensitive",
+        "field": "pref_conditions",
+        "db_table": "preferences",
+        "text": "Would you be open to a partner with a medical condition or disability?",
+        "type": "single_select",
+        "after_guna": 58,
+        "options": [
+            {"label": "Yes", "value": "Yes"},
+            {"label": "Depends on the condition", "value": "Depends on the condition"},
+            {"label": "No", "value": "No"}
         ]
     },
 }
@@ -698,15 +1297,15 @@ SUB_QUESTIONS = {
 # ============== DYNAMIC OPTION GENERATORS ==============
 
 def get_birth_years():
-    """Birth years from 1980 to 2008 (ages 18-46)"""
+    """Birth years from 1970 to 2006"""
     return [
         {"label": str(year), "value": str(year)}
-        for year in range(2008, 1979, -1)
+        for year in range(2006, 1969, -1)
     ]
 
 
 def get_countries():
-    """Top countries for Indian population outside India"""
+    """Top countries for Indian diaspora"""
     return [
         {"label": "USA", "value": "USA"},
         {"label": "UK", "value": "UK"},
@@ -723,7 +1322,7 @@ def get_countries():
 
 
 def get_states_india():
-    """Indian states"""
+    """Indian states (major, for location)"""
     return [
         {"label": "Maharashtra", "value": "Maharashtra"},
         {"label": "Delhi NCR", "value": "Delhi NCR"},
@@ -744,57 +1343,215 @@ def get_states_india():
     ]
 
 
+def get_states_india_full():
+    """All Indian states + UTs (for hometown)"""
+    return [
+        {"label": "Andhra Pradesh", "value": "Andhra Pradesh"},
+        {"label": "Arunachal Pradesh", "value": "Arunachal Pradesh"},
+        {"label": "Assam", "value": "Assam"},
+        {"label": "Bihar", "value": "Bihar"},
+        {"label": "Chhattisgarh", "value": "Chhattisgarh"},
+        {"label": "Delhi NCR", "value": "Delhi NCR"},
+        {"label": "Goa", "value": "Goa"},
+        {"label": "Gujarat", "value": "Gujarat"},
+        {"label": "Haryana", "value": "Haryana"},
+        {"label": "Himachal Pradesh", "value": "Himachal Pradesh"},
+        {"label": "Jharkhand", "value": "Jharkhand"},
+        {"label": "Karnataka", "value": "Karnataka"},
+        {"label": "Kerala", "value": "Kerala"},
+        {"label": "Madhya Pradesh", "value": "Madhya Pradesh"},
+        {"label": "Maharashtra", "value": "Maharashtra"},
+        {"label": "Manipur", "value": "Manipur"},
+        {"label": "Meghalaya", "value": "Meghalaya"},
+        {"label": "Mizoram", "value": "Mizoram"},
+        {"label": "Nagaland", "value": "Nagaland"},
+        {"label": "Odisha", "value": "Odisha"},
+        {"label": "Punjab", "value": "Punjab"},
+        {"label": "Rajasthan", "value": "Rajasthan"},
+        {"label": "Sikkim", "value": "Sikkim"},
+        {"label": "Tamil Nadu", "value": "Tamil Nadu"},
+        {"label": "Telangana", "value": "Telangana"},
+        {"label": "Tripura", "value": "Tripura"},
+        {"label": "Uttar Pradesh", "value": "Uttar Pradesh"},
+        {"label": "Uttarakhand", "value": "Uttarakhand"},
+        {"label": "West Bengal", "value": "West Bengal"},
+        {"label": "Jammu & Kashmir", "value": "Jammu & Kashmir"},
+        {"label": "Chandigarh", "value": "Chandigarh"},
+        {"label": "Puducherry", "value": "Puducherry"},
+    ]
+
+
+def get_languages():
+    """All Indian languages for multi-select"""
+    return [
+        {"label": "Hindi", "value": "Hindi"},
+        {"label": "English", "value": "English"},
+        {"label": "Gujarati", "value": "Gujarati"},
+        {"label": "Marathi", "value": "Marathi"},
+        {"label": "Tamil", "value": "Tamil"},
+        {"label": "Telugu", "value": "Telugu"},
+        {"label": "Kannada", "value": "Kannada"},
+        {"label": "Malayalam", "value": "Malayalam"},
+        {"label": "Bengali", "value": "Bengali"},
+        {"label": "Punjabi", "value": "Punjabi"},
+        {"label": "Urdu", "value": "Urdu"},
+        {"label": "Odia", "value": "Odia"},
+        {"label": "Assamese", "value": "Assamese"},
+        {"label": "Sindhi", "value": "Sindhi"},
+        {"label": "Konkani", "value": "Konkani"},
+        {"label": "Tulu", "value": "Tulu"},
+    ]
+
+
+def get_languages_minus_mother_tongue(mother_tongue: str):
+    """Languages for Q5, excluding the user's mother tongue"""
+    all_langs = get_languages()
+    return [l for l in all_langs if l["value"] != mother_tongue]
+
+
+def get_height_options_female():
+    """Height options for women (5'2" to 5'7" range)"""
+    return [
+        {"label": "Below 5'2\"", "value": "155"},
+        {"label": "5'2\"", "value": "157"},
+        {"label": "5'3\"", "value": "160"},
+        {"label": "5'4\"", "value": "163"},
+        {"label": "5'5\"", "value": "165"},
+        {"label": "5'6\"", "value": "168"},
+        {"label": "5'7\"", "value": "170"},
+        {"label": "Above 5'7\"", "value": "173"},
+    ]
+
+
+def get_height_options_male():
+    """Height options for men (5'5" to 6'3" range)"""
+    return [
+        {"label": "Below 5'5\"", "value": "163"},
+        {"label": "5'5\"", "value": "165"},
+        {"label": "5'6\"", "value": "168"},
+        {"label": "5'7\"", "value": "170"},
+        {"label": "5'8\"", "value": "173"},
+        {"label": "5'9\"", "value": "175"},
+        {"label": "5'10\"", "value": "178"},
+        {"label": "5'11\"", "value": "180"},
+        {"label": "6'0\"", "value": "183"},
+        {"label": "6'1\"", "value": "185"},
+        {"label": "6'2\"", "value": "188"},
+        {"label": "6'3\"", "value": "191"},
+        {"label": "Above 6'3\"", "value": "193"},
+    ]
+
+
+def get_height_by_gender(gender: str):
+    """Height options conditional on gender"""
+    if gender == "Female":
+        return get_height_options_female()
+    return get_height_options_male()
+
+
+def get_height_opposite_gender(gender: str):
+    """Height options for the opposite gender (for partner prefs)"""
+    if gender == "Male":
+        return get_height_options_female()
+    return get_height_options_male()
+
+
+def get_weight_options_female():
+    """Weight options for women"""
+    return [
+        {"label": "Below 45 kg", "value": "42"},
+        {"label": "45-50 kg", "value": "47"},
+        {"label": "50-55 kg", "value": "52"},
+        {"label": "55-60 kg", "value": "57"},
+        {"label": "60-65 kg", "value": "62"},
+        {"label": "65-70 kg", "value": "67"},
+        {"label": "70-75 kg", "value": "72"},
+        {"label": "75-80 kg", "value": "77"},
+        {"label": "Above 80 kg", "value": "85"},
+    ]
+
+
+def get_weight_options_male():
+    """Weight options for men"""
+    return [
+        {"label": "Below 60 kg", "value": "57"},
+        {"label": "60-65 kg", "value": "62"},
+        {"label": "65-70 kg", "value": "67"},
+        {"label": "70-75 kg", "value": "72"},
+        {"label": "75-80 kg", "value": "77"},
+        {"label": "80-85 kg", "value": "82"},
+        {"label": "85-90 kg", "value": "87"},
+        {"label": "90-100 kg", "value": "95"},
+        {"label": "Above 100 kg", "value": "105"},
+    ]
+
+
+def get_weight_by_gender(gender: str):
+    """Weight options conditional on gender"""
+    if gender == "Female":
+        return get_weight_options_female()
+    return get_weight_options_male()
+
+
 def get_practice_by_religion(religion: str):
     """Practice level options conditional on religion"""
     practice = {
         "Hindu": [
-            {"label": "Very (daily puja, temple weekly)", "value": "Very devout (daily practice)"},
-            {"label": "Moderate (festivals, occasional temple)", "value": "Moderately observant (festivals, rituals)"},
-            {"label": "Cultural (identify as Hindu, not practicing)", "value": "Culturally identify (not practicing)"},
-            {"label": "Not really", "value": "Not at all"}
+            {"label": "Very religious", "value": "Very religious"},
+            {"label": "Religious", "value": "Religious"},
+            {"label": "Moderately religious", "value": "Moderately religious"},
+            {"label": "Not religious", "value": "Not religious"}
         ],
         "Muslim": [
-            {"label": "Very (5 daily prayers, Quran regularly)", "value": "Very devout (daily practice)"},
-            {"label": "Moderate (Jummah, Ramadan, Eid)", "value": "Moderately observant (festivals, rituals)"},
-            {"label": "Cultural (identify as Muslim, not strictly practicing)", "value": "Culturally identify (not practicing)"},
-            {"label": "Not really", "value": "Not at all"}
+            {"label": "Very religious", "value": "Very religious"},
+            {"label": "Religious", "value": "Religious"},
+            {"label": "Moderately religious", "value": "Moderately religious"},
+            {"label": "Liberal", "value": "Liberal"}
         ],
         "Sikh": [
-            {"label": "Amritdhari (baptized)", "value": "Very devout (daily practice)"},
-            {"label": "Keshdhari (keeps hair)", "value": "Moderately observant (festivals, rituals)"},
-            {"label": "Sehajdhari (clean-shaven Sikh)", "value": "Culturally identify (not practicing)"},
-            {"label": "Cultural", "value": "Not at all"}
+            {"label": "Very religious (Amritdhari)", "value": "Very religious (Amritdhari)"},
+            {"label": "Religious (Keshdhari)", "value": "Religious (Keshdhari)"},
+            {"label": "Moderate (Sahajdhari)", "value": "Moderate (Sahajdhari)"},
+            {"label": "Not religious", "value": "Not religious"}
         ],
         "Jain": [
-            {"label": "Strict (no onion, garlic, root vegetables)", "value": "Very devout (daily practice)"},
-            {"label": "Moderate (vegetarian, occasional flexibility)", "value": "Moderately observant (festivals, rituals)"},
-            {"label": "Cultural (identify as Jain, flexible diet)", "value": "Culturally identify (not practicing)"}
+            {"label": "Very religious", "value": "Very religious"},
+            {"label": "Religious", "value": "Religious"},
+            {"label": "Moderately religious", "value": "Moderately religious"},
+            {"label": "Not religious", "value": "Not religious"}
         ],
         "Christian": [
-            {"label": "Regular (church weekly, prayer daily)", "value": "Very devout (daily practice)"},
-            {"label": "Moderate (church on occasions, holidays)", "value": "Moderately observant (festivals, rituals)"},
-            {"label": "Cultural (identify as Christian, not practicing)", "value": "Culturally identify (not practicing)"}
+            {"label": "Very religious", "value": "Very religious"},
+            {"label": "Religious", "value": "Religious"},
+            {"label": "Moderately religious", "value": "Moderately religious"},
+            {"label": "Not religious", "value": "Not religious"}
         ],
     }
-    return practice.get(religion)  # Returns None for Buddhist/Other/None → skip
+    return practice.get(religion)  # None for Buddhist/Parsi/No religion/Other \u2192 skip
 
 
 def get_sects_by_religion(religion: str):
     """Sect/denomination options based on religion"""
     sects = {
         "Hindu": [
-            {"label": "Shaiva", "value": "Shaivite"},
-            {"label": "Vaishnava", "value": "Vaishnavite"},
-            {"label": "Arya Samaji", "value": "Arya Samaj"},
+            {"label": "Vaishnav", "value": "Vaishnav"},
+            {"label": "Shaiv", "value": "Shaiv"},
+            {"label": "Arya Samaji", "value": "Arya Samaji"},
             {"label": "Smartha", "value": "Smartha"},
-            {"label": "None / Other", "value": None}
+            {"label": "ISKCON", "value": "ISKCON"},
+            {"label": "None / Other", "value": "None / Other"}
         ],
         "Muslim": [
             {"label": "Sunni", "value": "Sunni"},
             {"label": "Shia", "value": "Shia"},
             {"label": "Sufi", "value": "Sufi"},
             {"label": "Ahmadiyya", "value": "Ahmadiyya"},
-            {"label": "None / Other", "value": None}
+            {"label": "None / Other", "value": "None / Other"}
+        ],
+        "Jain": [
+            {"label": "Digambar", "value": "Digambar"},
+            {"label": "Shwetambar", "value": "Shwetambar"},
+            {"label": "Other", "value": "Other"}
         ],
         "Christian": [
             {"label": "Catholic", "value": "Catholic"},
@@ -803,15 +1560,8 @@ def get_sects_by_religion(religion: str):
             {"label": "Evangelical", "value": "Evangelical"},
             {"label": "Other", "value": "Other"}
         ],
-        "Jain": [
-            {"label": "Digambar", "value": "Digambar"},
-            {"label": "Shwetambar", "value": "Shwetambar"},
-            {"label": "Other", "value": "Other"}
-        ],
-        # Sikh: practice level already covers Amritdhari/Keshdhari/Sehajdhari
-        # Buddhist/Other/None: skip
     }
-    return sects.get(religion)  # Returns None → skip
+    return sects.get(religion)  # None \u2192 skip
 
 
 def get_castes_by_religion(religion: str):
@@ -819,149 +1569,205 @@ def get_castes_by_religion(religion: str):
     castes = {
         "Hindu": [
             {"label": "Brahmin", "value": "Brahmin"},
-            {"label": "Rajput / Kshatriya", "value": "Kshatriya / Rajput"},
-            {"label": "Baniya / Vaishya", "value": "Vaishya / Baniya"},
+            {"label": "Agarwal", "value": "Agarwal"},
+            {"label": "Baniya", "value": "Baniya"},
+            {"label": "Jat", "value": "Jat"},
             {"label": "Kayastha", "value": "Kayastha"},
+            {"label": "Kshatriya", "value": "Kshatriya"},
             {"label": "Maratha", "value": "Maratha"},
+            {"label": "Patel", "value": "Patel"},
+            {"label": "Rajput", "value": "Rajput"},
             {"label": "Reddy", "value": "Reddy"},
             {"label": "Nair", "value": "Nair"},
-            {"label": "Ezhava", "value": "Ezhava"},
-            {"label": "Patel", "value": "Patel"},
-            {"label": "Agarwal", "value": "Agarwal"},
-            {"label": "Other", "value": "Other"},
-            {"label": "Prefer not to say", "value": "Prefer not to say"}
-        ],
-        "Jain": [
-            {"label": "Agarwal", "value": "Agarwal"},
-            {"label": "Oswal", "value": "Oswal"},
-            {"label": "Porwal", "value": "Porwal"},
-            {"label": "Digambar", "value": "Digambar"},
-            {"label": "Shwetambar", "value": "Shwetambar"},
-            {"label": "Other", "value": "Other"},
-            {"label": "Prefer not to say", "value": "Prefer not to say"}
-        ],
-        "Sikh": [
-            {"label": "Jat", "value": "Jat"},
+            {"label": "Iyer", "value": "Iyer"},
+            {"label": "Iyengar", "value": "Iyengar"},
+            {"label": "Gupta", "value": "Gupta"},
             {"label": "Khatri", "value": "Khatri"},
             {"label": "Arora", "value": "Arora"},
-            {"label": "Ramgarhia", "value": "Ramgarhia"},
-            {"label": "Saini", "value": "Saini"},
+            {"label": "Sindhi", "value": "Sindhi"},
+            {"label": "Lingayat", "value": "Lingayat"},
+            {"label": "Scheduled Caste", "value": "Scheduled Caste"},
+            {"label": "Scheduled Tribe", "value": "Scheduled Tribe"},
             {"label": "Other", "value": "Other"},
             {"label": "Prefer not to say", "value": "Prefer not to say"}
         ],
-        # Muslim: skip caste
-        # Christian: skip caste
-        # Buddhist: skip caste
-        # Other/None: skip caste
-    }
-    return castes.get(religion)  # Returns None → skip
-
-
-def get_diet_by_religion(religion: str, practice: str = None):
-    """Diet options conditional on religion and practice level"""
-    diets = {
         "Jain": [
-            {"label": "Jain veg (no onion/garlic)", "value": "Jain food (no root veg, no onion/garlic)"},
-            {"label": "Jain veg (flexible)", "value": "Pure vegetarian (no eggs)"},
-            {"label": "Other", "value": "Other"}
-        ],
-        "Hindu": [
-            {"label": "Vegetarian", "value": "Pure vegetarian (no eggs)"},
-            {"label": "Eggetarian", "value": "Eggetarian"},
-            {"label": "Non-veg", "value": "Non-vegetarian"},
-            {"label": "Flexible", "value": "No restrictions"}
-        ],
-        "Muslim": [
-            {"label": "Halal non-veg", "value": "Halal only"},
-            {"label": "Non-veg (any)", "value": "Non-vegetarian"},
-            {"label": "Vegetarian", "value": "Pure vegetarian (no eggs)"},
-            {"label": "Flexible", "value": "No restrictions"}
+            {"label": "Agarwal", "value": "Agarwal"},
+            {"label": "Baniya", "value": "Baniya"},
+            {"label": "Oswal", "value": "Oswal"},
+            {"label": "Porwal", "value": "Porwal"},
+            {"label": "Shrimal", "value": "Shrimal"},
+            {"label": "Khandelwal", "value": "Khandelwal"},
+            {"label": "Other", "value": "Other"},
+            {"label": "Prefer not to say", "value": "Prefer not to say"}
         ],
         "Sikh": [
-            {"label": "Vegetarian", "value": "Pure vegetarian (no eggs)"},
-            {"label": "Non-veg", "value": "Non-vegetarian"},
-            {"label": "Flexible", "value": "No restrictions"}
-        ],
-        "Christian": [
-            {"label": "Vegetarian", "value": "Pure vegetarian (no eggs)"},
-            {"label": "Non-veg", "value": "Non-vegetarian"},
-            {"label": "Flexible", "value": "No restrictions"}
+            {"label": "Jat Sikh", "value": "Jat Sikh"},
+            {"label": "Khatri Sikh", "value": "Khatri Sikh"},
+            {"label": "Arora Sikh", "value": "Arora Sikh"},
+            {"label": "Ramgarhia", "value": "Ramgarhia"},
+            {"label": "Saini", "value": "Saini"},
+            {"label": "Ravidasia", "value": "Ravidasia"},
+            {"label": "Other", "value": "Other"},
+            {"label": "Prefer not to say", "value": "Prefer not to say"}
         ],
     }
-    # Default for Buddhist/Other/None
+    return castes.get(religion)  # None \u2192 skip
+
+
+def get_diet_by_religion(religion: str):
+    """Diet options conditional on religion"""
+    diets = {
+        "Jain": [
+            {"label": "Strict Jain (no onion/garlic)", "value": "Strict Jain (no onion/garlic)"},
+            {"label": "Jain vegetarian", "value": "Jain vegetarian"},
+            {"label": "Flexible", "value": "Flexible"}
+        ],
+        "Hindu": [
+            {"label": "Pure vegetarian (no onion/garlic)", "value": "Pure vegetarian (no onion/garlic)"},
+            {"label": "Vegetarian", "value": "Vegetarian"},
+            {"label": "Eggetarian", "value": "Eggetarian"},
+            {"label": "Non-vegetarian", "value": "Non-vegetarian"},
+            {"label": "Flexible", "value": "Flexible"}
+        ],
+        "Muslim": [
+            {"label": "Halal only", "value": "Halal only"},
+            {"label": "Non-vegetarian", "value": "Non-vegetarian"},
+            {"label": "Flexible", "value": "Flexible"}
+        ],
+        "Sikh": [
+            {"label": "Vegetarian", "value": "Vegetarian"},
+            {"label": "Non-vegetarian", "value": "Non-vegetarian"},
+            {"label": "Flexible", "value": "Flexible"}
+        ],
+    }
     default = [
-        {"label": "Vegetarian", "value": "Pure vegetarian (no eggs)"},
+        {"label": "Vegetarian", "value": "Vegetarian"},
         {"label": "Vegan", "value": "Vegan"},
-        {"label": "Non-veg", "value": "Non-vegetarian"},
-        {"label": "Flexible", "value": "No restrictions"}
+        {"label": "Eggetarian", "value": "Eggetarian"},
+        {"label": "Non-vegetarian", "value": "Non-vegetarian"},
+        {"label": "Flexible", "value": "Flexible"}
     ]
     return diets.get(religion, default)
 
 
-# ============== SECTION TRANSITIONS & BUY-INS ==============
+def get_income_brackets_inr():
+    """Income brackets in INR"""
+    return [
+        {"label": "Under \u20b95 lakh", "value": "Under \u20b95 lakh"},
+        {"label": "\u20b95-10 lakh", "value": "\u20b95-10 lakh"},
+        {"label": "\u20b910-20 lakh", "value": "\u20b910-20 lakh"},
+        {"label": "\u20b920-35 lakh", "value": "\u20b920-35 lakh"},
+        {"label": "\u20b935-50 lakh", "value": "\u20b935-50 lakh"},
+        {"label": "\u20b950-75 lakh", "value": "\u20b950-75 lakh"},
+        {"label": "\u20b975 lakh - \u20b91 crore", "value": "\u20b975 lakh - \u20b91 crore"},
+        {"label": "\u20b91-2 crore", "value": "\u20b91-2 crore"},
+        {"label": "Above \u20b92 crore", "value": "Above \u20b92 crore"},
+        {"label": "Prefer not to say", "value": "Prefer not to say"}
+    ]
+
+
+def get_income_brackets_usd():
+    """Income brackets in USD (for NRIs)"""
+    return [
+        {"label": "Under $30K", "value": "Under $30K"},
+        {"label": "$30-50K", "value": "$30-50K"},
+        {"label": "$50-75K", "value": "$50-75K"},
+        {"label": "$75-100K", "value": "$75-100K"},
+        {"label": "$100-150K", "value": "$100-150K"},
+        {"label": "$150-250K", "value": "$150-250K"},
+        {"label": "Above $250K", "value": "Above $250K"},
+        {"label": "Prefer not to say", "value": "Prefer not to say"}
+    ]
+
+
+def get_income_by_location(is_nri: bool):
+    """Income brackets based on location (India vs abroad)"""
+    return get_income_brackets_usd() if is_nri else get_income_brackets_inr()
+
+
+def get_income_by_location_with_doesnt_matter(is_nri: bool):
+    """Income brackets + Doesn't matter option"""
+    brackets = get_income_by_location(is_nri)
+    return [{"label": "Doesn't matter", "value": "Doesn't matter"}] + brackets
+
+
+def get_age_range_min():
+    """Age range for partner preference min"""
+    return [{"label": str(a), "value": str(a)} for a in range(18, 46)]
+
+
+def get_age_range_max(min_age: int = 18):
+    """Age range for partner preference max (starts at min_age)"""
+    return [{"label": str(a), "value": str(a)} for a in range(min_age, 51)]
+
+
+def get_gotras_by_religion(religion: str):
+    """Common gotras based on religion"""
+    gotras = {
+        "Hindu": [
+            {"label": "Bharadwaj", "value": "Bharadwaj"},
+            {"label": "Kashyap", "value": "Kashyap"},
+            {"label": "Vasishtha", "value": "Vasishtha"},
+            {"label": "Gautam", "value": "Gautam"},
+            {"label": "Atri", "value": "Atri"},
+            {"label": "Vishwamitra", "value": "Vishwamitra"},
+            {"label": "Jamadagni", "value": "Jamadagni"},
+            {"label": "Agastya", "value": "Agastya"},
+            {"label": "Sandilya", "value": "Sandilya"},
+            {"label": "Kaushik", "value": "Kaushik"},
+            {"label": "Other", "value": "Other"},
+            {"label": "Don't know", "value": "Don't know"},
+            {"label": "Not applicable", "value": "Not applicable"}
+        ],
+        "Jain": [
+            {"label": "Kashyap", "value": "Kashyap"},
+            {"label": "Gautam", "value": "Gautam"},
+            {"label": "Other", "value": "Other"},
+            {"label": "Don't know", "value": "Don't know"},
+            {"label": "Not applicable", "value": "Not applicable"}
+        ],
+        "Sikh": [
+            {"label": "Bharadwaj", "value": "Bharadwaj"},
+            {"label": "Kashyap", "value": "Kashyap"},
+            {"label": "Sandhu", "value": "Sandhu"},
+            {"label": "Other", "value": "Other"},
+            {"label": "Don't know", "value": "Don't know"},
+            {"label": "Not applicable", "value": "Not applicable"}
+        ],
+    }
+    return gotras.get(religion)  # None \u2192 skip
+
+
+# ============== SECTION TRANSITIONS ==============
 
 SECTION_TRANSITIONS = {
-    "niyat_buyin": """Let's start with the important stuff \u2014
-not your name, not your age. What you
-actually want. This helps me understand
-what kind of match to look for.""",
+    "basics": "Let's start with the basics, {name}.",
 
-    "after_niyat": """Good. Now I know what I'm looking for on your behalf.
-Let me learn about you \u2014 the basics first. Quick stuff.""",
+    "background": """Now a bit about your background, {name}.
+This helps me find people from compatible communities.""",
 
-    "after_parichay": """Got it, {name}. Quick and easy \u2713
+    "partner_bg": "Now let's talk about what you're looking for in a partner's background.",
 
-Now \u2014 your faith, your culture, your roots.
+    "education": "Let's talk about education and career, {name}.",
 
-Not the checkbox version. The real one.""",
+    "family": """Family matters in Indian matchmaking.
+Let's cover that, {name}.""",
 
-    "after_dharam": """\u2713 Faith & culture \u2014 done.
+    "lifestyle": "Almost there, {name}. A few questions about how you live day to day.",
 
-Now about your family.
+    "marriage": "Let's talk about what married life looks like for you, {name}.",
 
-You want to choose your person. You also want
-your family to be happy with that choice.
+    "partner_physical": "A few preferences about your partner, {name}.",
 
-I'm matching for both.""",
+    "household": "The next few are about how you see daily life in a marriage. No right answers \u2014 just honest ones.",
 
-    "after_parivar": """\u2713 Family \u2014 done.
-
-Now the everyday stuff. Diet, lifestyle, habits.
-The things that seem small but end up mattering
-a lot when you're building a life together.""",
-
-    "jeevan_shaili_milestone": """You're past the halfway mark \u2713
-
-Four more gunas about your values, then we're
-done. You're doing great, {name}.""",
-
-    "soch_buyin": """Last section. This is the good stuff \u2014 not what
-you look like on paper, but who you actually are.
-
-Two of these are open-ended. Take your time.
-The more you write, the better your match.""",
+    "social": "Last stretch, {name}. A few about how you are socially.",
 }
 
-CLOSE_MESSAGE = """{name}, you're in. All 36 gunas \u2014 done. \u2713
+CLOSE_MESSAGE = """Done, {name}! I have everything I need. I'll start searching for your match and message you when I find someone worth your time. Sit tight.
 
-Here's what happens now:
-
-I'm going to look through the community for
-someone who fits \u2014 not just on paper, but in
-real life. Culture, values, lifestyle, family vibe.
-
-When I find someone I'm confident about, I'll
-message you with my reasoning. No name, no photo
-\u2014 just why I think you two should meet.
-
-If you say yes, they see the same about you.
-If they say yes too, I make the introduction.
-
-It might take a few days. It might take longer.
-I'd rather wait than send you someone who
-isn't right.
-
-I'll be in touch. \u2713"""
+\u2014 Masii"""
 
 
 # ============== ERROR MESSAGES ==============
@@ -976,9 +1782,9 @@ ERROR_MESSAGES = {
 
 # ============== RESUME MESSAGES ==============
 
-RESUME_PROMPT = """Hey {name}, we were getting through the 36 gunas \u2014 want to pick up where we left off?
+RESUME_PROMPT = """Hey {name}, we were getting through your profile \u2014 want to pick up where we left off?
 
-Progress: {current}/{total} gunas"""
+Progress: {current} of {total} questions"""
 
 RESUME_BUTTONS = ["\u2713 Resume", "\u21BB Start over"]
 

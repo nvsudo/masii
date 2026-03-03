@@ -197,6 +197,9 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         elif data == 'photo_done':
             await query.answer()
             await _finish_photo_upload(query, context)
+    elif data.startswith('match_'):
+        # Match response callbacks (double opt-in)
+        await _handle_match_callback(query, context, data)
     else:
         # Onboarding button callbacks
         await onboarding_handler.handle_button_callback(update, context)
@@ -234,6 +237,98 @@ async def _finish_photo_upload(query, context: ContextTypes.DEFAULT_TYPE):
     session['current_section'] = 'conversational'
     session['onboarding_complete'] = True
     db_adapter.save_session(session)
+
+
+async def _handle_match_callback(query, context, data):
+    """Handle match accept/decline/more callbacks from double opt-in flow."""
+    await query.answer()
+    telegram_id = query.from_user.id
+
+    # Parse callback: match_accept_123, match_decline_123, match_more_123
+    parts = data.split("_")
+    if len(parts) < 3:
+        return
+
+    action = parts[1]  # accept, decline, more
+    match_id = int(parts[2])
+
+    try:
+        import sys, os
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'matching'))
+        from delivery import DeliveryEngine
+
+        engine = DeliveryEngine(db=db_adapter)
+
+        # Determine if this user is Person A or Person B
+        match = engine._get_match(match_id)
+        if not match:
+            await context.bot.send_message(chat_id=query.message.chat.id, text="This match is no longer available.")
+            return
+
+        # Figure out role: look up user's internal ID from telegram_id
+        user = db_adapter.get_user(telegram_id)
+        if not user:
+            return
+
+        user_id = user["id"]
+        if match["status"] == "offered_a":
+            # Determine who is Person A
+            if match.get("user_gender") == "Female" and match["user_id"] == user_id:
+                role = "a"
+            elif match.get("matched_gender") == "Female" and match["matched_user_id"] == user_id:
+                role = "a"
+            else:
+                role = "a"  # Default: user who received the offer
+        elif match["status"] == "offered_b":
+            role = "b"
+        else:
+            await context.bot.send_message(chat_id=query.message.chat.id, text="You've already responded to this match.")
+            return
+
+        if action == "accept":
+            engine.handle_response(match_id, role, accepted=True)
+            await context.bot.send_message(
+                chat_id=query.message.chat.id,
+                text="You said yes! Masii will let you know if it's mutual. Fingers crossed."
+            )
+        elif action == "decline":
+            engine.handle_response(match_id, role, accepted=False)
+            await context.bot.send_message(
+                chat_id=query.message.chat.id,
+                text="Got it. Masii will keep looking for the right match for you."
+            )
+        elif action == "more":
+            # Show more details about the match
+            other_id = match["matched_user_id"] if match["user_id"] == user_id else match["user_id"]
+            summary = engine._get_profile_summary(other_id)
+
+            from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+            details = (
+                f"A bit more about {summary.get('first_name', 'them')}:\n\n"
+                f"Religion: {summary.get('religion', 'N/A')}\n"
+                f"Education: {summary.get('education', 'N/A')}\n"
+                f"Works in: {summary.get('occupation', 'N/A')}\n"
+                f"Location: {summary.get('city', 'N/A')}, {summary.get('country', '')}\n\n"
+                f"What do you think?"
+            )
+            keyboard = InlineKeyboardMarkup([
+                [
+                    InlineKeyboardButton("Yes, I'm interested", callback_data=f"match_accept_{match_id}"),
+                    InlineKeyboardButton("Not this time", callback_data=f"match_decline_{match_id}"),
+                ],
+            ])
+            await context.bot.send_message(
+                chat_id=query.message.chat.id,
+                text=details,
+                reply_markup=keyboard,
+            )
+
+    except Exception as e:
+        logger.error(f"Match callback error: {e}")
+        await context.bot.send_message(
+            chat_id=query.message.chat.id,
+            text="Something went wrong processing your response. Please try again."
+        )
 
 
 async def handle_sticker(update: Update, context: ContextTypes.DEFAULT_TYPE):

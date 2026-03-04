@@ -298,21 +298,37 @@ QUESTIONS = {
 
     3: {
         "section": "basics",
-        "field": "hometown",
+        "field": "raised_in",
         "db_table": "users",
-        "type": "two_step_location",
+        "type": "location_tree",
         "step1": {
-            "text": "Where is your family originally from? (State)",
+            "text": "Where did you grow up?",
             "type": "single_select",
-            "field": "hometown_state",
+            "field": "raised_in_type",
+            "options": [
+                {"label": "India", "value": "India"},
+                {"label": "Outside India", "value": "Outside India"}
+            ]
+        },
+        "step2_india": {
+            "text": "Which state?",
+            "type": "single_select",
+            "field": "raised_in_state",
             "options": "states_india_full",
             "columns": 2
         },
-        "step2": {
-            "text": "Which city or town?",
+        "step2_abroad": {
+            "text": "Which country?",
+            "type": "single_select",
+            "field": "raised_in_country",
+            "options": "countries",
+            "columns": 2
+        },
+        "step3": {
+            "text": "Which city?",
             "type": "text_input",
-            "field": "hometown_city",
-            "placeholder": "e.g. Ahmedabad, Jaipur, Lucknow..."
+            "field": "raised_in_city",
+            "placeholder": "e.g. Ahmedabad, London, Toronto..."
         }
     },
 
@@ -581,7 +597,7 @@ QUESTIONS = {
         "section": "family",
         "field": "family_type",
         "db_table": "users",
-        "text": "What type of family do you come from?",
+        "text": "Were you raised in a nuclear or joint family?",
         "type": "single_select",
         "options": [
             {"label": "Nuclear", "value": "Nuclear"},
@@ -596,12 +612,7 @@ QUESTIONS = {
         "db_table": "users",
         "text": "How would you describe your family's financial status?",
         "type": "single_select",
-        "options": [
-            {"label": "Middle class", "value": "Middle class"},
-            {"label": "Upper middle class", "value": "Upper middle class"},
-            {"label": "Affluent", "value": "Affluent"},
-            {"label": "Prefer not to say", "value": "Prefer not to say"}
-        ]
+        "options": "family_status_by_location",
     },
 
     24: {
@@ -688,7 +699,15 @@ QUESTIONS = {
         "db_table": "signals",
         "text": "What is your diet?",
         "type": "single_select",
-        "options": "diet_by_religion",
+        "options": [
+            {"label": "Veg", "value": "Veg"},
+            {"label": "Vegan", "value": "Vegan"},
+            {"label": "Eggetarian", "value": "Eggetarian"},
+            {"label": "Non-veg", "value": "Non-veg"},
+            {"label": "Occasionally non-veg", "value": "Occasionally non-veg"},
+            {"label": "Jain", "value": "Jain"},
+            {"label": "Other", "value": "Other"}
+        ],
     },
 
     30: {
@@ -740,7 +759,8 @@ QUESTIONS = {
         "type": "single_select",
         "options": [
             {"label": "Same as mine", "value": "Same as mine"},
-            {"label": "Vegetarian or above", "value": "Vegetarian or above"},
+            {"label": "Any but not non-veg", "value": "Any but not non-veg"},
+            {"label": "Veg", "value": "Veg"},
             {"label": "Doesn't matter", "value": "Doesn't matter"}
         ]
     },
@@ -782,9 +802,9 @@ QUESTIONS = {
         "text": "How soon are you looking to get married?",
         "type": "single_select",
         "options": [
-            {"label": "Within 6 months", "value": "Within 6 months"},
-            {"label": "In the next 1 year", "value": "In the next 1 year"},
-            {"label": "In the next 2-3 years", "value": "In the next 2-3 years"},
+            {"label": "Within 1 year", "value": "Within 1 year"},
+            {"label": "1-2 years", "value": "1-2 years"},
+            {"label": "2-3 years", "value": "2-3 years"},
             {"label": "Just exploring", "value": "Just exploring"}
         ]
     },
@@ -826,6 +846,7 @@ QUESTIONS = {
             {"label": "Yes, anywhere", "value": "Yes, anywhere"},
             {"label": "Yes, within India", "value": "Yes, within India"},
             {"label": "Yes, within my state/country", "value": "Yes, within my state/country"},
+            {"label": "Only abroad", "value": "Only abroad"},
             {"label": "No, I'm settled where I am", "value": "No, I'm settled where I am"}
         ]
     },
@@ -1131,7 +1152,7 @@ Would you like to answer these?""",
         "section": "sensitive",
         "field": "known_conditions",
         "db_table": "users",
-        "text": "Do you have any known medical conditions or disabilities?",
+        "text": "Do you have any known medical conditions? (e.g. diabetes, asthma, thyroid)",
         "type": "single_select",
         "options": [
             {"label": "No", "value": "No"},
@@ -1282,12 +1303,190 @@ SUB_QUESTIONS = {
         "section": "sensitive",
         "field": "pref_conditions",
         "db_table": "preferences",
-        "text": "Would you be open to a partner with a medical condition or disability?",
+        "text": "Are you open to a partner with a medical condition?",
         "type": "single_select",
         "after_guna": 58,
         "options": [
             {"label": "Yes", "value": "Yes"},
             {"label": "Depends on the condition", "value": "Depends on the condition"},
+            {"label": "No", "value": "No"}
+        ]
+    },
+    "pref_partner_location": {
+        "section": "basics",
+        "field": "pref_partner_location",
+        "db_table": "preferences",
+        "text": "Where should your partner currently live?",
+        "type": "single_select",
+        "after_guna": 2,
+        "options": [
+            {"label": "Same city as me", "value": "Same city as me"},
+            {"label": "Same state as me", "value": "Same state as me"},
+            {"label": "Same country as me", "value": "Same country as me"},
+            {"label": "Anywhere", "value": "Anywhere"},
+            {"label": "Specific countries", "value": "Specific countries"}
+        ]
+    },
+    "pref_raised_in": {
+        "section": "basics",
+        "field": "pref_raised_in",
+        "db_table": "preferences",
+        "text": "Where should your partner have been raised?",
+        "type": "single_select",
+        "after_guna": 3,
+        "options": "pref_raised_in_by_location",
+    },
+    "pref_marital_status": {
+        "section": "basics",
+        "field": "pref_marital_status",
+        "db_table": "preferences",
+        "text": "What marital status are you open to in a partner?",
+        "type": "multi_select",
+        "after_guna": 6,
+        "options": [
+            {"label": "Never married", "value": "Never married"},
+            {"label": "Divorced", "value": "Divorced"},
+            {"label": "Widowed", "value": "Widowed"},
+            {"label": "Awaiting divorce", "value": "Awaiting divorce"},
+            {"label": "Any", "value": "Any"}
+        ],
+        "done_label": "Done \u2713"
+    },
+    "pref_children_existing": {
+        "section": "basics",
+        "field": "pref_children_existing",
+        "db_table": "preferences",
+        "text": "Are you open to a partner who has children?",
+        "type": "single_select",
+        "after_guna": 6,
+        "condition": "marital_status != 'Never married'",
+        "options": [
+            {"label": "Yes", "value": "Yes"},
+            {"label": "Only if they don't live with them", "value": "Only if they don't live with them"},
+            {"label": "No", "value": "No"}
+        ]
+    },
+    "pref_education_field": {
+        "section": "education",
+        "field": "pref_education_field",
+        "db_table": "preferences",
+        "text": "Do you have a preference for your partner's field of study?",
+        "type": "single_select",
+        "after_guna": 17,
+        "options": [
+            {"label": "Same as mine", "value": "Same as mine"},
+            {"label": "Doesn't matter", "value": "Doesn't matter"}
+        ]
+    },
+    "pref_family_type": {
+        "section": "family",
+        "field": "pref_family_type",
+        "db_table": "preferences",
+        "text": "Do you prefer your partner to be raised in a similar family setup?",
+        "type": "single_select",
+        "after_guna": 22,
+        "options": [
+            {"label": "Same as mine", "value": "Same as mine"},
+            {"label": "Doesn't matter", "value": "Doesn't matter"}
+        ]
+    },
+    "pref_siblings": {
+        "section": "family",
+        "field": "pref_siblings",
+        "db_table": "preferences",
+        "text": "Do you have a preference about your partner's siblings?",
+        "type": "single_select",
+        "after_guna": 27,
+        "options": [
+            {"label": "Must have siblings", "value": "Must have siblings"},
+            {"label": "Single child is fine", "value": "Single child is fine"},
+            {"label": "Doesn't matter", "value": "Doesn't matter"}
+        ]
+    },
+    "pref_children_timeline": {
+        "section": "marriage",
+        "field": "pref_children_timeline",
+        "db_table": "preferences",
+        "text": "When would you want your partner to be open to having children?",
+        "type": "single_select",
+        "after_guna": 37,
+        "condition": "children_intent != 'No'",
+        "options": [
+            {"label": "Soon after marriage", "value": "Soon after marriage"},
+            {"label": "After 2-3 years", "value": "After 2-3 years"},
+            {"label": "After 4+ years", "value": "After 4+ years"},
+            {"label": "Doesn't matter", "value": "Doesn't matter"}
+        ]
+    },
+    "pref_living_arrangement": {
+        "section": "marriage",
+        "field": "pref_living_arrangement",
+        "db_table": "preferences",
+        "text": "What living arrangement would you need your partner to be open to?",
+        "type": "single_select",
+        "after_guna": 38,
+        "options": [
+            {"label": "With parents (joint family)", "value": "With parents (joint family)"},
+            {"label": "Near parents but separate", "value": "Near parents but separate"},
+            {"label": "Independent \u2014 wherever life takes us", "value": "Independent \u2014 wherever life takes us"},
+            {"label": "Open to discussion", "value": "Open to discussion"},
+            {"label": "Doesn't matter", "value": "Doesn't matter"}
+        ]
+    },
+    "pref_partner_cooking_m": {
+        "section": "household",
+        "field": "pref_partner_cooking_m",
+        "db_table": "preferences",
+        "gender": "Male",
+        "text": "How often do you need your partner to cook?",
+        "type": "single_select",
+        "after_guna": 42,
+        "condition": "gender == 'Male'",
+        "options": [
+            {"label": "Regularly (7+ meals a week)", "value": "Regularly (7+ meals a week)"},
+            {"label": "Sometimes (3-6 meals)", "value": "Sometimes (3-6 meals)"},
+            {"label": "Rarely (1-2 meals)", "value": "Rarely (1-2 meals)"},
+            {"label": "Never", "value": "Never"}
+        ]
+    },
+    "pref_partner_cooks": {
+        "section": "household",
+        "field": "pref_partner_cooks",
+        "db_table": "preferences",
+        "gender": "Male",
+        "text": "Do you need your partner to know how to cook?",
+        "type": "single_select",
+        "after_guna": 42,
+        "condition": "gender == 'Male'",
+        "options": [
+            {"label": "Yes, must cook regularly", "value": "Yes, must cook regularly"},
+            {"label": "Some cooking is enough", "value": "Some cooking is enough"},
+            {"label": "Doesn't matter", "value": "Doesn't matter"}
+        ]
+    },
+    "disability": {
+        "section": "sensitive",
+        "field": "disability",
+        "db_table": "users",
+        "text": "Do you have a disability?",
+        "type": "single_select",
+        "after_guna": 58,
+        "options": [
+            {"label": "No", "value": "No"},
+            {"label": "Yes", "value": "Yes"},
+            {"label": "Prefer not to say", "value": "Prefer not to say"}
+        ]
+    },
+    "pref_disability": {
+        "section": "sensitive",
+        "field": "pref_disability",
+        "db_table": "preferences",
+        "text": "Are you open to a partner with a disability?",
+        "type": "single_select",
+        "after_guna": 58,
+        "options": [
+            {"label": "Yes", "value": "Yes"},
+            {"label": "Depends", "value": "Depends"},
             {"label": "No", "value": "No"}
         ]
     },
@@ -1649,6 +1848,44 @@ def get_diet_by_religion(religion: str):
         {"label": "Flexible", "value": "Flexible"}
     ]
     return diets.get(religion, default)
+
+
+def get_family_status_by_location(is_nri: bool):
+    """Family financial status options based on location (India vs abroad)"""
+    if is_nri:
+        # Outside India — generic tiers (country-specific TBD)
+        return [
+            {"label": "Middle class", "value": "Middle class"},
+            {"label": "Upper middle class", "value": "Upper middle class"},
+            {"label": "Affluent", "value": "Affluent"},
+            {"label": "Prefer not to say", "value": "Prefer not to say"}
+        ]
+    return [
+        {"label": "Less than \u20b910 lakh annual income", "value": "Less than \u20b910 lakh annual income"},
+        {"label": "\u20b910-30 lakh + some assets", "value": "\u20b910-30 lakh + some assets"},
+        {"label": "\u20b930-70 lakh + assets", "value": "\u20b930-70 lakh + assets"},
+        {"label": "\u20b970 lakh+ + significant assets", "value": "\u20b970 lakh+ + significant assets"},
+        {"label": "Assets over \u20b910 crore", "value": "Assets over \u20b910 crore"},
+        {"label": "Prefer not to say", "value": "Prefer not to say"}
+    ]
+
+
+def get_pref_raised_in_options(is_nri: bool):
+    """Partner raised-in preference options based on user's location"""
+    if is_nri:
+        return [
+            {"label": "Same country as me", "value": "Same country as me"},
+            {"label": "Raised abroad (any country)", "value": "Raised abroad (any country)"},
+            {"label": "Raised in India is fine too", "value": "Raised in India is fine too"},
+            {"label": "Doesn't matter", "value": "Doesn't matter"}
+        ]
+    return [
+        {"label": "Same state", "value": "Same state"},
+        {"label": "Nearby states", "value": "Nearby states"},
+        {"label": "Any state in India", "value": "Any state in India"},
+        {"label": "Abroad is fine too", "value": "Abroad is fine too"},
+        {"label": "Doesn't matter", "value": "Doesn't matter"}
+    ]
 
 
 def get_income_brackets_inr():

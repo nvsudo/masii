@@ -1,18 +1,17 @@
 """
-Matcher Engine — Pair identification, ranking, and match creation.
+Matcher Engine — Pair identification, ranking, and match creation (v2).
 
 The main entry point is `run_matching_cycle()` which:
 1. Fetches all eligible profiles from DB
 2. For each profile, finds candidates that pass hard filters
-3. Scores all surviving pairs
+3. Scores all surviving pairs (per-question scoring model)
 4. Ranks by score, creates match records
-5. Handles "almost matches" (60-74 score) separately
+5. Handles "almost matches" (below 60) separately
 
-Match tiers:
-    87+  → High conviction, free introduction
-    75-86 → Good match, free introduction
-    60-74 → Almost match, shown to paid tiers or offered as "we have someone close"
-    <60  → Not shown
+Match tiers (v2):
+    75+  → High conviction, free introduction
+    60-74 → Good match, free introduction
+    <60  → Almost match, saved but not shown free
 """
 
 import logging
@@ -36,11 +35,11 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-# Score thresholds
-SCORE_HIGH_CONVICTION = 87
-SCORE_GOOD_MATCH = 75
-SCORE_ALMOST_MATCH = 60
-SCORE_MINIMUM = 60
+# V2 score thresholds (from protocol spec)
+SCORE_HIGH_CONVICTION = 75  # 75%+ = strong match
+SCORE_GOOD_MATCH = 60       # 60-74% = decent match
+SCORE_ALMOST_MATCH = 50     # below 60% not shown free
+SCORE_MINIMUM = 60          # minimum for free introduction
 
 # Max matches per user per cycle
 MAX_MATCHES_PER_CYCLE = 3
@@ -84,8 +83,9 @@ class MatcherEngine:
                 u.city_current,
                 u.country_current,
                 u.state_india,
-                u.hometown_state,
-                u.hometown_city,
+                u.raised_in_state,
+                u.raised_in_city,
+                u.raised_in_country,
                 u.mother_tongue,
                 u.languages_spoken,
                 u.marital_status,
@@ -103,6 +103,7 @@ class MatcherEngine:
                 u.mother_occupation,
                 u.siblings,
                 u.known_conditions,
+                u.disability,
                 u.phone
             FROM users u
             WHERE u.gender IS NOT NULL
@@ -274,13 +275,13 @@ class MatcherEngine:
                 cand, cand_prefs, cand_signals,
             )
 
-            # Determine tier
-            if final_score >= SCORE_HIGH_CONVICTION:
+            # Determine tier (v2)
+            if final_score >= SCORE_HIGH_CONVICTION:  # 75+
                 tier = "high"
-            elif final_score >= SCORE_GOOD_MATCH:
+            elif final_score >= SCORE_GOOD_MATCH:     # 60-74
                 tier = "good"
             else:
-                tier = "almost"
+                tier = "almost"  # below 60, saved but not shown free
 
             # Generate explanation
             explanation = generate_explanation(
@@ -492,16 +493,14 @@ def match_two_profiles(
         score_result,
     )
 
-    # Tier
+    # Tier (v2)
     score = score_result["score"]
-    if score >= SCORE_HIGH_CONVICTION:
+    if score >= SCORE_HIGH_CONVICTION:  # 75+
         tier = "high"
-    elif score >= SCORE_GOOD_MATCH:
+    elif score >= SCORE_GOOD_MATCH:     # 60-74
         tier = "good"
-    elif score >= SCORE_ALMOST_MATCH:
-        tier = "almost"
     else:
-        tier = "low"
+        tier = "almost"  # below 60
 
     return {
         "matched": True,

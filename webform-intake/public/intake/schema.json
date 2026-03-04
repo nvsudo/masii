@@ -1,7 +1,7 @@
 {
   "meta": {
-    "name": "Jodi V1 Field Schema",
-    "field_count": 77,
+    "name": "Masii V2 Field Schema",
+    "field_count": 92,
     "section_count": 10
   },
   "sections": [
@@ -121,8 +121,7 @@
         "Never married",
         "Divorced",
         "Widowed",
-        "Separated",
-        "Annulled"
+        "Awaiting divorce"
       ],
       "filter_type": "Hard Filter",
       "conditional_logic": null,
@@ -137,12 +136,46 @@
       "label": "Do you have children?",
       "options": [
         "No",
-        "Yes, living with me",
-        "Yes, not living with me"
+        "Yes, they live with me",
+        "Yes, they don't live with me"
       ],
       "filter_type": "Hard Filter",
       "conditional_logic": "Show if marital_status \u2260 Never married",
       "why_this_matters": "Major dealbreaker; affects lifestyle compatibility",
+      "question_type": "single_select"
+    },
+    {
+      "id": 501,
+      "section_code": "A",
+      "section": "Identity",
+      "field_name": "pref_marital_status",
+      "label": "What marital status are you open to in a partner?",
+      "options": [
+        "Never married",
+        "Divorced",
+        "Widowed",
+        "Awaiting divorce",
+        "Any"
+      ],
+      "filter_type": "Hard Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Hard gate — filters out incompatible marital histories",
+      "question_type": "multi_select"
+    },
+    {
+      "id": 502,
+      "section_code": "A",
+      "section": "Identity",
+      "field_name": "pref_children_existing",
+      "label": "Are you open to a partner who has children?",
+      "options": [
+        "Yes",
+        "Only if they don't live with them",
+        "No"
+      ],
+      "filter_type": "Hard Filter",
+      "conditional_logic": "Show if marital_status \u2260 Never married",
+      "why_this_matters": "Hard gate — existing children is a major consideration",
       "question_type": "single_select"
     },
     {
@@ -209,17 +242,64 @@
       "id": 9,
       "section_code": "A",
       "section": "Identity",
-      "field_name": "disability_status",
-      "label": "Any physical disability?",
+      "field_name": "medical_conditions",
+      "label": "Do you have any known medical conditions? (e.g. diabetes, asthma, thyroid)",
       "options": [
-        "None",
-        "Yes, minor",
-        "Yes, significant",
+        "No",
+        "Yes",
         "Prefer not to say"
       ],
       "filter_type": "Hard Filter",
       "conditional_logic": null,
       "why_this_matters": "Transparency; avoids awkward reveals later",
+      "question_type": "single_select"
+    },
+    {
+      "id": 901,
+      "section_code": "A",
+      "section": "Identity",
+      "field_name": "pref_medical_conditions",
+      "label": "Are you open to a partner with a medical condition?",
+      "options": [
+        "Yes",
+        "Depends on the condition",
+        "No"
+      ],
+      "filter_type": "Hard Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Hard gate — medical conditions preference",
+      "question_type": "single_select"
+    },
+    {
+      "id": 902,
+      "section_code": "A",
+      "section": "Identity",
+      "field_name": "disability",
+      "label": "Do you have a disability?",
+      "options": [
+        "No",
+        "Yes",
+        "Prefer not to say"
+      ],
+      "filter_type": "Hard Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Transparency; avoids awkward reveals later",
+      "question_type": "single_select"
+    },
+    {
+      "id": 903,
+      "section_code": "A",
+      "section": "Identity",
+      "field_name": "pref_disability",
+      "label": "Are you open to a partner with a disability?",
+      "options": [
+        "Yes",
+        "Depends",
+        "No"
+      ],
+      "filter_type": "Hard Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Hard gate — disability preference",
       "question_type": "single_select"
     },
     {
@@ -293,14 +373,67 @@
       "id": 14,
       "section_code": "B",
       "section": "Location",
-      "field_name": "hometown_state",
-      "label": "Native place / hometown state:",
+      "field_name": "grew_up_country",
+      "label": "Where did you grow up?",
+      "options": [
+        "India",
+        "Outside India"
+      ],
+      "filter_type": "Soft Filter",
+      "conditional_logic": null,
+      "why_this_matters": "Cultural roots signal — where you were raised shapes who you are",
+      "question_type": "single_select"
+    },
+    {
+      "id": 1401,
+      "section_code": "B",
+      "section": "Location",
+      "field_name": "grew_up_state",
+      "label": "Which state did you grow up in?",
       "options": [
         "All 28 states + 8 UTs"
       ],
       "filter_type": "Soft Filter",
+      "conditional_logic": "Show if grew_up_country = India",
+      "why_this_matters": "Regional culture, language, cuisine alignment",
+      "question_type": "single_select"
+    },
+    {
+      "id": 1402,
+      "section_code": "B",
+      "section": "Location",
+      "field_name": "grew_up_outside_country",
+      "label": "Which country did you grow up in?",
+      "options": [
+        "USA",
+        "UK",
+        "Canada",
+        "Australia",
+        "UAE",
+        "Singapore",
+        "Germany",
+        "Other"
+      ],
+      "filter_type": "Soft Filter",
+      "conditional_logic": "Show if grew_up_country = Outside India",
+      "why_this_matters": "Diaspora background shapes cultural expectations",
+      "question_type": "single_select"
+    },
+    {
+      "id": 1403,
+      "section_code": "B",
+      "section": "Location",
+      "field_name": "pref_raised_in",
+      "label": "Where should your partner have been raised?",
+      "options": [
+        "Same country as me",
+        "Raised abroad (any country)",
+        "Raised in India is fine too",
+        "Doesn't matter"
+      ],
+      "filter_type": "Hard Filter",
       "conditional_logic": null,
-      "why_this_matters": "\"Where are you originally from\" \u2014 cultural roots signal",
+      "why_this_matters": "Hard gate — raised-in preference shapes cultural compatibility",
       "question_type": "single_select"
     },
     {
@@ -308,14 +441,13 @@
       "section_code": "B",
       "section": "Location",
       "field_name": "willing_to_relocate",
-      "label": "Open to relocating?",
+      "label": "Would you relocate for the right match?",
       "options": [
         "Yes, anywhere",
         "Yes, within India",
-        "Yes, within my state",
-        "Yes, to India (NRI returning)",
-        "Maybe, depends on partner",
-        "No"
+        "Yes, within my state/country",
+        "Only abroad",
+        "No, I'm settled where I am"
       ],
       "filter_type": "Hard Filter",
       "conditional_logic": null,
@@ -326,19 +458,17 @@
       "id": 16,
       "section_code": "B",
       "section": "Location",
-      "field_name": "partner_location_pref",
-      "label": "Partner location preference:",
+      "field_name": "pref_partner_location",
+      "label": "Where should your partner currently live?",
       "options": [
-        "Same city",
-        "Same state/region",
-        "Anywhere in India",
-        "NRI OK",
-        "International OK",
-        "No preference"
+        "Same city as me",
+        "Same state as me",
+        "Same country as me",
+        "Anywhere"
       ],
       "filter_type": "Hard Filter",
       "conditional_logic": null,
-      "why_this_matters": "Two-way geographic filter",
+      "why_this_matters": "Hard gate — geographic proximity filter",
       "question_type": "single_select"
     },
     {
@@ -429,9 +559,9 @@
         "Sikh: Amritdhari, Keshdhari, Sehajdhari",
         "None / Prefer not to say"
       ],
-      "filter_type": "Soft Filter",
-      "conditional_logic": "Options change based on religion",
-      "why_this_matters": "Matters within religions; Sunni-Shia, Catholic-Protestant",
+      "filter_type": "Skipped",
+      "conditional_logic": "SKIPPED — not enough data to tree properly yet",
+      "why_this_matters": "Skipped in v2 — reserved for premium matching",
       "question_type": "single_select"
     },
     {
@@ -582,6 +712,21 @@
       "filter_type": "Algo Weight",
       "conditional_logic": null,
       "why_this_matters": "\"IIT boy\" is a real filter in Indian matchmaking",
+      "question_type": "single_select"
+    },
+    {
+      "id": 2901,
+      "section_code": "D",
+      "section": "Education & Career",
+      "field_name": "pref_education_field",
+      "label": "Do you have a preference for your partner's field of study?",
+      "options": [
+        "Same as mine",
+        "Doesn't matter"
+      ],
+      "filter_type": "Algo Weight",
+      "conditional_logic": null,
+      "why_this_matters": "Field-of-study compatibility signal",
       "question_type": "single_select"
     },
     {
@@ -756,11 +901,11 @@
       "section_code": "F",
       "section": "Family",
       "field_name": "family_type",
-      "label": "Family type:",
+      "label": "Were you raised in a nuclear or joint family?",
       "options": [
         "Nuclear",
-        "Joint family",
-        "Extended joint family"
+        "Joint",
+        "Semi-joint"
       ],
       "filter_type": "Soft Filter",
       "conditional_logic": null,
@@ -768,16 +913,32 @@
       "question_type": "single_select"
     },
     {
+      "id": 3801,
+      "section_code": "F",
+      "section": "Family",
+      "field_name": "pref_family_type",
+      "label": "Do you prefer your partner to be raised in a similar family setup?",
+      "options": [
+        "Same as mine",
+        "Doesn't matter"
+      ],
+      "filter_type": "Algo Weight",
+      "conditional_logic": null,
+      "why_this_matters": "Family structure compatibility signal",
+      "question_type": "single_select"
+    },
+    {
       "id": 39,
       "section_code": "F",
       "section": "Family",
       "field_name": "family_financial_status",
-      "label": "Family background:",
+      "label": "How would you describe your family's financial status?",
       "options": [
-        "Upper class",
-        "Upper-middle class",
-        "Middle class",
-        "Lower-middle class",
+        "Less than \u20b910 lakh annual income",
+        "\u20b910-30 lakh + some assets",
+        "\u20b930-70 lakh + assets",
+        "\u20b970 lakh+ + significant assets",
+        "Assets over \u20b910 crore",
         "Prefer not to say"
       ],
       "filter_type": "Algo Weight",
@@ -818,27 +979,44 @@
         "Liberal / progressive",
         "We're pretty chill"
       ],
-      "filter_type": "Algo Weight",
-      "conditional_logic": null,
-      "why_this_matters": "Traditional vs modern household expectations",
+      "filter_type": "Skipped",
+      "conditional_logic": "SKIPPED — self-assessment unreliable",
+      "why_this_matters": "Skipped in v2 — everyone says moderate",
       "question_type": "single_select"
     },
     {
       "id": 42,
       "section_code": "F",
       "section": "Family",
-      "field_name": "living_with_parents_post_marriage",
-      "label": "After marriage, live with parents?",
+      "field_name": "living_arrangement",
+      "label": "After marriage, where would you want to live?",
       "options": [
-        "Yes, with my parents",
-        "Yes, with partner's parents",
-        "Open to it",
-        "Prefer independent",
-        "Definitely not"
+        "With parents (joint family)",
+        "Near parents but separate",
+        "Independent \u2014 wherever life takes us",
+        "Open to discussion"
       ],
       "filter_type": "Hard Filter",
       "conditional_logic": null,
       "why_this_matters": "Massive friction point; best to surface early",
+      "question_type": "single_select"
+    },
+    {
+      "id": 4201,
+      "section_code": "F",
+      "section": "Family",
+      "field_name": "pref_living_arrangement",
+      "label": "What living arrangement would you need your partner to be open to?",
+      "options": [
+        "With parents (joint family)",
+        "Near parents but separate",
+        "Independent",
+        "Open to discussion",
+        "Doesn't matter"
+      ],
+      "filter_type": "Algo Weight",
+      "conditional_logic": null,
+      "why_this_matters": "Cross-matched against partner's living arrangement preference",
       "question_type": "single_select"
     },
     {
@@ -853,9 +1031,9 @@
         "Family will be involved later",
         "This is my decision alone"
       ],
-      "filter_type": "Algo Weight",
-      "conditional_logic": null,
-      "why_this_matters": "Signals independence level and pace of process",
+      "filter_type": "Skipped",
+      "conditional_logic": "SKIPPED — if on Masii, family is involved",
+      "why_this_matters": "Skipped in v2 — redundant for this platform",
       "question_type": "single_select"
     },
     {
@@ -863,13 +1041,12 @@
       "section_code": "F",
       "section": "Family",
       "field_name": "siblings",
-      "label": "Siblings:",
+      "label": "Do you have siblings?",
       "options": [
         "Only child",
-        "1 brother",
-        "1 sister",
-        "Multiple siblings",
-        "Prefer not to say"
+        "1 sibling",
+        "2 siblings",
+        "3+ siblings"
       ],
       "filter_type": "Display Only",
       "conditional_logic": null,
@@ -877,20 +1054,35 @@
       "question_type": "single_select"
     },
     {
+      "id": 4401,
+      "section_code": "F",
+      "section": "Family",
+      "field_name": "pref_siblings",
+      "label": "Do you have a preference about your partner's siblings?",
+      "options": [
+        "Must have siblings",
+        "Single child is fine",
+        "Doesn't matter"
+      ],
+      "filter_type": "Algo Weight",
+      "conditional_logic": null,
+      "why_this_matters": "Sibling preference affects family dynamics expectations",
+      "question_type": "single_select"
+    },
+    {
       "id": 45,
       "section_code": "G",
       "section": "Lifestyle",
       "field_name": "diet",
-      "label": "Your diet:",
+      "label": "What is your diet?",
       "options": [
-        "Pure vegetarian (no eggs)",
-        "Vegetarian (eggs OK)",
-        "Eggetarian",
-        "Non-vegetarian",
+        "Veg",
         "Vegan",
-        "Jain food (no root veg, no onion/garlic)",
-        "Halal only",
-        "No restrictions"
+        "Eggetarian",
+        "Non-veg",
+        "Occasionally non-veg",
+        "Jain",
+        "Other"
       ],
       "filter_type": "Hard Filter",
       "conditional_logic": null,
@@ -902,13 +1094,12 @@
       "section_code": "G",
       "section": "Lifestyle",
       "field_name": "partner_diet_pref",
-      "label": "Partner's diet:",
+      "label": "Partner's diet preference?",
       "options": [
-        "Must match mine",
-        "Prefer similar",
-        "Vegetarian preferred",
-        "Non-veg OK",
-        "Don't care"
+        "Same as mine",
+        "Any but not non-veg",
+        "Veg",
+        "Doesn't matter"
       ],
       "filter_type": "Hard Filter",
       "conditional_logic": null,
@@ -1163,52 +1354,36 @@
       "id": 61,
       "section_code": "H",
       "section": "Partner Prefs",
-      "field_name": "pref_marital_status",
+      "field_name": "pref_marital_status_old",
       "label": "Partner marital history OK?",
-      "options": [
-        "Never married only",
-        "Divorced OK",
-        "Widowed OK",
-        "Any",
-        "Depends on situation"
-      ],
-      "filter_type": "Hard Filter",
-      "conditional_logic": null,
-      "why_this_matters": "Strong filter in Indian market",
+      "options": [],
+      "filter_type": "Skipped",
+      "conditional_logic": "SKIPPED — moved to section A as pref_marital_status",
+      "why_this_matters": "Skipped in v2 — replaced by new field in section A",
       "question_type": "single_select"
     },
     {
       "id": 62,
       "section_code": "H",
       "section": "Partner Prefs",
-      "field_name": "pref_children_ok",
+      "field_name": "pref_children_ok_old",
       "label": "Partner having existing children?",
-      "options": [
-        "OK",
-        "Depends",
-        "Prefer not",
-        "Dealbreaker"
-      ],
-      "filter_type": "Hard Filter",
-      "conditional_logic": null,
-      "why_this_matters": "Tied to marital history",
+      "options": [],
+      "filter_type": "Skipped",
+      "conditional_logic": "SKIPPED — moved to section A as pref_children_existing",
+      "why_this_matters": "Skipped in v2 — replaced by new field in section A",
       "question_type": "single_select"
     },
     {
       "id": 63,
       "section_code": "H",
       "section": "Partner Prefs",
-      "field_name": "pref_disability_ok",
+      "field_name": "pref_disability_ok_old",
       "label": "Partner with disability?",
-      "options": [
-        "Yes, open to it",
-        "Depends on type",
-        "Prefer not",
-        "No"
-      ],
-      "filter_type": "Hard Filter",
-      "conditional_logic": null,
-      "why_this_matters": "Honest preference capture",
+      "options": [],
+      "filter_type": "Skipped",
+      "conditional_logic": "SKIPPED — moved to section A as pref_disability",
+      "why_this_matters": "Skipped in v2 — replaced by new field in section A",
       "question_type": "single_select"
     },
     {
@@ -1233,14 +1408,13 @@
       "id": 65,
       "section_code": "I",
       "section": "Values",
-      "field_name": "relationship_intent",
-      "label": "What are you looking for?",
+      "field_name": "marriage_timeline",
+      "label": "How soon are you looking to get married?",
       "options": [
-        "Marriage \u2014 ready now",
-        "Marriage \u2014 in 6-12 months",
-        "Marriage \u2014 in 1-2 years",
-        "Long-term committed relationship",
-        "Open to see where it goes"
+        "Within 1 year",
+        "1-2 years",
+        "2-3 years",
+        "Just exploring"
       ],
       "filter_type": "Hard Filter",
       "conditional_logic": null,
@@ -1270,17 +1444,32 @@
       "section_code": "I",
       "section": "Values",
       "field_name": "children_timeline",
-      "label": "Children timeline:",
+      "label": "When would you want children?",
       "options": [
         "Soon after marriage",
-        "1\u20132 years",
-        "3\u20135 years",
-        "No rush",
-        "Not applicable"
+        "After 2-3 years",
+        "After 4+ years"
       ],
       "filter_type": "Algo Weight",
       "conditional_logic": "Show if children_intent \u2260 Definitely not",
       "why_this_matters": "Aligned expectations",
+      "question_type": "single_select"
+    },
+    {
+      "id": 6701,
+      "section_code": "I",
+      "section": "Values",
+      "field_name": "pref_children_timeline",
+      "label": "When would you want your partner to be open to having children?",
+      "options": [
+        "Soon after marriage",
+        "After 2-3 years",
+        "After 4+ years",
+        "Doesn't matter"
+      ],
+      "filter_type": "Algo Weight",
+      "conditional_logic": "Show if children_intent \u2260 Definitely not",
+      "why_this_matters": "Children timeline alignment",
       "question_type": "single_select"
     },
     {
@@ -1299,6 +1488,39 @@
       "filter_type": "Algo Weight",
       "conditional_logic": null,
       "why_this_matters": "Modern vs traditional expectation; daily life friction",
+      "question_type": "single_select"
+    },
+    {
+      "id": 6801,
+      "section_code": "I",
+      "section": "Values",
+      "field_name": "pref_partner_cooking_m",
+      "label": "How often do you need your partner to cook?",
+      "options": [
+        "Regularly (7+ meals a week)",
+        "Sometimes (3-6 meals)",
+        "Rarely (1-2 meals)",
+        "Never"
+      ],
+      "filter_type": "Algo Weight",
+      "conditional_logic": "Show if gender_identity = Male",
+      "why_this_matters": "Cooking expectation alignment — men's perspective",
+      "question_type": "single_select"
+    },
+    {
+      "id": 6802,
+      "section_code": "I",
+      "section": "Values",
+      "field_name": "pref_partner_cooks",
+      "label": "Do you need your partner to know how to cook?",
+      "options": [
+        "Yes, must cook regularly",
+        "Some cooking is enough",
+        "Doesn't matter"
+      ],
+      "filter_type": "Algo Weight",
+      "conditional_logic": "Show if gender_identity = Male",
+      "why_this_matters": "Cooking ability expectation — men's perspective",
       "question_type": "single_select"
     },
     {

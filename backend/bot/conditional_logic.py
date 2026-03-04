@@ -1,11 +1,11 @@
 """
 Conditional Logic Router for Masii Onboarding
-Source of truth: docs/question-flow.md
+Source of truth: docs/question_matching_protocol.md (v2)
 
 Handles all branching, skip logic, and tree routing based on user answers.
 
 Skip logic:
-  - Religion → Practice level (Q10), Sect (Q11), Caste (Q12), Diet (Q29), Gotras (Q55)
+  - Religion → Practice level (Q10), Caste (Q12)
   - Gender → Household questions (Q42-51 gender-forked)
   - Marital status → Children existing (sub-Q after Q6)
   - Caste → Caste importance (sub-Q after Q12)
@@ -13,11 +13,20 @@ Skip logic:
   - Pref_religion → Religion exclude list (sub-Q after Q13)
   - Pref_caste → Caste exclude list (sub-Q after Q14)
   - Children intent → Timeline (sub-Q after Q37)
-  - Sensitive gate → Skip Q54-58 if gate = "no"
+  - Sensitive gate → Skip Q54, Q57-58 if gate = "no"
   - Manglik → Only Hindu/Jain (Q54)
-  - Gotra → Only Hindu/Jain/Sikh (Q55)
-  - Location → India/abroad → state/country → city (Q2 multi-step)
+  - Location → India/abroad → state/country → city (Q2, Q3 multi-step)
   - Location → Income brackets INR vs USD (Q19, Q21)
+  - Location → Family status options (Q23)
+  - Location → Partner raised-in pref options (pref_raised_in sub-Q)
+
+v2 always-skip:
+  - Q11 (sect) — not enough data to tree yet
+  - Q24 (family_values) — self-assessment unreliable
+  - Q28 (family_involvement) — implied by being on Masii
+  - Q50 (financial_contribution Female) — covered by Q52
+  - Q55 (gotra) — deferred to premium
+  - Q56 (family_property) — covered by Q23
 """
 
 from typing import Dict, Optional
@@ -36,6 +45,8 @@ from config import (
     get_age_range_min,
     get_age_range_max,
     get_gotras_by_religion,
+    get_family_status_by_location,
+    get_pref_raised_in_options,
     TOTAL_QUESTIONS,
 )
 
@@ -52,10 +63,9 @@ def should_skip_question(question_num: int, answers: Dict) -> bool:
         religion = answers.get("religion")
         return get_practice_by_religion(religion) is None
 
-    # Q11 (sect): skip if no sects for this religion
+    # Q11 (sect): always skip — not enough data to tree properly yet (v2 protocol)
     if question_num == 11:
-        religion = answers.get("religion")
-        return get_sects_by_religion(religion) is None
+        return True
 
     # Q12 (caste): skip if no castes for this religion
     if question_num == 12:
@@ -67,12 +77,24 @@ def should_skip_question(question_num: int, answers: Dict) -> bool:
         religion = answers.get("religion")
         return get_castes_by_religion(religion) is None
 
+    # Q24 (family_values): always skip — self-assessment unreliable (v2 protocol)
+    if question_num == 24:
+        return True
+
+    # Q28 (family_involvement): always skip — implied by being on Masii (v2 protocol)
+    if question_num == 28:
+        return True
+
     # Q42-44 (Male household): skip if Female
     if question_num in (42, 43, 44):
         return gender == "Female"
 
-    # Q45-51 (Female household): skip if Male
-    if question_num in (45, 46, 47, 48, 49, 50, 51):
+    # Q45-49, Q51 (Female household): skip if Male
+    # Q50 (financial_contribution Female): always skip — covered by Q52 (v2 protocol)
+    if question_num == 50:
+        return True
+
+    if question_num in (45, 46, 47, 48, 49, 51):
         return gender == "Male"
 
     # Q54 (manglik): skip if gate="no" OR not Hindu/Jain
@@ -82,15 +104,16 @@ def should_skip_question(question_num: int, answers: Dict) -> bool:
         religion = answers.get("religion")
         return religion not in ("Hindu", "Jain")
 
-    # Q55 (gotra): skip if gate="no" OR not Hindu/Jain/Sikh
+    # Q55 (gotra): always skip — deferred to premium matching (v2 protocol)
     if question_num == 55:
-        if answers.get("sensitive_gate") == "no":
-            return True
-        religion = answers.get("religion")
-        return religion not in ("Hindu", "Jain", "Sikh")
+        return True
 
-    # Q56-58 (Sensitive questions): skip if gate said "no"
-    if question_num in (56, 57, 58):
+    # Q56 (family_property): always skip — covered by Q23 family wealth (v2 protocol)
+    if question_num == 56:
+        return True
+
+    # Q57-58 (Sensitive questions): skip if gate said "no"
+    if question_num in (57, 58):
         return answers.get("sensitive_gate") == "no"
 
     return False
@@ -121,11 +144,65 @@ def should_ask_sub_question(sub_key: str, answers: Dict) -> bool:
         return status is not None and status != "Not applicable"
 
     if sub_key == "pref_gotra_exclude":
-        gotra = answers.get("gotra")
-        return gotra is not None and gotra not in ("Don't know", "Not applicable")
+        # v2: gotra (Q55) is always skipped — never ask gotra exclude
+        return False
 
     if sub_key == "pref_conditions":
         # Always ask after known_conditions (Q58) if the sensitive gate was answered
+        return answers.get("sensitive_gate") == "yes"
+
+    # --- New v2 sub-questions ---
+
+    if sub_key == "pref_partner_location":
+        # Always ask after Q2 (current location)
+        return True
+
+    if sub_key == "pref_raised_in":
+        # Always ask after Q3 (where did you grow up)
+        return True
+
+    if sub_key == "pref_marital_status":
+        # Always ask after Q6 (marital status)
+        return True
+
+    if sub_key == "pref_children_existing":
+        # Ask after children_existing sub-Q (only if user is not Never married)
+        return answers.get("marital_status") not in ("Never married", None)
+
+    if sub_key == "pref_education_field":
+        # Always ask after Q17 (education field)
+        return True
+
+    if sub_key == "pref_family_type":
+        # Always ask after Q22 (family type)
+        return True
+
+    if sub_key == "pref_siblings":
+        # Always ask after Q27 (siblings)
+        return True
+
+    if sub_key == "pref_children_timeline":
+        # Ask after children_timeline sub-Q (only if children_intent != No)
+        return answers.get("children_intent") != "No"
+
+    if sub_key == "pref_living_arrangement":
+        # Always ask after Q38 (living arrangement)
+        return True
+
+    if sub_key == "pref_partner_cooking_m":
+        # Ask only for males, after Q42M (cooking contribution)
+        return answers.get("gender") == "Male"
+
+    if sub_key == "pref_partner_cooks":
+        # Ask only for males, after male cooking questions
+        return answers.get("gender") == "Male"
+
+    if sub_key == "disability":
+        # Always ask after Q58 (known_conditions) if sensitive gate was answered
+        return answers.get("sensitive_gate") == "yes"
+
+    if sub_key == "pref_disability":
+        # Always ask after disability sub-Q if sensitive gate was answered
         return answers.get("sensitive_gate") == "yes"
 
     return False
@@ -233,9 +310,10 @@ def get_conditional_options(question_num: int, answers: Dict) -> Optional[list]:
         is_nri = answers.get("_location_type") == "Outside India"
         return get_income_by_location_with_doesnt_matter(is_nri)
 
-    # Q29: Diet by religion
-    if question_num == 29:
-        return get_diet_by_religion(religion)
+    # Q23: Family financial status by location
+    if question_num == 23:
+        is_nri = answers.get("_location_type") == "Outside India"
+        return get_family_status_by_location(is_nri)
 
     # Q40 step2: Age range max (depends on min)
     # Handled in handler via two_step_range logic
@@ -247,6 +325,19 @@ def get_conditional_options(question_num: int, answers: Dict) -> Optional[list]:
     # Q55: Gotras by religion
     if question_num == 55:
         return get_gotras_by_religion(religion)
+
+    return None
+
+
+def get_sub_question_conditional_options(sub_key: str, answers: Dict) -> Optional[list]:
+    """
+    Return conditional options for sub-questions whose choices depend on prior answers.
+    Returns None if the sub-question should use its default options.
+    """
+    # pref_raised_in: options depend on whether user is in India or abroad
+    if sub_key == "pref_raised_in":
+        is_nri = answers.get("_location_type") == "Outside India"
+        return get_pref_raised_in_options(is_nri)
 
     return None
 
@@ -280,10 +371,19 @@ TEST_PATHS = [
             "sensitive_gate": "yes",
             "manglik_status": "Yes",
             "gotra": "Bharadwaj",
+            "_location_type": "India",
         },
-        "expected_skip": [45, 46, 47, 48, 49, 50, 51],  # Female household Qs
-        "expected_sub_questions": ["caste_importance", "children_timeline", "pref_manglik", "pref_gotra_exclude", "pref_conditions"],
-        "skip_sub_questions": ["children_existing", "pref_religion_exclude", "pref_caste_exclude"],
+        # Female household Qs + v2 always-skip: Q11, Q24, Q28, Q50, Q55, Q56
+        "expected_skip": [11, 24, 28, 45, 46, 47, 48, 49, 50, 51, 55, 56],
+        "expected_sub_questions": [
+            "caste_importance", "children_timeline", "pref_manglik", "pref_conditions",
+            "pref_partner_location", "pref_raised_in", "pref_marital_status",
+            "pref_education_field", "pref_family_type", "pref_siblings",
+            "pref_children_timeline", "pref_living_arrangement",
+            "pref_partner_cooking_m", "pref_partner_cooks",
+            "disability", "pref_disability",
+        ],
+        "skip_sub_questions": ["children_existing", "pref_religion_exclude", "pref_caste_exclude", "pref_children_existing", "pref_gotra_exclude"],
     },
     {
         "name": "Muslim female, never married",
@@ -295,10 +395,22 @@ TEST_PATHS = [
             "pref_religion": "Open, but not...",
             "pref_caste": "Open to all",
             "sensitive_gate": "yes",
+            "_location_type": "Outside India",
         },
-        "expected_skip": [12, 14, 42, 43, 44, 54, 55],  # No caste, male Qs, no manglik/gotra for Muslim
-        "expected_sub_questions": ["pref_religion_exclude", "children_timeline", "pref_conditions"],
-        "skip_sub_questions": ["children_existing", "caste_importance", "pref_caste_exclude"],
+        # No caste, male Qs, no manglik for Muslim + v2 always-skip: Q11, Q24, Q28, Q50, Q55, Q56
+        "expected_skip": [11, 12, 14, 24, 28, 42, 43, 44, 50, 54, 55, 56],
+        "expected_sub_questions": [
+            "pref_religion_exclude", "children_timeline", "pref_conditions",
+            "pref_partner_location", "pref_raised_in", "pref_marital_status",
+            "pref_education_field", "pref_family_type", "pref_siblings",
+            "pref_children_timeline", "pref_living_arrangement",
+            "disability", "pref_disability",
+        ],
+        "skip_sub_questions": [
+            "children_existing", "caste_importance", "pref_caste_exclude",
+            "pref_children_existing", "pref_partner_cooking_m", "pref_partner_cooks",
+            "pref_gotra_exclude",
+        ],
     },
     {
         "name": "Buddhist female, divorced, skip sensitive",
@@ -310,10 +422,25 @@ TEST_PATHS = [
             "pref_religion": "Open to all",
             "pref_caste": "Open to all",
             "sensitive_gate": "no",
+            "_location_type": "India",
         },
-        "expected_skip": [10, 11, 12, 14, 42, 43, 44, 54, 55, 56, 57, 58],
-        "expected_sub_questions": ["children_existing"],
-        "skip_sub_questions": ["caste_importance", "pref_religion_exclude", "pref_caste_exclude", "children_timeline"],
+        # v2 always-skip: Q11, Q24, Q28, Q50, Q55, Q56 + Buddhist skips: Q10, Q12, Q14
+        # + Male household skip: Q42, Q43, Q44 + sensitive gate no: Q54, Q57, Q58
+        "expected_skip": [10, 11, 12, 14, 24, 28, 42, 43, 44, 50, 54, 55, 56, 57, 58],
+        "expected_sub_questions": [
+            "children_existing",
+            "pref_partner_location", "pref_raised_in", "pref_marital_status",
+            "pref_children_existing",
+            "pref_education_field", "pref_family_type", "pref_siblings",
+            "pref_living_arrangement",
+        ],
+        "skip_sub_questions": [
+            "caste_importance", "pref_religion_exclude", "pref_caste_exclude",
+            "children_timeline", "pref_children_timeline",
+            "pref_partner_cooking_m", "pref_partner_cooks",
+            "disability", "pref_disability", "pref_conditions",
+            "pref_gotra_exclude",
+        ],
     },
 ]
 

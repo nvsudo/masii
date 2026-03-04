@@ -1,16 +1,16 @@
 """
-Hard Filters — Stage 1 of Masii Matching
+Hard Filters — Stage 1 of Masii Matching (v2)
 
 Binary pass/fail elimination. If any filter fails, the pair is impossible.
 Both directions (A→B and B→A) must pass for a match to proceed.
 
-Filters check: gender, age, religion, caste, location, marital status,
-children intent, diet, smoking, drinking, medical conditions, marriage timeline,
-manglik, gotra.
+v2 gates: gender, age, religion, caste, marital_status, children_existing,
+children_intent, diet, smoking, drinking, conditions, marriage_timeline,
+manglik, current_location, raised_in, mother_tongue, height, disability.
 """
 
 from datetime import date
-from typing import Dict, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 # Education levels ordered for comparison
 EDUCATION_RANK = {
@@ -43,25 +43,23 @@ INCOME_RANK = {
     "Prefer not to say": 0,
 }
 
-# Marriage timeline overlap matrix
-# Two timelines are compatible if they're within 1 step of each other
+# Marriage timeline — v2 option names
 TIMELINE_RANK = {
-    "Within 6 months": 1,
-    "In the next 1 year": 2,
-    "In the next 2-3 years": 3,
+    "Within 1 year": 1,
+    "1-2 years": 2,
+    "2-3 years": 3,
     "Just exploring": 4,
 }
 
-# Diet strictness hierarchy
+# Diet strictness hierarchy — v2 universal options
 DIET_STRICT = {
-    "Strict Jain (no onion/garlic)": 1,
-    "Jain vegetarian": 2,
-    "Pure vegetarian": 2,
-    "Vegetarian": 3,
+    "Jain": 1,
+    "Vegan": 2,
+    "Veg": 3,
     "Eggetarian": 4,
-    "Non-vegetarian": 5,
-    "Halal only": 5,
-    "Flexible": 6,
+    "Occasionally non-veg": 5,
+    "Non-veg": 6,
+    "Other": 6,
 }
 
 
@@ -80,65 +78,28 @@ def check_gender(user: Dict, candidate: Dict) -> bool:
     return ug != cg
 
 
-def check_age(user_prefs: Dict, candidate: Dict) -> Tuple[bool, bool]:
+def check_age(user_prefs: Dict, candidate: Dict) -> bool:
     """
-    Check if candidate's age is within user's preferred range.
-    Returns (passes_hard, within_buffer).
-    Hard fail if outside range + 2yr buffer.
+    v2: Strict range check. In range = pass, out of range = fail. No buffer.
     """
     dob = candidate.get("date_of_birth")
     pref_min = user_prefs.get("pref_age_min")
     pref_max = user_prefs.get("pref_age_max")
 
     if not dob:
-        return True, False  # No data = pass (can't filter)
+        return True  # No data = pass (can't filter)
 
     age = calculate_age(dob) if isinstance(dob, date) else None
     if age is None:
-        return True, False
+        return True
 
     if pref_min is None and pref_max is None:
-        return True, True  # No preference = pass
+        return True  # No preference = pass
 
     min_age = int(pref_min) if pref_min else 18
     max_age = int(pref_max) if pref_max else 60
-    buffer = 2
 
-    if min_age <= age <= max_age:
-        return True, True  # Within range
-    elif (min_age - buffer) <= age <= (max_age + buffer):
-        return True, False  # Within buffer (soft penalty)
-    else:
-        return False, False  # Hard fail
-
-
-def check_religion(user_prefs: Dict, candidate: Dict, candidate_prefs: Dict) -> bool:
-    """
-    Check religion compatibility.
-    'Same religion only' = must match user's religion.
-    'Open, but not...' = candidate's religion must NOT be in exclude list.
-    'Open to all' = pass.
-    """
-    pref = user_prefs.get("pref_religion")
-    candidate_religion = candidate.get("religion")
-
-    if not pref or pref == "Open to all":
-        return True
-
-    if pref == "Same religion only":
-        # User's own religion is on the users table, not prefs.
-        # We need the calling code to pass the user's own religion.
-        # It's stored in user dict, not user_prefs. Handle in caller.
-        # For now, this is called with user (users table) separately.
-        return True  # Handled at caller level with user's religion
-
-    if pref == "Open, but not...":
-        exclude = user_prefs.get("pref_religion_exclude") or []
-        if isinstance(exclude, str):
-            exclude = [exclude]
-        return candidate_religion not in exclude
-
-    return True
+    return min_age <= age <= max_age
 
 
 def check_religion_full(user: Dict, user_prefs: Dict, candidate: Dict) -> bool:
@@ -193,12 +154,51 @@ def check_caste(user_prefs: Dict, candidate_prefs: Dict) -> bool:
     return True
 
 
-def check_marital_status(user: Dict, candidate: Dict) -> bool:
+def check_marital_status(user_prefs: Dict, candidate: Dict) -> bool:
     """
-    No explicit marital preference column exists — this is implicit.
-    Never-married users usually prefer never-married.
-    For now, pass all — can tighten later with data.
+    v2: pref_marital_status is TEXT[]. Candidate's status must be in list.
+    "Any" passes all.
     """
+    pref = user_prefs.get("pref_marital_status")
+    if not pref:
+        return True
+
+    if isinstance(pref, str):
+        pref = [pref]
+
+    if "Any" in pref:
+        return True
+
+    candidate_status = candidate.get("marital_status")
+    if not candidate_status:
+        return True  # Missing data = don't eliminate
+
+    return candidate_status in pref
+
+
+def check_children_existing(user_prefs: Dict, candidate: Dict) -> bool:
+    """
+    v2: pref_children_existing preference.
+    "No" + candidate has children = fail.
+    "Only if they don't live with them" + "Yes, they live with me" = fail.
+    "Yes" passes everyone.
+    """
+    pref = user_prefs.get("pref_children_existing")
+    if not pref or pref == "Yes":
+        return True
+
+    candidate_children = candidate.get("children_existing")
+    if not candidate_children or candidate_children == "No":
+        return True  # No children = always pass
+
+    if pref == "No":
+        # Candidate has children (any kind) = fail
+        return False
+
+    if pref == "Only if they don't live with them":
+        if candidate_children == "Yes, they live with me":
+            return False
+
     return True
 
 
@@ -224,8 +224,11 @@ def check_children_intent(user_prefs: Dict, candidate_prefs: Dict) -> bool:
 
 def check_diet(user_prefs: Dict, candidate_signals: Dict) -> bool:
     """
-    Diet as hard filter only when user says 'Same as mine' or 'Vegetarian or above'
-    and candidate is non-veg.
+    v2 diet gate with new pref options:
+    "Same as mine" = exact match required.
+    "Any but not non-veg" = eliminates Non-veg + Occasionally non-veg.
+    "Veg" = must be rank <= 3 (Jain, Vegan, Veg).
+    "Doesn't matter" = pass.
     """
     pref = user_prefs.get("pref_diet")
     candidate_diet = candidate_signals.get("diet")
@@ -233,19 +236,19 @@ def check_diet(user_prefs: Dict, candidate_signals: Dict) -> bool:
     if not pref or pref == "Doesn't matter" or not candidate_diet:
         return True
 
-    if pref == "Vegetarian or above":
-        # Candidate must be vegetarian or stricter
+    if pref == "Veg":
         rank = DIET_STRICT.get(candidate_diet, 6)
-        return rank <= 3  # Veg, pure veg, Jain
+        return rank <= 3
+
+    if pref == "Any but not non-veg":
+        rank = DIET_STRICT.get(candidate_diet, 6)
+        return rank <= 4  # Eliminates Non-veg (6) and Occasionally non-veg (5)
 
     if pref == "Same as mine":
-        # Soft filter — handled in scoring. Only eliminate extreme mismatch.
-        # Strict Jain vs Non-veg = eliminate
-        user_diet_rank = DIET_STRICT.get(user_prefs.get("_user_diet"), 6)
-        cand_diet_rank = DIET_STRICT.get(candidate_diet, 6)
-        # Eliminate if user is veg (rank <= 3) and candidate is non-veg (rank >= 5)
-        if user_diet_rank <= 3 and cand_diet_rank >= 5:
-            return False
+        user_diet = user_prefs.get("_user_diet")
+        if not user_diet:
+            return True  # Can't compare without user's own diet
+        return user_diet == candidate_diet
 
     return True
 
@@ -295,7 +298,7 @@ def check_conditions(user_prefs: Dict, candidate: Dict) -> bool:
 def check_marriage_timeline(user_prefs: Dict, candidate_prefs: Dict) -> bool:
     """
     Timelines must overlap (within 1 step).
-    'Within 6 months' and 'Just exploring' = no overlap = eliminate.
+    'Within 1 year' and 'Just exploring' = no overlap = eliminate.
     """
     user_tl = user_prefs.get("marriage_timeline")
     cand_tl = candidate_prefs.get("marriage_timeline")
@@ -321,29 +324,105 @@ def check_manglik(user_prefs: Dict, candidate_signals: Dict) -> bool:
     if not user_manglik or not candidate_manglik:
         return True
 
-    # Both must be same (Yes-Yes or No-No)
     return user_manglik == candidate_manglik
 
 
-def check_gotra(user_prefs: Dict, candidate_signals: Dict) -> bool:
-    """Hard filter: candidate's gotra must not be in user's exclude list."""
-    exclude = user_prefs.get("pref_gotra_exclude") or []
-    if isinstance(exclude, str):
-        exclude = [exclude]
-    if not exclude:
-        return True
-
-    candidate_gotra = candidate_signals.get("gotra")
-    if not candidate_gotra:
-        return True
-
-    return candidate_gotra not in exclude
-
-
-def check_location_basic(user: Dict, candidate: Dict, user_prefs: Dict, candidate_prefs: Dict) -> bool:
+def check_raised_in(user: Dict, user_prefs: Dict, candidate: Dict) -> bool:
     """
-    Location as hard filter only when BOTH refuse to relocate
-    AND they're in different countries.
+    v2: pref_raised_in hard gate.
+    "Same country as me" — candidate must have grown up in same country.
+    "Same state" — candidate must have grown up in same state.
+    "Raised abroad" — candidate's raised_in_country must not be "India".
+    "Any state in India" — candidate must have grown up in India.
+    "Raised in India is fine too" / "Abroad is fine too" / "Doesn't matter" — pass.
+    "Nearby states" — pass (soft, not hard gate).
+    """
+    pref = user_prefs.get("pref_raised_in")
+    if not pref or pref in ("Doesn't matter", "Raised in India is fine too",
+                            "Abroad is fine too", "Nearby states"):
+        return True
+
+    user_country = user.get("raised_in_country")
+    cand_country = candidate.get("raised_in_country")
+    user_state = user.get("raised_in_state")
+    cand_state = candidate.get("raised_in_state")
+
+    if pref == "Same country as me":
+        if not user_country or not cand_country:
+            return True
+        return user_country == cand_country
+
+    if pref == "Same state":
+        if not user_state or not cand_state:
+            return True
+        return user_state == cand_state
+
+    if pref == "Raised abroad":
+        if not cand_country:
+            return True
+        return cand_country != "India"
+
+    if pref == "Any state in India":
+        if not cand_country:
+            return True
+        return cand_country == "India"
+
+    return True
+
+
+def check_current_location(user: Dict, user_prefs: Dict, candidate: Dict,
+                           candidate_prefs: Dict) -> bool:
+    """
+    v2: pref_current_location hard gate. Replaces check_location_basic.
+    "Same city" — candidate must be in same city.
+    "Same state" — candidate must be in same state.
+    "Same country" — candidate must be in same country.
+    "Specific countries..." — candidate must be in one of the listed countries.
+    "Anywhere" / None — falls through to relocation check.
+    """
+    pref = user_prefs.get("pref_current_location")
+
+    if pref == "Same city as me" or pref == "Same city":
+        user_city = (user.get("city_current") or "").lower().strip()
+        cand_city = (candidate.get("city_current") or "").lower().strip()
+        if not user_city or not cand_city:
+            return True
+        return user_city == cand_city
+
+    if pref == "Same state as me" or pref == "Same state":
+        user_state = (user.get("state_india") or "").lower().strip()
+        cand_state = (candidate.get("state_india") or "").lower().strip()
+        if not user_state or not cand_state:
+            return True
+        return user_state == cand_state
+
+    if pref == "Same country as me" or pref == "Same country":
+        user_country = (user.get("country_current") or "").lower().strip()
+        cand_country = (candidate.get("country_current") or "").lower().strip()
+        if not user_country or not cand_country:
+            return True
+        return user_country == cand_country
+
+    if pref and pref.startswith("Specific countries"):
+        countries = user_prefs.get("pref_current_location_countries") or []
+        if isinstance(countries, str):
+            countries = [countries]
+        if not countries:
+            return True
+        cand_country = candidate.get("country_current")
+        if not cand_country:
+            return True
+        return cand_country in countries
+
+    # "Anywhere" or no pref — fall through to relocation check
+    return _check_relocation_fallback(user, user_prefs, candidate, candidate_prefs)
+
+
+def _check_relocation_fallback(user: Dict, user_prefs: Dict,
+                               candidate: Dict, candidate_prefs: Dict) -> bool:
+    """
+    Legacy relocation-refusal check. Both "No, I'm settled" + different countries = fail.
+    Called by check_current_location when pref is null/Anywhere.
     """
     user_country = user.get("country_current")
     cand_country = candidate.get("country_current")
@@ -352,14 +431,89 @@ def check_location_basic(user: Dict, candidate: Dict, user_prefs: Dict, candidat
         return True
 
     if user_country == cand_country:
-        return True  # Same country = always pass
+        return True
 
-    # Different countries — check relocation willingness
     user_reloc = user_prefs.get("relocation_willingness", "")
     cand_reloc = candidate_prefs.get("relocation_willingness", "")
 
-    # If both refuse to relocate and in different countries = eliminate
+    if user_reloc == "No, I'm settled where I am" and cand_reloc == "No, I'm settled where I am":
+        return False
     if user_reloc == "No, I'm settled" and cand_reloc == "No, I'm settled":
+        return False
+
+    return True
+
+
+def check_mother_tongue(user: Dict, user_prefs: Dict, candidate: Dict) -> bool:
+    """
+    v2: NOW A HARD GATE.
+    "Same language only" = candidate's mother tongue must match user's.
+    "Same or Hindi" = candidate must speak user's language or Hindi.
+    "Doesn't matter" = pass.
+    """
+    pref = user_prefs.get("pref_mother_tongue")
+    if not pref or pref == "Doesn't matter":
+        return True
+
+    user_mt = user.get("mother_tongue")
+    cand_mt = candidate.get("mother_tongue")
+
+    if not user_mt or not cand_mt:
+        return True
+
+    if pref == "Same language only":
+        return user_mt == cand_mt
+
+    if pref == "Same or Hindi":
+        if user_mt == cand_mt:
+            return True
+        # Candidate must speak user's language or Hindi
+        cand_langs = set(candidate.get("languages_spoken") or [])
+        cand_langs.add(cand_mt)
+        if user_mt in cand_langs or "Hindi" in cand_langs:
+            return True
+        return False
+
+    return True
+
+
+def check_height(user_prefs: Dict, candidate: Dict) -> bool:
+    """
+    v2: NOW A HARD GATE. pref_height_min/max vs candidate.height_cm. No buffer.
+    """
+    pref_min = user_prefs.get("pref_height_min")
+    pref_max = user_prefs.get("pref_height_max")
+
+    if pref_min is None and pref_max is None:
+        return True
+
+    cand_height = candidate.get("height_cm")
+    if not cand_height:
+        return True  # Missing data = don't eliminate
+
+    if pref_min is not None and cand_height < pref_min:
+        return False
+    if pref_max is not None and cand_height > pref_max:
+        return False
+
+    return True
+
+
+def check_disability(user_prefs: Dict, candidate: Dict) -> bool:
+    """
+    v2: pref_disability gate.
+    "No" + candidate disability = "Yes" → fail.
+    "Depends" / "Yes" → pass.
+    """
+    pref = user_prefs.get("pref_disability")
+    if not pref or pref in ("Yes", "Depends"):
+        return True
+
+    candidate_disability = candidate.get("disability")
+    if not candidate_disability:
+        return True
+
+    if pref == "No" and candidate_disability == "Yes":
         return False
 
     return True
@@ -386,8 +540,7 @@ def pass_hard_filters(
     if not check_gender(user, candidate):
         failed.append("gender")
 
-    passes_age, _ = check_age(user_prefs, candidate)
-    if not passes_age:
+    if not check_age(user_prefs, candidate):
         failed.append("age")
 
     if not check_religion_full(user, user_prefs, candidate):
@@ -395,6 +548,12 @@ def pass_hard_filters(
 
     if not check_caste(user_prefs, candidate_prefs):
         failed.append("caste")
+
+    if not check_marital_status(user_prefs, candidate):
+        failed.append("marital_status")
+
+    if not check_children_existing(user_prefs, candidate):
+        failed.append("children_existing")
 
     if not check_children_intent(user_prefs, candidate_prefs):
         failed.append("children_intent")
@@ -421,11 +580,20 @@ def pass_hard_filters(
     if not check_manglik(user_prefs_with_manglik, candidate_signals):
         failed.append("manglik")
 
-    if not check_gotra(user_prefs, candidate_signals):
-        failed.append("gotra")
+    if not check_current_location(user, user_prefs, candidate, candidate_prefs):
+        failed.append("current_location")
 
-    if not check_location_basic(user, candidate, user_prefs, candidate_prefs):
-        failed.append("location")
+    if not check_raised_in(user, user_prefs, candidate):
+        failed.append("raised_in")
+
+    if not check_mother_tongue(user, user_prefs, candidate):
+        failed.append("mother_tongue")
+
+    if not check_height(user_prefs, candidate):
+        failed.append("height")
+
+    if not check_disability(user_prefs, candidate):
+        failed.append("disability")
 
     return (len(failed) == 0, failed)
 

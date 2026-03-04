@@ -1,7 +1,7 @@
 # Masii — Master Question Flow
 
 > Single source of truth. Telegram bot, web form, and DB schema all derive from this document.
-> Last updated: March 2026
+> Last updated: March 2026 (v2 — synced with question_matching_protocol.md)
 
 ---
 
@@ -66,11 +66,16 @@
 |---|-------|----------|------|---------|----------|-------|
 | 1 | `date_of_birth` | When were you born? | two_step | Step 1: Year (2006–1970) / Step 2: Month | users | |
 | 2 | `current_location` | Where do you live right now? | location_tree | Step 1: India / Outside India → Step 2: State or Country → Step 3: City | users | |
-| 3 | `hometown` | Where is your family originally from? | two_step | Step 1: State (Indian states list) → Step 2: City/Town | users | State + town — helps match cultural roots and regional identity |
-| 4 | `mother_tongue` | What is your mother tongue? | single | `Hindi` / `Gujarati` / `Marathi` / `Tamil` / `Telugu` / `Kannada` / `Malayalam` / `Bengali` / `Punjabi` / `Urdu` / `Odia` / `Assamese` / `Sindhi` / `Konkani` / `Tulu` / `Other` | users | Big matching signal |
+| 2-pref | `pref_current_location` | Where should your partner currently live? | single + multi | `Same city as me` / `Same state as me` / `Same country as me` / `Anywhere` / `Specific countries...` (multi-select dropdown of top countries) | preferences | [NEW] Hard gate. Candidate's Q2 must match. |
+| 3 | `raised_in` | Where did you grow up? | location_tree | Step 1: India / Outside India → Step 2: If India: State → City. If outside: Country → City | users | Reframed from "Where is your family originally from?" — captures where raised, not just family roots |
+| 3-pref | `pref_raised_in` | Where should your partner have been raised? | single | **If user outside India:** `Same country as me` / `Raised abroad (any country)` / `Raised in India is fine too` / `Doesn't matter` | preferences | [NEW] Hard gate. Options vary by user location. |
+| | | | | **If user in India:** `Same state` / `Nearby states` / `Any state in India` / `Abroad is fine too` / `Doesn't matter` | | |
+| 4 | `mother_tongue` | What is your mother tongue? | single | `Hindi` / `Gujarati` / `Marathi` / `Tamil` / `Telugu` / `Kannada` / `Malayalam` / `Bengali` / `Punjabi` / `Urdu` / `Odia` / `Assamese` / `Sindhi` / `Konkani` / `Tulu` / `Other` | users | Big matching signal. Auto-suggest based on Q3. |
 | 5 | `languages_spoken` | What other languages do you speak? | multi | Same list as Q4 (minus their mother tongue) + `English` | users | Multi-select. Helps cross-regional matching |
-| 6 | `marital_status` | What's your current marital status? | single | `Never married` / `Divorced` / `Widowed` / `Awaiting divorce` | users | |
+| 6 | `marital_status` | What's your current marital status? | single | `Never married` / `Divorced` / `Widowed` / `Awaiting divorce` | users | Now a hard gate for matching |
+| 6-pref | `pref_marital_status` | What marital status are you open to in a partner? | multi | `Never married` / `Divorced` / `Widowed` / `Awaiting divorce` / `Any` | preferences | [NEW] Hard gate. Candidate's Q6 must be in accepted list. |
 | 6a | `children_existing` | Do you have children? | single | `No` / `Yes, they live with me` / `Yes, they don't live with me` | users | **Skip if** marital_status = "Never married" |
+| 6a-pref | `pref_children_existing` | Are you open to a partner who has children? | single | `Yes` / `Only if they don't live with them` / `No` | preferences | [NEW] Hard gate. Only shown if applicable. |
 | 7 | `height_cm` | How tall are you? | single | **Women:** `Below 5'2"` / `5'2"` / `5'3"` / `5'4"` / `5'5"` / `5'6"` / `5'7"` / `Above 5'7"` | users | Gender-specific ranges. Store cm. |
 | | | | | **Men:** `Below 5'5"` / `5'5"` / `5'6"` / `5'7"` / `5'8"` / `5'9"` / `5'10"` / `5'11"` / `6'0"` / `6'1"` / `6'2"` / `6'3"` / `Above 6'3"` | | |
 | 8 | `weight_kg` | What is your weight? | single | **Women:** `Below 45 kg` / `45-50 kg` / `50-55 kg` / `55-60 kg` / `60-65 kg` / `65-70 kg` / `70-75 kg` / `75-80 kg` / `Above 80 kg` | users | Gender-specific buckets. We calc BMI from height + weight. |
@@ -95,11 +100,8 @@ Holding this — photo will go a long way. Regional bias makes this tricky (Andh
 | | | | | **Sikh:** `Very religious (Amritdhari)` / `Religious (Keshdhari)` / `Moderate (Sahajdhari)` / `Not religious` | | |
 | | | | | **Jain:** `Very religious` / `Religious` / `Moderately religious` / `Not religious` | | |
 | | | | | **Christian:** `Very religious` / `Religious` / `Moderately religious` / `Not religious` | | |
-| 11 | `sect_denomination` | What is your sect or denomination? | single | **Hindu:** `Vaishnav` / `Shaiv` / `Arya Samaji` / `Smartha` / `ISKCON` / `None / Other` | preferences | **Skip if** religion has no sects |
-| | | | | **Muslim:** `Sunni` / `Shia` / `Sufi` / `Ahmadiyya` / `None / Other` | | |
-| | | | | **Jain:** `Digambar` / `Shwetambar` / `Other` | | BharatMatrimony standard |
-| | | | | **Christian:** `Catholic` / `Protestant` / `Orthodox` / `Evangelical` / `Other` | | |
-| 12 | `caste_community` | What is your caste or community? | single | **Hindu (major):** `Brahmin` / `Agarwal` / `Baniya` / `Jat` / `Kayastha` / `Kshatriya` / `Maratha` / `Patel` / `Rajput` / `Reddy` / `Nair` / `Iyer` / `Iyengar` / `Gupta` / `Khatri` / `Arora` / `Sindhi` / `Lingayat` / `Scheduled Caste` / `Scheduled Tribe` / `Other` / `Prefer not to say` | preferences | **Skip if** religion has no caste system |
+| ~~11~~ | ~~`sect_denomination`~~ | ~~What is your sect or denomination?~~ | — | — | — | **[SKIP]** Removed in v2. Not enough data to tree properly yet. Keep for future premium matching. |
+| 12 | `caste_community` | What is your caste or community? | single | **Hindu (major):** `Brahmin` / `Agarwal` / `Baniya` / `Jat` / `Kayastha` / `Kshatriya` / `Maratha` / `Patel` / `Rajput` / `Reddy` / `Nair` / `Iyer` / `Iyengar` / `Gupta` / `Khatri` / `Arora` / `Sindhi` / `Lingayat` / `Scheduled Caste` / `Scheduled Tribe` / `Other` / `Prefer not to say` | preferences | **Skip if** religion has no caste system. Build per state — top 5 castes per state + Other. |
 | | | | | **Jain:** `Agarwal` / `Baniya` / `Oswal` / `Porwal` / `Shrimal` / `Khandelwal` / `Other` / `Prefer not to say` | | |
 | | | | | **Sikh:** `Jat Sikh` / `Khatri Sikh` / `Arora Sikh` / `Ramgarhia` / `Saini` / `Ravidasia` / `Other` / `Prefer not to say` | | |
 | 12a | `caste_importance` | How important is caste in your partner? | single | `Must be same caste` / `Prefer same, open to others` / `Doesn't matter` | preferences | **Skip if** caste = "Prefer not to say" |
@@ -112,11 +114,11 @@ Holding this — photo will go a long way. Regional bias makes this tricky (Andh
 
 | # | Field | Question | Type | Options | DB Table | Notes |
 |---|-------|----------|------|---------|----------|-------|
-| 13 | `pref_religion` | Partner's religion preference? | single | `Same religion only` / `Open to all` / `Open, but not...` | preferences | |
+| 13 | `pref_religion` | Partner's religion preference? | single | `Same religion only` / `Open to all` / `Open, but not...` | preferences | Hard gate |
 | 13a | `pref_religion_exclude` | Which religions would you NOT want to match with? | **multi** | `Hindu` / `Muslim` / `Sikh` / `Jain` / `Christian` / `Buddhist` / `Parsi` / `No religion` | preferences | **Only if** Q13 = "Open, but not..." — the "do not match" list. Multi-select. |
-| 14 | `pref_caste` | Partner's caste preference? | single | `Same caste only` / `Same community, any caste` / `Open to all` / `Open, but not...` | preferences | **Skip if** religion has no caste |
+| 14 | `pref_caste` | Partner's caste preference? | single | `Same caste only` / `Same community, any caste` / `Open to all` / `Open, but not...` | preferences | **Skip if** religion has no caste. Hard gate. |
 | 14a | `pref_caste_exclude` | Which castes would you NOT want to match with? | **multi** | [Same caste list as Q12 for their religion] | preferences | **Only if** Q14 = "Open, but not..." — multi-select |
-| 15 | `pref_mother_tongue` | Partner's mother tongue preference? | single | `Same language only` / `Same or Hindi` / `Doesn't matter` | preferences | |
+| 15 | `pref_mother_tongue` | Partner's mother tongue preference? | single | `Same language only` / `Same or Hindi` / `Doesn't matter` | preferences | Now a hard gate in v2. "Same language only" + mismatch = eliminated. |
 
 ---
 
@@ -128,6 +130,7 @@ Holding this — photo will go a long way. Regional bias makes this tricky (Andh
 |---|-------|----------|------|---------|----------|-------|
 | 16 | `education_level` | What is your highest education? | single | `High school` / `Diploma` / `Bachelor's` / `Master's` / `Doctorate / PhD` / `Professional (CA, CS, MBBS, LLB)` | users | |
 | 17 | `education_field` | What field? | single | `Engineering / IT` / `Medicine / Healthcare` / `Business / MBA` / `Law` / `Finance / CA / CS` / `Arts / Humanities` / `Science` / `Design / Architecture` / `Government / Civil Services` / `Other` | users | |
+| 17-pref | `pref_education_field` | Do you have a preference for your partner's field of study? | single + multi | `Same as mine` / `Doesn't matter` / `Specific fields...` (multi-select from Q17 list) | preferences | [NEW] Scored. |
 | 18 | `occupation_sector` | What sector do you work in? | single | `Public / Government` / `Private` / `Professional (Doctor, Lawyer, CA)` / `Business / Self-employed` / `Startup` / `Not working` / `Student` / `Other` | users | Simplified: Public, Private, Professional, Business, Startup, Not working, Student, Other |
 | 19 | `annual_income` | What is your annual income? (This is only used for matching, never displayed.) | single | `Under ₹5 lakh` / `₹5-10 lakh` / `₹10-20 lakh` / `₹20-35 lakh` / `₹35-50 lakh` / `₹50-75 lakh` / `₹75 lakh - ₹1 crore` / `₹1-2 crore` / `Above ₹2 crore` / `Prefer not to say` | users | Reassurance text. For NRIs: `Under $30K` / `$30-50K` / `$50-75K` / `$75-100K` / `$100-150K` / `$150-250K` / `Above $250K` — detect from location |
 | 20 | `pref_education_min` | Minimum education you'd want in a partner? | single | `Doesn't matter` / `At least Bachelor's` / `At least Master's` / `At least Professional degree` | preferences | |
@@ -141,13 +144,16 @@ Holding this — photo will go a long way. Regional bias makes this tricky (Andh
 
 | # | Field | Question | Type | Options | DB Table | Notes |
 |---|-------|----------|------|---------|----------|-------|
-| 22 | `family_type` | What type of family do you come from? | single | `Nuclear` / `Joint` / `Semi-joint` | users | |
-| 23 | `family_status` | How would you describe your family's financial status? | single | `Middle class` / `Upper middle class` / `Affluent` / `Prefer not to say` | users | |
-| 24 | `family_values` | How would you describe your family's values? | single | `Traditional` / `Moderate` / `Liberal` | users | |
+| 22 | `family_type` | Were you raised in a nuclear or joint family? | single | `Nuclear` / `Joint` / `Semi-joint` | users | Reframed from "What type of family do you come from?" |
+| 22-pref | `pref_family_type` | Do you prefer your partner to be raised in a similar family setup? | single | `Same as mine` / `Doesn't matter` | preferences | [NEW] Scored. |
+| 23 | `family_status` | How would you describe your family's financial status? | single | **India:** `Less than ₹10 lakh annual income` / `₹10-30 lakh annual income + some assets` / `₹30-70 lakh annual income + assets` / `₹70 lakh+ annual income + significant assets` / `Assets over ₹10 crore` / `Prefer not to say` | users | Updated tiers. Outside India: country-specific (TBD based on Q2 location). Scored via Q50. |
+| | | | | **Outside India:** Country-specific tiers (TBD) | | |
+| ~~24~~ | ~~`family_values`~~ | ~~How would you describe your family's values?~~ | — | — | — | **[SKIP]** Removed in v2. Self-assessment unreliable — everyone thinks they're "moderate." |
 | 25 | `father_occupation` | Father's occupation? | single | `Business / Self-employed` / `Service / Salaried` / `Professional (Doctor, Lawyer, CA)` / `Government` / `Retired` / `Not alive` / `Prefer not to say` | users | |
 | 26 | `mother_occupation` | Mother's occupation? | single | `Homemaker` / `Working professional` / `Business` / `Government` / `Retired` / `Not alive` / `Prefer not to say` | users | |
 | 27 | `siblings` | Do you have siblings? | single | `Only child` / `1 sibling` / `2 siblings` / `3+ siblings` | users | |
-| 28 | `family_involvement` | How involved will your family be in the decision? | single | `Very — their approval matters` / `Moderate — I'll decide but they have input` / `Independent — my decision entirely` | preferences | |
+| 27-pref | `pref_siblings` | Do you have a preference about your partner's siblings? | single | `Must have siblings` / `Single child is fine` / `Doesn't matter` | preferences | [NEW] Scored. |
+| ~~28~~ | ~~`family_involvement`~~ | ~~How involved will your family be in the decision?~~ | — | — | — | **[SKIP]** Removed in v2. If you're on Masii, your family is involved. |
 
 ---
 
@@ -157,17 +163,13 @@ Holding this — photo will go a long way. Regional bias makes this tricky (Andh
 
 | # | Field | Question | Type | Options | DB Table | Notes |
 |---|-------|----------|------|---------|----------|-------|
-| 29 | `diet` | What is your diet? | single | **Jain:** `Strict Jain (no onion/garlic)` / `Jain vegetarian` / `Flexible` | users | Options depend on religion |
-| | | | | **Hindu:** `Pure vegetarian (no onion/garlic)` / `Vegetarian` / `Eggetarian` / `Non-vegetarian` / `Flexible` | | |
-| | | | | **Muslim:** `Halal only` / `Non-vegetarian` / `Flexible` | | |
-| | | | | **Sikh:** `Vegetarian` / `Non-vegetarian` / `Flexible` | | |
-| | | | | **Default:** `Vegetarian` / `Vegan` / `Eggetarian` / `Non-vegetarian` / `Flexible` | | |
+| 29 | `diet` | What is your diet? | single | `Veg` / `Vegan` / `Eggetarian` / `Non-veg` / `Occasionally non-veg` / `Jain` / `Other` | users | Updated: universal options, no longer religion-specific |
 | 30 | `drinking` | Do you drink alcohol? | single | `Never` / `Socially / Occasionally` / `Regularly` | users | |
 | 31 | `smoking` | Do you smoke? | single | `Never` / `Socially / Occasionally` / `Regularly` | users | |
 | 32 | `fitness_frequency` | How often do you exercise or play sports? | single | `Daily` / `3-5 times a week` / `1-2 times a week` / `Rarely` / `Never` | users | |
-| 33 | `pref_diet` | Partner's diet preference? | single | `Same as mine` / `Vegetarian or above` / `Doesn't matter` | preferences | |
-| 34 | `pref_drinking` | Partner's drinking — dealbreaker? | single | `Must not drink` / `Social drinking OK` / `Doesn't matter` | preferences | |
-| 35 | `pref_smoking` | Partner's smoking — dealbreaker? | single | `Must not smoke` / `Social smoking OK` / `Doesn't matter` | preferences | |
+| 33 | `pref_diet` | Partner's diet preference? | single | `Same as mine` / `Any but not non-veg` / `Veg` / `Doesn't matter` | preferences | Updated options. Hard gate in v2. |
+| 34 | `pref_drinking` | Partner's drinking — dealbreaker? | single | `Must not drink` / `Social drinking OK` / `Doesn't matter` | preferences | Hard gate |
+| 35 | `pref_smoking` | Partner's smoking — dealbreaker? | single | `Must not smoke` / `Social smoking OK` / `Doesn't matter` | preferences | Hard gate |
 
 ---
 
@@ -177,11 +179,14 @@ Holding this — photo will go a long way. Regional bias makes this tricky (Andh
 
 | # | Field | Question | Type | Options | DB Table | Notes |
 |---|-------|----------|------|---------|----------|-------|
-| 36 | `marriage_timeline` | How soon are you looking to get married? | single | `Within 6 months` / `In the next 1 year` / `In the next 2-3 years` / `Just exploring` | preferences | |
-| 37 | `children_intent` | Do you want children? | single | `Yes` / `Maybe / Open to it` / `No` | preferences | |
+| 36 | `marriage_timeline` | How soon are you looking to get married? | single | `Within 1 year` / `1-2 years` / `2-3 years` / `Just exploring` | preferences | Updated options. Hard gate: must be within 1 step. |
+| 37 | `children_intent` | Do you want children? | single | `Yes` / `Maybe / Open to it` / `No` | preferences | Hard gate: Yes vs No = eliminated |
 | 37a | `children_timeline` | When would you want children? | single | `Soon after marriage` / `After 2-3 years` / `After 4+ years` | preferences | **Skip if** Q37 = "No" |
+| 37a-pref | `pref_children_timeline` | When would you want your partner to be open to having children? | single | `Soon after marriage` / `After 2-3 years` / `After 4+ years` / `Doesn't matter` | preferences | [NEW] Scored. **Skip if** Q37 = "No". |
 | 38 | `living_arrangement` | After marriage, where would you want to live? | single | `With parents (joint family)` / `Near parents but separate` / `Independent — wherever life takes us` / `Open to discussion` | preferences | |
-| 39 | `relocation_willingness` | Would you relocate for the right match? | single | `Yes, anywhere` / `Yes, within India` / `Yes, within my state/country` / `No, I'm settled where I am` | preferences | |
+| 38-pref | `pref_living_arrangement` | What living arrangement would you need your partner to be open to? | single | `With parents (joint family)` / `Near parents but separate` / `Independent — wherever life takes us` / `Open to discussion` / `Doesn't matter` | preferences | [NEW] Scored. |
+| 39 | `relocation_willingness` | Would you relocate for the right match? | single | `Yes, anywhere` / `Yes, within India` / `Yes, within my state/country` / `Only abroad` / `No, I'm settled where I am` | preferences | Updated: added "Only abroad" option |
+| 39a | `relocation_countries` | Which countries? | multi | Top countries list (multi-select) | preferences | [NEW] **Only if** Q39 = "Only abroad" or "Yes, anywhere". Follow-up. |
 
 ---
 
@@ -191,8 +196,8 @@ Holding this — photo will go a long way. Regional bias makes this tricky (Andh
 
 | # | Field | Question | Type | Options | DB Table | Notes |
 |---|-------|----------|------|---------|----------|-------|
-| 40 | `pref_age_range` | Partner's age range? | two_step | Step 1: Min age (18-45) / Step 2: Max age (min-50) | preferences | |
-| 41 | `pref_height_range` | Partner's height preference? | two_step | Step 1: Min height / Step 2: Max height (opposite gender scale from Q7) + `Doesn't matter` | preferences | Men see women's range, women see men's range |
+| 40 | `pref_age_range` | Partner's age range? | two_step | Step 1: Min age (18-50) / Step 2: Max age (min-55) | preferences | Hard gate |
+| 41 | `pref_height_range` | Partner's height preference? | two_step | Step 1: Min height / Step 2: Max height (opposite gender scale from Q7) + `Doesn't matter` | preferences | Men see women's range, women see men's range. Hard gate in v2. |
 
 <!-- HOLD: Complexion & build preferences — waiting on photo upload feature
 | X | `pref_complexion` | Partner's complexion preference? | single | `Fair` / `Fair to wheatish` / `Doesn't matter` | preferences | |
@@ -210,6 +215,8 @@ Holding this — photo will go a long way. Regional bias makes this tricky (Andh
 | # | Field | Question | Type | Options | DB Table | Notes |
 |---|-------|----------|------|---------|----------|-------|
 | 42M | `cooking_contribution` | Out of 15 meals in a week, how many are you willing to cook? | single | `0` / `1-3` / `4-7` / `8-10` / `More than 10` | signals | |
+| 42M-pref | `pref_partner_cooking_freq` | How often do you need your partner to cook? | single | `Regularly (7+ meals a week)` / `Sometimes (3-6 meals)` / `Rarely (1-2 meals)` / `Never — I'll handle it or we'll outsource` | preferences | [NEW] Scored. Matched against her Q43F. |
+| 42F-pref | `pref_partner_can_cook` | Do you need your partner to know how to cook? | single | `Yes, must cook regularly` / `Some cooking is enough` / `Doesn't matter` | preferences | [NEW] Scored. Asked to men, matched against her Q42F. |
 | 43M | `household_contribution` | How do you see household responsibilities? | single | `Mostly her` / `Shared equally` / `Mostly outsourced (cook/maid)` / `Flexible — whatever works` | signals | |
 | 44M | `partner_working` | Do you want your partner to work? | single | `Yes, she should have a career` / `Her choice` / `Prefer she focuses on home` | preferences | |
 
@@ -222,7 +229,7 @@ Holding this — photo will go a long way. Regional bias makes this tricky (Andh
 | 44F | `pref_partner_cooking` | How often do you need your partner to cook? | single | `Regularly (7+ meals a week)` / `Sometimes (3-6 meals)` / `Rarely (1-2 meals)` / `Never — I'll handle it or we'll outsource` | preferences | Matchable against his cooking_contribution |
 | 45F | `pref_partner_household` | How much do you need your partner to contribute to household chores? | single | `Equal share` / `Significant help` / `Some help` / `Not needed — I'll manage or outsource` | preferences | Matchable against his household_contribution |
 | 46F | `career_after_marriage` | Do you plan to continue working after marriage? | single | `Yes, definitely` / `Yes, but open to a break for kids` / `Undecided` / `No, prefer homemaking` | signals | |
-| 47F | `financial_contribution` | How do you see financial contribution in a marriage? | single | `Equal partnership` / `I'll contribute, he leads` / `His responsibility primarily` / `Flexible — depends on situation` | signals | |
+| ~~47F~~ | ~~`financial_contribution`~~ | ~~How do you see financial contribution in a marriage?~~ | — | — | — | **[SKIP]** Removed in v2. Q46 (financial planning) already covers this for both genders. |
 | 48F | `live_with_inlaws` | Would you be OK living with his parents? | single | `Yes, happy to` / `For some time, not permanently` / `Prefer not to` / `Depends on the situation` | signals | |
 
 **For Both:**
@@ -244,13 +251,15 @@ Holding this — photo will go a long way. Regional bias makes this tricky (Andh
 | # | Field | Question | Type | Options | DB Table | Notes |
 |---|-------|----------|------|---------|----------|-------|
 | 47 | `manglik_status` | Are you Manglik? | single | `Yes` / `No` / `Don't know` / `Not applicable` | signals | Only for Hindu, Jain |
-| 47a | `pref_manglik` | Is Manglik status important in your partner? | single | `Must match` / `Prefer, but flexible` / `Doesn't matter` | preferences | **Only if** Q47 ≠ "Not applicable" |
-| 48 | `gotra` | What is your gotra? | single | `[Common gotras by religion]` + `Don't know` + `Not applicable` | preferences | Only for Hindu, Jain, Sikh |
-| 48a | `pref_gotra_exclude` | Any gotras you cannot match with? | **multi** | `[Common gotras]` + `None / Doesn't matter` | preferences | Multi-select. Some families have gotra restrictions. |
-| 49 | `family_property` | Does your family own property? | single | `Rented home` / `Own flat/apartment` / `Own independent house` / `Own bungalow/villa` / `Agricultural land` / `Multiple properties` / `Prefer not to say` | signals | |
-| 50 | `pref_family_status` | Partner's family financial status preference? | single | `Same or higher` / `Doesn't matter` | preferences | |
-| 51 | `known_conditions` | Do you have any known medical conditions or disabilities? | single | `No` / `Yes` / `Prefer not to say` | users | Sensitive but real. Traditional matchmakers always ask. Framed broadly — covers physical, medical, mental health. |
-| 51a | `pref_conditions` | Would you be open to a partner with a medical condition or disability? | single | `Yes` / `Depends on the condition` / `No` | preferences | |
+| 47a | `pref_manglik` | Is Manglik status important in your partner? | single | `Must match` / `Prefer, but flexible` / `Doesn't matter` | preferences | **Only if** Q47 ≠ "Not applicable". Hard gate if "Must match". |
+| ~~48~~ | ~~`gotra`~~ | ~~What is your gotra?~~ | — | — | — | **[SKIP]** Removed in v2. Can match later. Keep for future premium. |
+| ~~48a~~ | ~~`pref_gotra_exclude`~~ | ~~Any gotras you cannot match with?~~ | — | — | — | **[SKIP]** Removed in v2. |
+| ~~49~~ | ~~`family_property`~~ | ~~Does your family own property?~~ | — | — | — | **[SKIP]** Removed in v2. Covered by family wealth question (Q23). |
+| 50 | `pref_family_status` | Partner's family financial status preference? | single | `Same or higher` / `Doesn't matter` | preferences | Scored against Q23. "Same or higher" compares family status tiers. |
+| 51 | `known_conditions` | Do you have any known medical conditions? (e.g. diabetes, asthma, thyroid) | single | `No` / `Yes` / `Prefer not to say` | users | Split from old combined question. Medical conditions only. |
+| 51-disability | `disability` | Do you have a disability? | single | `No` / `Yes` / `Prefer not to say` | users | [NEW] Split from old Q51. Separate question for disability. |
+| 51a | `pref_conditions` | Are you open to a partner with a medical condition? | single | `Yes` / `Depends on the condition` / `No` | preferences | Split. Hard gate: "No" + candidate has condition = eliminated. |
+| 51a-disability | `pref_disability` | Are you open to a partner with a disability? | single | `Yes` / `Depends` / `No` | preferences | [NEW] Separate gate for disability. "No" + candidate has disability = eliminated. |
 
 ---
 
@@ -260,8 +269,8 @@ Holding this — photo will go a long way. Regional bias makes this tricky (Andh
 
 | # | Field | Question | Type | Options | DB Table | Notes |
 |---|-------|----------|------|---------|----------|-------|
-| 52 | `social_style` | How social are you? | single | `Very social — love big gatherings` / `Social — enjoy going out but need downtime` / `Introverted — prefer small groups` / `Very introverted — homebody` | signals | |
-| 53 | `conflict_style` | When there's a disagreement, you tend to... | single | `Talk it out immediately` / `Take some time, then discuss` / `Avoid conflict` / `Get heated, then cool down` | signals | |
+| 52 | `social_style` | How social are you? | single | `Very social — love big gatherings` / `Social — enjoy going out but need downtime` / `Introverted — prefer small groups` / `Very introverted — homebody` | signals | WOW factor in scoring |
+| 53 | `conflict_style` | When there's a disagreement, you tend to... | single | `Talk it out immediately` / `Take some time, then discuss` / `Avoid conflict` / `Get heated, then cool down` | signals | WOW factor in scoring |
 
 ---
 
@@ -312,31 +321,46 @@ When `intent` = "Someone else":
 | Section | Questions | Notes |
 |---------|-----------|-------|
 | Setup | 3 | Name, gender, intent |
-| Basics | 8 + 1 sub | DOB, location, hometown (state+town), mother tongue, languages, marital, height, weight |
-| Background | 4 + 1 sub | Religion, practice, sect, caste |
-| Partner background | 3 + 2 sub | Do-not-match lists (multi-select) |
-| Education & Career | 6 | Sector simplified, income brackets |
-| Family | 7 | |
-| Lifestyle | 7 | Diet, drinking, smoking, fitness |
-| Marriage & Living | 4 + 1 sub | Timeline, children, relocation |
-| Partner physical | 2 | Age range, height range (complexion/build on hold) |
-| Household (gendered) | M: 3, F: 7 | M: cook, household, partner working / F: can you cook, cook contribution, pref partner cook, pref partner household, career, financial, in-laws |
-| Sensitive (opt-in) | 5 + 3 sub | Manglik, gotra, property, conditions |
-| Social | 2 | |
-| **Total** | **M: ~55 + subs (~60 clicks), F: ~59 + subs (~65 clicks)** | Women have more household matching questions |
+| Basics | 8 + 4 sub/pref | DOB, location, location-pref [NEW], raised-in (reframed), raised-in-pref [NEW], mother tongue, languages, marital, marital-pref [NEW], children-existing, children-existing-pref [NEW], height, weight |
+| Background | 3 + 1 sub | Religion, practice, ~~sect [SKIP]~~, caste, caste importance |
+| Partner background | 3 + 2 sub | Do-not-match lists (multi-select). Q15 now a hard gate. |
+| Education & Career | 6 + 1 pref | Sector simplified, income brackets, education-field-pref [NEW] |
+| Family | 5 + 2 pref | ~~Values [SKIP]~~, ~~involvement [SKIP]~~. Family-type-pref [NEW], siblings-pref [NEW]. Family status updated. |
+| Lifestyle | 7 | Diet (universal options), drinking, smoking, fitness. Diet pref updated. |
+| Marriage & Living | 5 + 3 pref | Timeline updated. Children-timeline-pref [NEW], living-arrangement-pref [NEW], relocation updated + countries follow-up [NEW] |
+| Partner physical | 2 | Age range (hard gate), height range (hard gate). Complexion/build on hold. |
+| Household (gendered) | M: 5, F: 6 | M: cook, cook-pref [NEW], partner-can-cook-pref [NEW], household, partner working / F: can you cook, cook contribution, pref partner cook, pref partner household, career, ~~financial contribution [SKIP]~~, in-laws |
+| Sensitive (opt-in) | 3 + 4 sub | Manglik, ~~gotra [SKIP]~~, ~~property [SKIP]~~, family status pref (scored via Q23), medical conditions (split), disability [NEW], medical pref (split), disability pref [NEW] |
+| Social | 2 | WOW factors |
+| **Total** | **M: ~52 active + ~14 pref/sub (~66 clicks), F: ~53 active + ~13 pref/sub (~66 clicks)** | 6 questions skipped, 14 new preference/sub questions added |
+
+---
+
+## Skipped Questions (v2)
+
+These questions were removed from the free-tier intake flow:
+
+| # | Question | Reason |
+|---|----------|--------|
+| Q11 | Sect / Denomination | Not enough data to tree properly. Future premium. |
+| Q24 | Family Values | Self-assessment unreliable. Everyone says "moderate." |
+| Q28 | Family Involvement | If you're on Masii, your family is involved. Redundant. |
+| Q48/Q48a | Gotra | Can match later. Future premium. |
+| Q49 | Family Property | Covered by updated family wealth tiers (Q23). |
+| Q47F | Financial Contribution View (Women) | Q46 (financial planning) already covers this for both genders. |
 
 ---
 
 ## DB Schema Mapping
 
 ### `users` table (facts about the person)
-`full_name`, `gender`, `date_of_birth`, `current_location`, `hometown_state`, `hometown_city`, `mother_tongue`, `languages_spoken` (array), `marital_status`, `children_existing`, `height_cm`, `weight_kg`, `religion`, `education_level`, `education_field`, `occupation_sector`, `annual_income`, `family_type`, `family_status`, `father_occupation`, `mother_occupation`, `siblings`, `known_conditions`
+`full_name`, `gender`, `date_of_birth`, `current_location`, `raised_in`, `mother_tongue`, `languages_spoken` (array), `marital_status`, `children_existing`, `height_cm`, `weight_kg`, `religion`, `education_level`, `education_field`, `occupation_sector`, `annual_income`, `family_type`, `family_status`, `father_occupation`, `mother_occupation`, `siblings`, `known_conditions`, `disability`
 
 ### `preferences` table (what they want in a partner)
-`religious_practice`, `sect_denomination`, `caste_community`, `caste_importance`, `pref_religion`, `pref_religion_exclude` (array), `pref_caste`, `pref_caste_exclude` (array), `pref_mother_tongue`, `pref_education_min`, `pref_income_min`, `pref_diet`, `pref_drinking`, `pref_smoking`, `pref_age_min`, `pref_age_max`, `pref_height_min`, `pref_height_max`, `pref_manglik`, `pref_gotra_exclude` (array), `pref_family_status`, `pref_conditions`, `pref_partner_cooking` (F), `pref_partner_household` (F), `marriage_timeline`, `children_intent`, `children_timeline`, `living_arrangement`, `relocation_willingness`, `family_involvement`, `partner_working` (M only)
+`religious_practice`, `caste_community`, `caste_importance`, `pref_religion`, `pref_religion_exclude` (array), `pref_caste`, `pref_caste_exclude` (array), `pref_mother_tongue`, `pref_current_location`, `pref_raised_in`, `pref_marital_status` (array), `pref_children_existing`, `pref_education_min`, `pref_education_field`, `pref_income_min`, `pref_family_type`, `pref_siblings`, `pref_diet`, `pref_drinking`, `pref_smoking`, `pref_age_min`, `pref_age_max`, `pref_height_min`, `pref_height_max`, `pref_manglik`, `pref_family_status`, `pref_conditions`, `pref_disability`, `pref_children_timeline`, `pref_living_arrangement`, `pref_partner_cooking_freq` (M), `pref_partner_can_cook` (M), `pref_partner_cooking` (F), `pref_partner_household` (F), `marriage_timeline`, `children_intent`, `children_timeline`, `living_arrangement`, `relocation_willingness`, `relocation_countries` (array), `partner_working` (M only)
 
 ### `signals` table (behavioral/personality signals)
-`diet`, `drinking`, `smoking`, `fitness_frequency`, `social_style`, `conflict_style`, `cooking_contribution` (both), `household_contribution` (M), `do_you_cook` (F), `career_after_marriage` (F), `financial_contribution` (F), `live_with_inlaws` (F), `financial_planning`, `manglik_status`, `gotra`, `family_property`, `family_values`
+`diet`, `drinking`, `smoking`, `fitness_frequency`, `social_style`, `conflict_style`, `cooking_contribution` (both), `household_contribution` (M), `do_you_cook` (F), `career_after_marriage` (F), `live_with_inlaws` (F), `financial_planning`, `manglik_status`
 
 ### `user_channels` table
 `user_id`, `channel` (telegram/web/whatsapp), `channel_id`, `phone`
@@ -349,3 +373,5 @@ When `intent` = "Someone else":
 - **Body type preference** — weight + height gives us BMI. No need for self-reported "slim/athletic/heavy."
 - **Free text fields** (hobbies, about me, what you're looking for) — premium feature, not part of free matching flow.
 - **Deep personality questions** (love language, communication style, values essays) — premium tier.
+- **Sect/Denomination (Q11)** — removed from free tier. Revisit for premium.
+- **Gotra (Q48/Q48a)** — removed from free tier. Revisit for premium.

@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'jodi_intake_form_v1';
+const STORAGE_KEY = 'masii_intake_form_v2';
 
 const SECTION_ICONS = {
   A: '🪪',
@@ -274,12 +274,12 @@ const MANGLIK_ELIGIBLE_RELIGIONS = new Set(['Hindu', 'Jain']);
 
 const SENSITIVE_FIELDS = new Set([
   'religion',
-  'sect_denomination',
   'caste_community',
   'sub_caste',
   'manglik_status',
   'complexion',
-  'disability_status',
+  'medical_conditions',
+  'disability',
   'annual_income',
   'income_currency',
   'net_worth_range',
@@ -287,7 +287,8 @@ const SENSITIVE_FIELDS = new Set([
   'financial_dependents',
   'pref_complexion',
   'pref_income_range',
-  'pref_disability_ok'
+  'pref_disability',
+  'pref_medical_conditions'
 ]);
 
 const MONTHS = [
@@ -385,8 +386,16 @@ function shouldShowField(field, answers) {
   const residency = normalizeValue(answers.residency_type);
   const religion = answers.religion;
 
+  // Skip fields marked as Skipped in v2
+  if (field.filter_type === 'Skipped') {
+    return false;
+  }
+
   switch (field.field_name) {
+    // --- Existing conditional logic ---
     case 'children_existing':
+      return Boolean(answers.marital_status) && answers.marital_status !== 'Never married';
+    case 'pref_children_existing':
       return Boolean(answers.marital_status) && answers.marital_status !== 'Never married';
     case 'country_current':
       return Boolean(answers.residency_type) && residency !== normalizeValue('Indian citizen (in India)');
@@ -397,8 +406,6 @@ function shouldShowField(field, answers) {
       const compact = normalizeValue(answers.residency_type).replace(/\s*\/\s*/g, '/');
       return compact === 'nri' || compact === 'oci/pio';
     }
-    case 'sect_denomination':
-      return Boolean(religion);
     case 'caste_community':
       return CASTE_ELIGIBLE_RELIGIONS.has(religion);
     case 'sub_caste':
@@ -409,6 +416,21 @@ function shouldShowField(field, answers) {
       return Boolean(answers.residency_type) && residency !== normalizeValue('Indian citizen (in India)');
     case 'children_timeline':
       return Boolean(answers.children_intent) && answers.children_intent !== 'Definitely not';
+    case 'pref_children_timeline':
+      return Boolean(answers.children_intent) && answers.children_intent !== 'Definitely not';
+
+    // --- New v2 conditional logic ---
+    case 'grew_up_state':
+      return answers.grew_up_country === 'India';
+    case 'grew_up_outside_country':
+      return answers.grew_up_country === 'Outside India';
+
+    // Gender-specific cooking prefs (men only)
+    case 'pref_partner_cooking_m':
+      return answers.gender_identity === 'Male';
+    case 'pref_partner_cooks':
+      return answers.gender_identity === 'Male';
+
     default:
       return true;
   }
@@ -1175,16 +1197,14 @@ function getOptions(field) {
     case 'country_current':
       return COUNTRY_OPTIONS;
     case 'state_india':
-    case 'hometown_state':
+    case 'grew_up_state':
       return INDIA_STATES_UT;
+    case 'grew_up_outside_country':
+      return COUNTRY_OPTIONS.filter((c) => c !== 'India');
     case 'languages_spoken': {
       const motherTongueField = schema.fields.find((item) => item.field_name === 'mother_tongue');
       const options = motherTongueField ? motherTongueField.options : [];
       return [...new Set(options.concat(['Other']))];
-    }
-    case 'sect_denomination': {
-      const religion = state.answers.religion;
-      return SECT_OPTIONS[religion] || ['None / Prefer not to say'];
     }
     case 'caste_community': {
       const religion = state.answers.religion;

@@ -95,6 +95,35 @@ People can sign up via Telegram, Masii builds their profile, matching runs daily
 - [ ] **Community unlock page** — "Join the [City] pool. When we hit X profiles, matching starts."
 - [ ] **Basic analytics** — Signups/day, intake completion rate, matches made, opt-in rate.
 - [ ] **Feedback loop** — 7 days after introduction, Masii asks: "Did you connect?" Stores response.
+- [ ] **chatgpt, claude apps** 
+- [ ] ** voice based conversations** 
+--  highest premium tier.
+-- coaching 
+-- post meeting feedback 
+-- on going calibration 
+
+
+#module to think about. calibration.. once you share your feedback, why helps us. 
+- First paid tier feature 
+- Nuanced profiles, data science + vector embeddings 
+- Sexual preferences, boundaries, looks, etc : can we really do this 
+- verified health reports, lab partners 
+- credit score integration 
+
+#physical world extensions
+- First meet and great. looks, conversations, etc. stretch idea  
+
+# premium clients
+- bespoke service 
+- get matched to the top families 
+- in depth personalities, pictures, family background etc ( looking for a rich husband play )
+
+#niche hits 
+-- i have money, i need hot girl 
+-- high ambition guy high ambition girl 
+-- so rich, so rich, international lifestyle 
+
+
 
 ### P2 — Month 1, prove the model
 

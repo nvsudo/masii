@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Start Your Journey — Masii</title>
+    <meta name="description" content="Begin your Masii onboarding conversation.">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/styles.css">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪷</text></svg>">
+
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <!-- Terminal header -->
+    <div class="terminal-header">
+        <div class="line"><span class="highlight">masii</span> is ready to meet you</div>
+        <div class="line">your account is confirmed</div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <a href="index.html" class="nav-logo">Masii</a>
+        <div class="nav-links">
+            <a href="about.html">About</a>
+            <a href="#" id="signout-link">Sign Out</a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content" style="max-width: 640px; margin: 80px auto; padding: 0 20px;">
+        <div style="text-align: center;">
+            <h1 style="font-family: 'Instrument Serif', serif; font-size: 3rem; margin-bottom: 1rem;">Welcome to Masii</h1>
+            <p style="color: #888; font-size: 1.2rem; margin-bottom: 3rem; line-height: 1.6;">
+                Your account is confirmed.<br>
+                Now, let's have a conversation.
+            </p>
+
+            <div style="background: #f9f9f9; border-radius: 12px; padding: 2.5rem; margin-bottom: 2rem; text-align: left;">
+                <h2 style="font-size: 1.5rem; margin-bottom: 1rem; color: #333;">What happens next?</h2>
+                <ol style="line-height: 1.8; color: #666; padding-left: 1.5rem;">
+                    <li style="margin-bottom: 1rem;">Click the button below to start a conversation with Masii on <strong>Telegram</strong></li>
+                    <li style="margin-bottom: 1rem;">We'll ask you 36 thoughtful questions about who you are</li>
+                    <li style="margin-bottom: 1rem;">We'll find your person and make the introduction</li>
+                </ol>
+                <p style="color: #888; font-size: 0.95rem; margin-top: 1.5rem;">
+                    <em>Why Telegram?</em> It's private, secure, and allows for a natural conversation without forcing you through a web form.
+                </p>
+            </div>
+
+            <a 
+                href="https://t.me/your_masii_bot" 
+                id="telegram-link"
+                target="_blank" 
+                rel="noopener noreferrer"
+                style="display: inline-block; padding: 18px 40px; background: #FF6B35; color: white; text-decoration: none; border-radius: 8px; font-size: 18px; font-weight: 600; transition: background 0.2s; margin-bottom: 2rem;"
+            >
+                Start Conversation on Telegram →
+            </a>
+
+            <p style="color: #999; font-size: 0.9rem;">
+                Signed in as: <strong id="user-email">loading...</strong>
+            </p>
+        </div>
+    </main>
+
+    <script src="js/auth.js"></script>
+    <script>
+        // Check authentication on page load
+        (async () => {
+            const user = await getUser();
+            
+            if (!user) {
+                // Not authenticated, redirect to login
+                window.location.href = '/login.html';
+                return;
+            }
+
+            // Display user email
+            document.getElementById('user-email').textContent = user.email;
+        })();
+
+        // Handle sign out
+        document.getElementById('signout-link').addEventListener('click', async (e) => {
+            e.preventDefault();
+            try {
+                await signOut();
+            } catch (error) {
+                console.error('Sign out error:', error);
+                alert('Failed to sign out. Please try again.');
+            }
+        });
+    </script>
+
+</body>
+</html>

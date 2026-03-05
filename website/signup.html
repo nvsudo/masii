@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up — Masii</title>
+    <meta name="description" content="Create your Masii account. Start your journey to meeting someone who gets it.">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/styles.css">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪷</text></svg>">
+
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <!-- Terminal header -->
+    <div class="terminal-header">
+        <div class="line"><span class="highlight">masii</span> is ready</div>
+        <div class="line">create your account below</div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <a href="index.html" class="nav-logo">Masii</a>
+        <div class="nav-links">
+            <a href="about.html">About</a>
+            <a href="login.html">Sign In</a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content" style="max-width: 480px; margin: 80px auto; padding: 0 20px;">
+        <h1 style="font-family: 'Instrument Serif', serif; font-size: 2.5rem; margin-bottom: 1rem;">Create Your Account</h1>
+        <p style="color: #888; margin-bottom: 2rem;">We'll send you a confirmation email to verify your address.</p>
+
+        <form id="signup-form" style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <div>
+                <label for="email" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Email</label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    name="email" 
+                    required 
+                    autocomplete="email"
+                    style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px;"
+                    placeholder="you@example.com"
+                />
+            </div>
+
+            <div>
+                <label for="password" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Password</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    required 
+                    autocomplete="new-password"
+                    minlength="8"
+                    style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px;"
+                    placeholder="At least 8 characters"
+                />
+                <small style="color: #666; font-size: 14px;">Minimum 8 characters</small>
+            </div>
+
+            <div id="error-message" style="color: #e74c3c; display: none; padding: 12px; background: #fee; border-radius: 6px; font-size: 14px;"></div>
+            <div id="success-message" style="color: #27ae60; display: none; padding: 12px; background: #e8f8f5; border-radius: 6px; font-size: 14px;"></div>
+
+            <button 
+                type="submit" 
+                id="submit-btn"
+                style="padding: 14px; background: #FF6B35; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer; transition: background 0.2s;"
+            >
+                Create Account
+            </button>
+        </form>
+
+        <p style="text-align: center; margin-top: 2rem; color: #888;">
+            Already have an account? <a href="login.html" style="color: #FF6B35; text-decoration: none;">Sign in</a>
+        </p>
+    </main>
+
+    <script src="js/auth.js"></script>
+    <script>
+        const form = document.getElementById('signup-form');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const submitBtn = document.getElementById('submit-btn');
+        const errorMsg = document.getElementById('error-message');
+        const successMsg = document.getElementById('success-message');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+
+            // Clear previous messages
+            errorMsg.style.display = 'none';
+            successMsg.style.display = 'none';
+
+            // Disable submit button
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Creating account...';
+
+            try {
+                await signUp(email, password);
+                
+                // Show success message
+                successMsg.textContent = '✅ Account created! Check your email to confirm your address.';
+                successMsg.style.display = 'block';
+                
+                // Clear form
+                form.reset();
+                
+                // Re-enable button
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Create Account';
+            } catch (error) {
+                console.error('Signup error:', error);
+                errorMsg.textContent = error.message || 'Sign up failed. Please try again.';
+                errorMsg.style.display = 'block';
+                
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Create Account';
+            }
+        });
+    </script>
+
+</body>
+</html>

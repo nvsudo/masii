@@ -84,8 +84,12 @@
         </p>
     </main>
 
-    <script src="js/auth.js"></script>
     <script>
+        // Initialize Supabase
+        const SUPABASE_URL = 'https://herqdldjaxmfusjjpwdg.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhlcnFkbGRqYXhtZnVzampwd2RnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3MzQ3NzcsImV4cCI6MjA4NjMxMDc3N30.IJF22gilascdOyI4gRFZMyI5PJjwuHAODSlcHxsZ7g4';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
         const form = document.getElementById('login-form');
         const emailInput = document.getElementById('email');
         const passwordInput = document.getElementById('password');
@@ -106,7 +110,12 @@
             submitBtn.textContent = 'Signing in...';
 
             try {
-                await signIn(email, password);
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email,
+                    password
+                });
+
+                if (error) throw error;
                 
                 // Redirect to onboarding
                 window.location.href = '/onboarding.html';

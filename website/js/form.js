@@ -1096,7 +1096,7 @@
     }, "Try again \u2192");
     frag.appendChild(btn);
     var tg = el("a", {
-      href: "https://t.me/masii_bot",
+      href: "https://t.me/masiiapp_bot",
       className: "form-btn form-btn-secondary",
       target: "_blank"
     }, "Open Telegram \u2192");

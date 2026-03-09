@@ -14,7 +14,7 @@
 
   // ============== STATE ==============
   const state = {
-    phase: "intro",        // intro | intent | setup | proxy | gunas | sub_question | close | phone | done | error
+    phase: "email",        // email | otp | resume | intro | intent | setup | proxy | gunas | sub_question | review | close | phone | done | error
     introIndex: 0,
     proxyIndex: 0,
     setupStep: null,       // "full_name" | "gender"
@@ -23,9 +23,12 @@
     pendingSubQuestion: null,
     previousSection: null,
     showingTransition: false,
+    editingFromReview: false,
+    editingField: null,
     answers: {},
     meta: {                // non-guna answers (intent, proxy info)
       intent: null,
+      email: null,
       proxy: {}
     }
   };
@@ -74,12 +77,12 @@
   }
 
   function updateProgress() {
-    if (state.phase === "intro" || state.phase === "intent" || state.phase === "setup" || state.phase === "proxy") {
+    if (state.phase === "email" || state.phase === "otp" || state.phase === "resume" || state.phase === "intro" || state.phase === "intent" || state.phase === "setup" || state.phase === "proxy") {
       progressBar.style.width = "0%";
       progressText.textContent = "";
       return;
     }
-    if (state.phase === "done" || state.phase === "close") {
+    if (state.phase === "done" || state.phase === "close" || state.phase === "review") {
       progressBar.style.width = "100%";
       const total = countApplicableQuestions();
       progressText.textContent = total + " of " + total;
@@ -361,6 +364,246 @@
   }
 
 
+  // ============== AUTH HELPERS ==============
+
+  var currentUserId = null;
+
+  function getStorageKey() {
+    return currentUserId ? "masii_form_" + currentUserId : null;
+  }
+
+  function persistState() {
+    var key = getStorageKey();
+    if (!key) return;
+    try {
+      localStorage.setItem(key, JSON.stringify({
+        phase: state.phase,
+        currentGuna: state.currentGuna,
+        currentSubStep: state.currentSubStep,
+        setupStep: state.setupStep,
+        introIndex: state.introIndex,
+        previousSection: state.previousSection,
+        answers: state.answers,
+        meta: state.meta
+      }));
+    } catch (e) {
+      console.error("Failed to persist state:", e);
+    }
+  }
+
+  function restoreState(saved) {
+    state.phase = saved.phase || "intro";
+    state.currentGuna = saved.currentGuna || 0;
+    state.currentSubStep = saved.currentSubStep || null;
+    state.setupStep = saved.setupStep || null;
+    state.introIndex = saved.introIndex || 0;
+    state.previousSection = saved.previousSection || null;
+    state.answers = saved.answers || {};
+    state.meta = saved.meta || { intent: null, email: null, proxy: {} };
+
+    // Route to the correct screen
+    if (state.phase === "gunas" && state.currentGuna > 0) {
+      showGuna(state.currentGuna);
+    } else if (state.phase === "setup") {
+      renderSetupStep();
+    } else if (state.phase === "phone") {
+      showPhone();
+    } else if (state.phase === "review") {
+      showReview();
+    } else if (state.phase === "close") {
+      showClose();
+    } else {
+      showIntro();
+    }
+  }
+
+  function calculateProgress() {
+    if (!state.answers || Object.keys(state.answers).length === 0) return 0;
+    var answered = 0;
+    for (var i = 1; i <= TOTAL_QUESTIONS; i++) {
+      var q = QUESTIONS[i];
+      if (!q) continue;
+      if (q.gender && state.answers.gender && q.gender !== state.answers.gender) continue;
+      if (i >= 54 && i <= 58 && state.answers.sensitive_gate === "no") continue;
+      if (state.answers[q.field] != null) answered++;
+    }
+    var total = countApplicableQuestions();
+    return total > 0 ? Math.round((answered / total) * 100) : 0;
+  }
+
+
+  // ============== PHASE: EMAIL ==============
+
+  function showEmail() {
+    state.phase = "email";
+    var frag = document.createDocumentFragment();
+    var q = el("h2", { className: "form-question" }, "Let\u2019s start with your email");
+    frag.appendChild(q);
+    var note = el("p", { className: "form-note" }, "So you can pick up where you left off, on any device.");
+    frag.appendChild(note);
+    var input = el("input", {
+      className: "form-input form-input-single",
+      type: "email",
+      placeholder: "you@email.com"
+    });
+    frag.appendChild(input);
+    var errorDiv = el("p", { className: "form-error" });
+    errorDiv.style.display = "none";
+    frag.appendChild(errorDiv);
+    var btn = el("button", {
+      className: "form-btn form-btn-primary",
+      onClick: async function () {
+        var email = input.value.trim();
+        if (!email || !email.includes("@")) {
+          input.classList.add("shake");
+          setTimeout(function () { input.classList.remove("shake"); }, 500);
+          return;
+        }
+        btn.disabled = true;
+        btn.textContent = "Sending code...";
+        errorDiv.style.display = "none";
+        try {
+          await window.signInWithOtp(email);
+          state.meta.email = email;
+          showOtp(email);
+        } catch (err) {
+          errorDiv.textContent = err.message || "Something went wrong. Try again.";
+          errorDiv.style.display = "block";
+          btn.disabled = false;
+          btn.textContent = "Continue \u2192";
+        }
+      }
+    }, "Continue \u2192");
+    frag.appendChild(btn);
+    renderCard(frag);
+    setTimeout(function () { input.focus(); }, 100);
+  }
+
+
+  // ============== PHASE: OTP ==============
+
+  function showOtp(email) {
+    state.phase = "otp";
+    var frag = document.createDocumentFragment();
+    var q = el("h2", { className: "form-question" }, "Check your inbox");
+    frag.appendChild(q);
+    var note = el("p", { className: "form-note" }, "Enter the 6-digit code we sent to " + email);
+    frag.appendChild(note);
+    var input = el("input", {
+      className: "form-input form-input-single form-otp-input",
+      type: "text",
+      placeholder: "000000",
+      maxLength: "6"
+    });
+    frag.appendChild(input);
+    var errorDiv = el("p", { className: "form-error" });
+    errorDiv.style.display = "none";
+    frag.appendChild(errorDiv);
+    var btn = el("button", {
+      className: "form-btn form-btn-primary",
+      onClick: async function () {
+        var code = input.value.trim();
+        if (!code || code.length < 6) {
+          input.classList.add("shake");
+          setTimeout(function () { input.classList.remove("shake"); }, 500);
+          return;
+        }
+        btn.disabled = true;
+        btn.textContent = "Verifying...";
+        errorDiv.style.display = "none";
+        try {
+          var result = await window.verifyOtp(email, code);
+          currentUserId = result.user ? result.user.id : null;
+          onAuthComplete();
+        } catch (err) {
+          errorDiv.textContent = err.message || "Invalid code. Try again.";
+          errorDiv.style.display = "block";
+          btn.disabled = false;
+          btn.textContent = "Verify \u2192";
+        }
+      }
+    }, "Verify \u2192");
+    frag.appendChild(btn);
+
+    var resend = el("button", {
+      className: "form-btn form-btn-link",
+      onClick: async function () {
+        resend.textContent = "Sending...";
+        try {
+          await window.signInWithOtp(email);
+          resend.textContent = "Code resent \u2713";
+        } catch (err) {
+          resend.textContent = "Resend code";
+        }
+      }
+    }, "Resend code");
+    frag.appendChild(resend);
+    renderCard(frag);
+    setTimeout(function () { input.focus(); }, 100);
+  }
+
+
+  // ============== AUTH COMPLETE ==============
+
+  function onAuthComplete() {
+    var key = getStorageKey();
+    if (!key) {
+      showIntro();
+      return;
+    }
+    try {
+      var saved = localStorage.getItem(key);
+      if (saved) {
+        var parsed = JSON.parse(saved);
+        if (parsed.answers && Object.keys(parsed.answers).length > 0) {
+          showResume(parsed);
+          return;
+        }
+      }
+    } catch (e) {
+      console.error("Failed to load saved state:", e);
+    }
+    showIntro();
+  }
+
+
+  // ============== PHASE: RESUME ==============
+
+  function showResume(savedState) {
+    state.phase = "resume";
+    var name = savedState.answers.full_name || "";
+    // Temporarily assign to calculate progress
+    var origAnswers = state.answers;
+    var origGender = state.answers.gender;
+    state.answers = savedState.answers;
+    var pct = calculateProgress();
+    state.answers = origAnswers;
+
+    var frag = document.createDocumentFragment();
+    var q = el("h2", { className: "form-question" }, "Welcome back" + (name ? ", " + name : "") + "!");
+    frag.appendChild(q);
+    var note = el("p", { className: "form-note" }, "You were " + pct + "% done.");
+    frag.appendChild(note);
+    var resumeBtn = el("button", {
+      className: "form-btn form-btn-primary",
+      onClick: function () {
+        restoreState(savedState);
+      }
+    }, "Resume \u2192");
+    frag.appendChild(resumeBtn);
+    var startOverBtn = el("button", {
+      className: "form-btn form-btn-secondary",
+      onClick: function () {
+        var key = getStorageKey();
+        if (key) localStorage.removeItem(key);
+        showIntro();
+      }
+    }, "Start over");
+    frag.appendChild(startOverBtn);
+    renderCard(frag);
+  }
+
+
   // ============== PHASE: INTRO ==============
 
   function showIntro() {
@@ -398,6 +641,7 @@
   function showSetup() {
     state.phase = "setup";
     state.setupStep = "full_name";
+    persistState();
     renderSetupStep();
   }
 
@@ -541,13 +785,14 @@
     state.phase = "gunas";
     state.currentGuna = 1;
     state.previousSection = null;
+    persistState();
     showGuna(1);
   }
 
   function showGuna(num) {
     // Past the end?
     if (num > TOTAL_QUESTIONS) {
-      showClose();
+      showReview();
       return;
     }
 
@@ -824,6 +1069,14 @@
   // ============== ADVANCE LOGIC ==============
 
   function advanceFromGuna(currentNum) {
+    if (state.editingFromReview) {
+      state.editingFromReview = false;
+      state.editingField = null;
+      persistState();
+      showReview();
+      return;
+    }
+
     // Check for sub-questions after this guna
     for (var key in SUB_QUESTIONS) {
       if (!SUB_QUESTIONS.hasOwnProperty(key)) continue;
@@ -879,6 +1132,16 @@
   function finishSubQuestion(key) {
     var subQ = SUB_QUESTIONS[key];
     state.pendingSubQuestion = null;
+
+    if (state.editingFromReview) {
+      state.editingFromReview = false;
+      state.editingField = null;
+      state.phase = "review";
+      persistState();
+      showReview();
+      return;
+    }
+
     // Continue to next guna after the sub-question's parent
     var next = getNextQuestion(state.answers, subQ.after_guna);
     state.currentGuna = next;
@@ -891,6 +1154,147 @@
 
   function saveAnswer(field, value) {
     state.answers[field] = value;
+    persistState();
+  }
+
+
+  // ============== PHASE: REVIEW ==============
+
+  function showReview() {
+    state.phase = "review";
+    persistState();
+    var frag = document.createDocumentFragment();
+
+    var title = el("h2", { className: "form-question" }, "Review your answers");
+    var subtitle = el("p", { className: "form-note" }, "Tap Edit to change anything.");
+    frag.appendChild(title);
+    frag.appendChild(subtitle);
+
+    // Collect sections in order
+    var sectionOrder = ["setup", "basics", "background", "partner_bg", "education", "family", "lifestyle", "marriage", "partner_physical", "household", "sensitive", "social"];
+    var sectionLabels = {
+      setup: "About You",
+      basics: "Basics",
+      background: "Background",
+      partner_bg: "Partner Background",
+      education: "Education & Career",
+      family: "Family",
+      lifestyle: "Lifestyle",
+      marriage: "Marriage",
+      partner_physical: "Partner Preferences",
+      household: "Household",
+      sensitive: "Private",
+      social: "Social"
+    };
+
+    // Build grouped items
+    var groups = {};
+    sectionOrder.forEach(function (s) { groups[s] = []; });
+
+    // Setup fields
+    if (state.answers.full_name) {
+      groups.setup.push({ label: "Name", field: "full_name", value: state.answers.full_name, type: "setup" });
+    }
+    if (state.answers.gender) {
+      groups.setup.push({ label: "Gender", field: "gender", value: state.answers.gender, type: "setup" });
+    }
+
+    // Guna questions
+    for (var i = 1; i <= TOTAL_QUESTIONS; i++) {
+      var q = QUESTIONS[i];
+      if (!q) continue;
+      if (shouldSkipQuestion(i, state.answers)) continue;
+
+      var section = getSectionForQuestion(i);
+      if (!groups[section]) groups[section] = [];
+
+      var val = state.answers[q.field];
+      if (val == null) continue;
+
+      var displayVal = Array.isArray(val) ? val.join(", ") : String(val);
+      var shortLabel = q.text || q.field;
+      // Strip to first line and truncate
+      shortLabel = shortLabel.split("\n")[0];
+      if (shortLabel.length > 50) shortLabel = shortLabel.substring(0, 47) + "...";
+
+      groups[section].push({
+        label: shortLabel,
+        field: q.field,
+        value: displayVal,
+        questionNum: i,
+        type: "guna"
+      });
+    }
+
+    // Render each section
+    sectionOrder.forEach(function (sectionKey) {
+      var items = groups[sectionKey];
+      if (!items || items.length === 0) return;
+
+      var sectionEl = el("div", { className: "review-section" });
+      var sectionH = el("h3", { className: "review-section-title" }, sectionLabels[sectionKey] || sectionKey);
+      sectionEl.appendChild(sectionH);
+
+      items.forEach(function (item) {
+        var row = el("div", { className: "review-row" });
+        var labelEl = el("span", { className: "review-label" }, item.label);
+        var valueEl = el("span", { className: "review-value" }, item.value);
+        var editBtn = el("button", {
+          className: "review-edit-btn",
+          onClick: function () {
+            editFromReview(item);
+          }
+        }, "Edit");
+        row.appendChild(labelEl);
+        row.appendChild(valueEl);
+        row.appendChild(editBtn);
+        sectionEl.appendChild(row);
+      });
+
+      frag.appendChild(sectionEl);
+    });
+
+    // "Looks good" button
+    var confirmBtn = el("button", {
+      className: "form-btn form-btn-primary",
+      onClick: function () {
+        showClose();
+      }
+    }, "Looks good \u2192");
+    frag.appendChild(confirmBtn);
+
+    renderCard(frag);
+  }
+
+  function editFromReview(item) {
+    state.editingFromReview = true;
+    state.editingField = item.field;
+
+    if (item.type === "setup") {
+      // Render setup field with return to review
+      if (item.field === "full_name") {
+        var sq = SETUP_QUESTIONS.full_name;
+        renderSingleLineInput(sq.text, sq.placeholder, function (val) {
+          saveAnswer("full_name", val);
+          state.editingFromReview = false;
+          state.editingField = null;
+          showReview();
+        });
+      } else if (item.field === "gender") {
+        var sq = SETUP_QUESTIONS.gender;
+        renderOptions(sq.text, sq.options, function (val) {
+          saveAnswer("gender", val);
+          state.editingFromReview = false;
+          state.editingField = null;
+          showReview();
+        });
+      }
+      return;
+    }
+
+    // Guna question — reset sub-step and render
+    state.currentSubStep = null;
+    renderGunaQuestion(item.questionNum);
   }
 
 
@@ -1066,6 +1470,10 @@
   }
 
   function showSuccess() {
+    // Clear saved progress on successful submission
+    var key = getStorageKey();
+    if (key) localStorage.removeItem(key);
+
     var name = state.answers.full_name || "";
     var frag = document.createDocumentFragment();
     var check = el("div", { className: "success-check" }, "\u2713");
@@ -1107,8 +1515,20 @@
 
   // ============== INIT ==============
 
-  function init() {
-    showIntro();
+  async function init() {
+    try {
+      var session = await window.getSession();
+      if (session && session.user) {
+        currentUserId = session.user.id;
+        state.meta.email = session.user.email;
+        onAuthComplete();
+      } else {
+        showEmail();
+      }
+    } catch (e) {
+      console.error("Auth check failed:", e);
+      showEmail();
+    }
   }
 
   // Start

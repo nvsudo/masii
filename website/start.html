@@ -47,6 +47,7 @@
                 <div class="channel-icon">💬</div>
                 <h3>Telegram</h3>
                 <p>Chat with Masii directly. Feels like messaging a friend.</p>
+                <canvas id="telegram-qr"></canvas>
             </a>
 
             <a href="form.html" class="channel-card">
@@ -73,6 +74,15 @@
         </div>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
+    <script>
+      new QRious({
+        element: document.getElementById('telegram-qr'),
+        value: 'https://t.me/masiiapp_bot',
+        size: 120,
+        backgroundAlpha: 0
+      });
+    </script>
     <script src="js/main.js"></script>
 </body>
 </html>

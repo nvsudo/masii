@@ -102,6 +102,35 @@ window.getUser = async function() {
 }
 
 /**
+ * Send OTP code to email
+ */
+window.signInWithOtp = async function(email) {
+  const supabase = getSupabase();
+  const { data, error } = await supabase.auth.signInWithOtp({
+    email,
+    options: {
+      shouldCreateUser: true,
+    }
+  });
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+/**
+ * Verify OTP code
+ */
+window.verifyOtp = async function(email, token) {
+  const supabase = getSupabase();
+  const { data, error } = await supabase.auth.verifyOtp({
+    email,
+    token,
+    type: 'email'
+  });
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+/**
  * Require authentication (redirect if not logged in)
  */
 window.requireAuth = async function() {

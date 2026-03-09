@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 40" width="400" height="40">
+  <!-- Rangoli-inspired section divider -->
+  <!-- Center motif -->
+  <circle cx="200" cy="20" r="4" fill="#C4653A" opacity="0.6"/>
+  <circle cx="200" cy="20" r="8" fill="none" stroke="#C4653A" stroke-width="0.8" opacity="0.3"/>
+  <!-- Dots radiating outward -->
+  <circle cx="180" cy="20" r="2" fill="#D4A03C" opacity="0.4"/>
+  <circle cx="220" cy="20" r="2" fill="#D4A03C" opacity="0.4"/>
+  <circle cx="164" cy="20" r="1.5" fill="#E8CFC0" opacity="0.5"/>
+  <circle cx="236" cy="20" r="1.5" fill="#E8CFC0" opacity="0.5"/>
+  <circle cx="150" cy="20" r="1" fill="#E8CFC0" opacity="0.4"/>
+  <circle cx="250" cy="20" r="1" fill="#E8CFC0" opacity="0.4"/>
+  <!-- Lines extending -->
+  <line x1="40" y1="20" x2="140" y2="20" stroke="#E8CFC0" stroke-width="0.8" opacity="0.3"/>
+  <line x1="260" y1="20" x2="360" y2="20" stroke="#E8CFC0" stroke-width="0.8" opacity="0.3"/>
+  <!-- Small diamond accents -->
+  <rect x="168" y="16" width="4" height="4" fill="#C4653A" opacity="0.2" transform="rotate(45 170 18)"/>
+  <rect x="228" y="16" width="4" height="4" fill="#C4653A" opacity="0.2" transform="rotate(45 230 18)"/>
+</svg>

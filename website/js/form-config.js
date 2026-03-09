@@ -1175,7 +1175,7 @@ Would you like to answer these?`,
 };
 
 const TOTAL_QUESTIONS = 60;
-const TOTAL_GUNAS = TOTAL_QUESTIONS;  // backward compat
+const TOTAL_FORM_QUESTIONS = TOTAL_QUESTIONS;  // alias
 
 
 // ============== SUB-QUESTIONS ==============

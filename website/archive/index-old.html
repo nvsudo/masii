@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Masii — You Deserve to Meet</title>
+    <meta name="description" content="Matchmaker for Indians everywhere. Free matches for people who deserve to meet. Masii learns who you are, finds your person, and makes the introduction.">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/styles.css">
+
+    <!-- Favicon — saffron circle -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪷</text></svg>">
+</head>
+<body>
+
+    <!-- Terminal header (Polsia-inspired) -->
+    <div class="terminal-header">
+        <div class="line"><span class="highlight">masii</span> is online</div>
+        <div class="line">watching <span class="highlight" id="profile-count-terminal">247</span> profiles across 8 communities</div>
+        <div class="line">last match made <span class="highlight">3 hours ago</span></div>
+    </div>
+
+    <!-- Live banner — commented out until city unlock framework is live
+    <div class="live-banner">
+        <span class="pulse"></span>
+        <span id="live-stat">23 matches made this month across Mumbai, Bangalore, Melbourne, Toronto, Dubai</span>
+    </div>
+    -->
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <a href="index.html" class="nav-logo">Masii</a>
+        <button class="nav-toggle" aria-label="Menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <ul class="nav-links">
+            <li><a href="#how">How it works</a></li>
+            <li><a href="#why">Why Masii</a></li>
+            <li><a href="stories/">Stories</a></li>
+            <li><a href="blog/">Blog</a></li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="start.html" class="nav-cta">Talk to Masii</a></li>
+        </ul>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="container">
+            <h1>If you're meant to meet, nothing should stop you.</h1>
+            <p class="subtitle">
+                Meet Masii — the world's most connected masi. Her only job, 24/7, is
+                finding you your person. Tell her everything. She never tells anyone
+                what you shared. She finds someone who fits what you need and what you
+                offer — and makes the introduction.
+            </p>
+            <div class="cta-group">
+                <a href="start.html" class="btn-primary">
+                    Talk to Masii
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </a>
+                <a href="#how" class="btn-secondary">See how it works</a>
+            </div>
+            <p class="note">No credit card required to start.</p>
+        </div>
+    </section>
+
+    <!-- Live Stats -->
+    <section class="live-stats">
+        <div class="container-wide">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="number" data-target="247">0</span>
+                    <span class="label">Active Profiles</span>
+                </div>
+                <div class="stat-item">
+                    <span class="number" data-target="23">0</span>
+                    <span class="label">Matches This Month</span>
+                </div>
+                <div class="stat-item">
+                    <span class="number" data-target="8">0</span>
+                    <span class="label">Communities</span>
+                </div>
+                <div class="stat-item">
+                    <span class="number" data-target="89" data-suffix="%">0</span>
+                    <span class="label">Avg Match Score</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-it-works" id="how">
+        <div class="container">
+            <span class="section-label">How it works</span>
+            <h2 class="section-title">Three conversations. One right person.</h2>
+
+            <div class="steps">
+                <div class="step">
+                    <span class="step-number">1</span>
+                    <div>
+                        <h3>Tell Masii about yourself</h3>
+                        <p>
+                            Masii asks you 36 questions — like the 36 gunas, but for real life.
+                            Your values, your lifestyle, your family, your future. Takes about
+                            10 minutes. On Telegram, WhatsApp, or the web.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <div>
+                        <h3>Masii finds your match</h3>
+                        <p>
+                            Masii searches your community for people who genuinely fit —
+                            culture, values, lifestyle, family vibe. She'll message you
+                            when she finds someone worth your time.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">3</span>
+                    <div>
+                        <h3>Both say yes, you connect</h3>
+                        <p>
+                            Masii shows you a match summary with her reasoning. If you're interested,
+                            the other person sees the same. Both say yes? Masii makes the introduction.
+                            It's free — because you deserve to meet.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quote -->
+    <section class="quote-section">
+        <div class="container">
+            <blockquote>
+                "If the algorithm says you're right for each other, a paywall shouldn't stand between you."
+                <cite>The philosophy behind Masii</cite>
+            </blockquote>
+        </div>
+    </section>
+
+    <!-- Why Masii -->
+    <section class="why-section" id="why">
+        <div class="container">
+            <span class="section-label">Why Masii</span>
+            <h2 class="section-title">Built for a generation that wants to choose — without being cut off.</h2>
+
+            <div class="why-grid">
+                <div class="why-card">
+                    <h3>Culture isn't a checkbox</h3>
+                    <p>
+                        Speaking Gujarati at home, valuing family dinners, knowing the difference
+                        between Jain and Hindu vegetarian — these things matter. Masii understands
+                        context, not just categories.
+                    </p>
+                </div>
+
+                <div class="why-card">
+                    <h3>Family is a feature</h3>
+                    <p>
+                        Your mom wants to help? She can fill out your profile. Your cousin wants
+                        to recommend you? They can. You want independence AND family harmony.
+                        Masii supports both. Consent is always required.
+                    </p>
+                </div>
+
+                <div class="why-card">
+                    <h3>Fewer matches, more conviction</h3>
+                    <p>
+                        Most apps give you 50 profiles and say "good luck." Masii gives you
+                        one person and says "here's why." Quality over quantity. Conviction
+                        over volume.
+                    </p>
+                </div>
+
+                <div class="why-card">
+                    <h3>Not a carousel</h3>
+                    <p>
+                        You're not shopping for a partner. You're finding one. Masii doesn't
+                        give you profiles to browse. She does the work, finds the person,
+                        and tells you why they fit your life and your family.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section" id="start">
+        <div class="container">
+            <h2>Ready to meet your person?</h2>
+            <p>It takes about 10 minutes. Matching is free. No credit card required.</p>
+            <a href="start.html" class="btn-primary" id="start-cta">
+                Talk to Masii
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+            <p class="note" style="color: var(--terminal-text); margin-top: var(--space-sm);">
+                Available on <a href="https://t.me/masiiapp_bot" style="color: var(--accent);" target="_blank">Telegram</a> &amp;
+                <a href="form.html" style="color: var(--accent);">Web Form</a>
+            </p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container-wide">
+            <div class="footer-content">
+                <span>Masii &copy; 2026</span>
+                <ul class="footer-links">
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="stories/">Stories</a></li>
+                    <li><a href="blog/">Blog</a></li>
+                    <li><a href="#">Privacy</a></li>
+                    <li><a href="#">Terms</a></li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>

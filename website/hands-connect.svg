@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <!-- Two hands meeting - the introduction moment -->
+  <defs>
+    <linearGradient id="hand-l" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#D4845E"/>
+      <stop offset="100%" stop-color="#C4653A"/>
+    </linearGradient>
+    <linearGradient id="hand-r" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#D4A03C"/>
+      <stop offset="100%" stop-color="#C4653A"/>
+    </linearGradient>
+  </defs>
+  <!-- Decorative circle behind -->
+  <circle cx="40" cy="40" r="32" fill="none" stroke="#E8CFC0" stroke-width="1" stroke-dasharray="4 4" opacity="0.6"/>
+  <!-- Left hand reaching right -->
+  <path d="M8 44 Q14 38 22 36 L34 34 Q38 33 38 36 L38 38 Q38 40 34 40 L28 40 Q24 40 24 44 Q24 48 28 48 L36 48" 
+        fill="url(#hand-l)" stroke="#5C4033" stroke-width="0.8" opacity="0.8"/>
+  <!-- Right hand reaching left -->
+  <path d="M72 36 Q66 32 58 34 L46 36 Q42 37 42 40 L42 42 Q42 44 46 44 L52 44 Q56 44 56 48 Q56 52 52 52 L44 52" 
+        fill="url(#hand-r)" stroke="#5C4033" stroke-width="0.8" opacity="0.8"/>
+  <!-- Spark/connection point -->
+  <circle cx="40" cy="44" r="3" fill="#D4A03C" opacity="0.6"/>
+  <circle cx="40" cy="44" r="6" fill="none" stroke="#D4A03C" stroke-width="0.8" opacity="0.3"/>
+  <circle cx="40" cy="44" r="10" fill="none" stroke="#D4A03C" stroke-width="0.5" opacity="0.15"/>
+</svg>

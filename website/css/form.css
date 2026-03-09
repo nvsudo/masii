@@ -1,35 +1,114 @@
 /* Masii Form Styles
-   Matches the website aesthetic: warm off-white, saffron accent,
-   Instrument Serif headings, mobile-first. */
+   Brand system: Playfair Display headings, DM Sans body,
+   cream/terracotta palette, pill buttons, 16px cards */
 
 /* ============================================
-   PROGRESS BAR
+   PROGRESS PILLS
    ============================================ */
-.form-progress {
+.progress-pills {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
-    height: 4px;
-    background: var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 16px 6px;
+    background: var(--cream);
     z-index: 200;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
 }
 
-.form-progress-fill {
-    height: 100%;
-    background: var(--accent);
-    width: 0%;
-    transition: width 0.4s ease;
+.progress-pills::-webkit-scrollbar { display: none; }
+
+.progress-pill {
+    width: 10px;
+    height: 10px;
+    min-width: 10px;
+    border-radius: 50%;
+    border: 2px solid var(--blush);
+    background: transparent;
+    transition: all 0.3s ease;
 }
 
-.form-progress-text {
+.progress-pill.completed {
+    background: var(--terracotta);
+    border-color: var(--terracotta);
+}
+
+.progress-pill.current {
+    background: var(--terracotta-soft);
+    border-color: var(--terracotta-soft);
+    animation: pillPulse 2s ease-in-out infinite;
+}
+
+@keyframes pillPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(196, 101, 58, 0.3); }
+    50% { box-shadow: 0 0 0 4px rgba(196, 101, 58, 0); }
+}
+
+.progress-section {
     position: fixed;
-    top: 8px;
-    right: var(--space-md);
-    font-family: var(--font-mono);
-    font-size: 0.7rem;
-    color: var(--text-muted);
-    z-index: 201;
+    top: 34px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 520px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 4px 16px 10px;
+    background: var(--cream);
+    z-index: 199;
+}
+
+.progress-section-name {
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    color: var(--earth);
+    font-weight: 400;
+}
+
+.progress-section-count {
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    color: var(--earth-medium);
+}
+
+.back-btn {
+    position: absolute;
+    left: 0;
+    background: none;
+    border: none;
+    color: var(--earth-medium);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    cursor: pointer;
+    padding: 4px 8px;
+    transition: color 0.2s;
+}
+
+.back-btn:hover {
+    color: var(--terracotta);
+}
+
+.exit-btn {
+    position: absolute;
+    right: 0;
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    color: var(--earth-medium);
+    text-decoration: none;
+    padding: 4px 8px;
+    transition: color 0.2s;
+}
+
+.exit-btn:hover {
+    color: var(--terracotta);
 }
 
 /* ============================================
@@ -40,7 +119,7 @@
     display: flex;
     align-items: flex-start;
     justify-content: center;
-    padding: var(--space-lg) var(--space-md) var(--space-2xl);
+    padding: 68px var(--space-md) var(--space-2xl);
 }
 
 #form-container {
@@ -52,11 +131,11 @@
    FORM CARD
    ============================================ */
 .form-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: 12px;
+    background: var(--white);
+    border: 1px solid var(--blush);
+    border-radius: 16px;
     padding: var(--space-lg) var(--space-md);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 1px 3px rgba(61, 43, 31, 0.04);
 }
 
 .form-card.fade-in {
@@ -72,25 +151,25 @@
    FORM QUESTION / MESSAGE
    ============================================ */
 .form-question {
-    font-family: var(--font-serif);
+    font-family: var(--font-display);
     font-size: 1.5rem;
     font-weight: 400;
     line-height: 1.3;
     margin-bottom: var(--space-md);
-    color: var(--text);
+    color: var(--earth);
 }
 
 .form-message {
     font-size: 1.05rem;
     line-height: 1.7;
-    color: var(--text);
+    color: var(--earth);
     margin-bottom: var(--space-md);
     white-space: pre-line;
 }
 
 .form-note {
     font-size: 0.9rem;
-    color: var(--text-muted);
+    color: var(--earth-medium);
     margin-bottom: var(--space-md);
     line-height: 1.5;
 }
@@ -116,7 +195,7 @@
     font-size: 0.95rem;
     font-weight: 500;
     border: none;
-    border-radius: 8px;
+    border-radius: 32px;
     cursor: pointer;
     transition: all 0.15s ease;
     text-decoration: none;
@@ -127,47 +206,68 @@
 }
 
 .form-btn-option {
-    background: var(--bg);
-    color: var(--text);
-    border: 1px solid var(--border);
+    background: var(--cream);
+    color: var(--earth);
+    border: 1.5px solid var(--blush);
+    border-radius: 12px;
     padding: 14px 16px;
     min-height: 48px;
+    position: relative;
 }
 
 .form-btn-option:hover {
-    border-color: var(--accent);
-    background: var(--accent-light);
+    border-color: var(--terracotta);
+    background: rgba(196, 101, 58, 0.04);
 }
 
-.form-btn-option:active {
-    background: var(--accent);
+.form-btn-option:active,
+.form-btn-option.flash {
+    background: var(--terracotta);
     color: white;
-    border-color: var(--accent);
+    border-color: var(--terracotta);
+}
+
+.form-btn-option.selected {
+    background: rgba(196, 101, 58, 0.08);
+    border-color: var(--terracotta);
+    color: var(--earth);
+}
+
+.form-btn-option.selected::after {
+    content: '✓';
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    font-size: 0.7rem;
+    color: var(--terracotta);
+    font-weight: 600;
 }
 
 .form-btn-primary {
-    background: var(--bg-dark);
+    background: var(--terracotta);
     color: white;
     padding: 14px 28px;
     margin-top: var(--space-sm);
     width: 100%;
+    box-shadow: 0 4px 20px rgba(196, 101, 58, 0.2);
 }
 
 .form-btn-primary:hover {
-    background: var(--accent);
+    background: var(--earth);
 }
 
 .form-btn-secondary {
     background: transparent;
-    color: var(--text);
-    border: 1px solid var(--border);
+    color: var(--earth);
+    border: 1.5px solid var(--blush);
     padding: 14px 28px;
     margin-top: 8px;
     width: 100%;
 }
 
 .form-btn-secondary:hover {
-    border-color: var(--text);
+    border-color: var(--terracotta);
+    color: var(--terracotta);
 }
 
 /* ============================================
@@ -178,10 +278,10 @@
     font-family: var(--font-body);
     font-size: 1rem;
     padding: 14px 16px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--bg);
-    color: var(--text);
+    border: 1.5px solid var(--blush);
+    border-radius: 12px;
+    background: var(--cream);
+    color: var(--earth);
     resize: vertical;
     line-height: 1.5;
     margin-bottom: 4px;
@@ -190,7 +290,7 @@
 
 .form-input:focus {
     outline: none;
-    border-color: var(--accent);
+    border-color: var(--terracotta);
 }
 
 .form-input-single {
@@ -198,7 +298,7 @@
 }
 
 .form-input::placeholder {
-    color: var(--text-muted);
+    color: var(--earth-light);
 }
 
 textarea.form-input {
@@ -223,13 +323,13 @@ textarea.form-input {
     font-family: var(--font-body);
     font-size: 0.9rem;
     padding: 14px 12px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--bg);
-    color: var(--text);
+    border: 1.5px solid var(--blush);
+    border-radius: 12px;
+    background: var(--cream);
+    color: var(--earth);
     cursor: pointer;
     appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2378716C' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235C4033' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 10px center;
     padding-right: 28px;
@@ -237,7 +337,7 @@ textarea.form-input {
 
 .form-select:focus {
     outline: none;
-    border-color: var(--accent);
+    border-color: var(--terracotta);
 }
 
 .phone-number {
@@ -245,11 +345,55 @@ textarea.form-input {
 }
 
 /* ============================================
+   TWO STEP SAME SCREEN
+   ============================================ */
+.same-screen-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: var(--space-sm);
+}
+
+.same-screen-col {
+    flex: 1;
+}
+
+.same-screen-col label {
+    display: block;
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    color: var(--earth-medium);
+    margin-bottom: 6px;
+}
+
+.same-screen-col .form-select {
+    width: 100%;
+}
+
+.doesnt-matter-btn {
+    width: 100%;
+    padding: 12px 24px;
+    margin-bottom: var(--space-sm);
+    background: transparent;
+    border: 1.5px solid var(--blush);
+    border-radius: 32px;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    color: var(--earth-medium);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.doesnt-matter-btn:hover {
+    border-color: var(--terracotta);
+    color: var(--terracotta);
+}
+
+/* ============================================
    SUCCESS STATE
    ============================================ */
 .success-check {
     font-size: 3rem;
-    color: var(--green);
+    color: var(--sage);
     margin-bottom: var(--space-sm);
     text-align: center;
 }
@@ -267,7 +411,7 @@ textarea.form-input {
 
 .shake {
     animation: shake 0.4s ease;
-    border-color: #EF4444 !important;
+    border-color: #c0392b !important;
 }
 
 /* ============================================
@@ -279,14 +423,14 @@ textarea.form-input {
 }
 
 .channel-hero h1 {
-    font-family: var(--font-serif);
+    font-family: var(--font-display);
     font-size: 2.5rem;
     font-weight: 400;
     margin-bottom: var(--space-xs);
 }
 
 .channel-hero p {
-    color: var(--text-muted);
+    color: var(--earth-medium);
     font-size: 1.05rem;
 }
 
@@ -300,19 +444,20 @@ textarea.form-input {
 }
 
 .channel-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: 12px;
+    background: var(--white);
+    border: 1px solid var(--blush);
+    border-radius: 16px;
     padding: var(--space-md);
     text-align: center;
     text-decoration: none;
-    color: var(--text);
+    color: var(--earth);
     transition: all 0.2s;
 }
 
 .channel-card:hover {
-    border-color: var(--accent);
-    box-shadow: 0 2px 8px rgba(220, 107, 47, 0.1);
+    border-color: var(--terracotta);
+    box-shadow: 0 8px 32px rgba(61, 43, 31, 0.06);
+    transform: translateY(-2px);
 }
 
 .channel-card .channel-icon {
@@ -336,7 +481,92 @@ textarea.form-input {
 
 .channel-card p {
     font-size: 0.85rem;
-    color: var(--text-muted);
+    color: var(--earth-medium);
+}
+
+/* ============================================
+   OTP INPUT
+   ============================================ */
+.form-otp-input {
+    text-align: center;
+    letter-spacing: 0.5em;
+    font-size: 1.5rem;
+    font-family: var(--font-body);
+}
+
+.form-error {
+    color: #c0392b;
+    font-size: 0.85rem;
+    margin-top: var(--space-xs);
+}
+
+.form-btn-link {
+    background: none;
+    border: none;
+    color: var(--terracotta);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    cursor: pointer;
+    padding: var(--space-xs) 0;
+    text-decoration: underline;
+}
+
+.form-btn-link:hover {
+    color: var(--earth);
+}
+
+/* ============================================
+   REVIEW PAGE
+   ============================================ */
+.review-section {
+    margin-bottom: var(--space-md);
+}
+
+.review-section-title {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    color: var(--terracotta);
+    margin-bottom: var(--space-xs);
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--blush);
+}
+
+.review-row {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--blush);
+    gap: 8px;
+}
+
+.review-label {
+    flex: 0 0 35%;
+    font-size: 0.8rem;
+    color: var(--earth-medium);
+    line-height: 1.3;
+}
+
+.review-value {
+    flex: 1;
+    font-size: 0.9rem;
+    color: var(--earth);
+}
+
+.review-edit-btn {
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    color: var(--terracotta);
+    background: none;
+    border: 1px solid var(--terracotta);
+    border-radius: 32px;
+    padding: 3px 12px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.15s;
+}
+
+.review-edit-btn:hover {
+    background: rgba(196, 101, 58, 0.08);
 }
 
 /* ============================================
@@ -344,7 +574,7 @@ textarea.form-input {
    ============================================ */
 @media (max-width: 768px) {
     .form-wrapper {
-        padding: var(--space-md) var(--space-sm) var(--space-xl);
+        padding: 62px var(--space-sm) var(--space-xl);
     }
 
     .form-card {
@@ -364,7 +594,7 @@ textarea.form-input {
     }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 400px) {
     .form-question {
         font-size: 1.2rem;
     }
@@ -373,12 +603,8 @@ textarea.form-input {
         font-size: 0.95rem;
     }
 
-    .form-options.cols-2 {
-        grid-template-columns: 1fr;
-    }
-
     .form-options.cols-3 {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr 1fr;
     }
 
     .channel-grid {
@@ -402,88 +628,8 @@ textarea.form-input {
         flex: none;
         width: 100%;
     }
-}
 
-
-/* ============== OTP Input ============== */
-
-.form-otp-input {
-    text-align: center;
-    letter-spacing: 0.5em;
-    font-size: 1.5rem;
-    font-family: var(--font-mono, 'JetBrains Mono', monospace);
-}
-
-.form-error {
-    color: #c0392b;
-    font-size: 0.85rem;
-    margin-top: var(--space-xs);
-}
-
-.form-btn-link {
-    background: none;
-    border: none;
-    color: var(--accent);
-    font-family: var(--font-body);
-    font-size: 0.85rem;
-    cursor: pointer;
-    padding: var(--space-xs) 0;
-    text-decoration: underline;
-}
-
-.form-btn-link:hover {
-    color: var(--text);
-}
-
-
-/* ============== Review Page ============== */
-
-.review-section {
-    margin-bottom: var(--space-md);
-}
-
-.review-section-title {
-    font-family: var(--font-serif, 'Instrument Serif', serif);
-    font-size: 1.1rem;
-    color: var(--accent);
-    margin-bottom: var(--space-xs);
-    padding-bottom: 4px;
-    border-bottom: 1px solid var(--border);
-}
-
-.review-row {
-    display: flex;
-    align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid var(--border);
-    gap: 8px;
-}
-
-.review-label {
-    flex: 0 0 35%;
-    font-size: 0.8rem;
-    color: var(--text-muted, #888);
-    line-height: 1.3;
-}
-
-.review-value {
-    flex: 1;
-    font-size: 0.9rem;
-    color: var(--text);
-}
-
-.review-edit-btn {
-    font-family: var(--font-body);
-    font-size: 0.75rem;
-    color: var(--accent);
-    background: none;
-    border: 1px solid var(--accent);
-    border-radius: 6px;
-    padding: 3px 10px;
-    cursor: pointer;
-    flex-shrink: 0;
-}
-
-.review-edit-btn:hover {
-    background: var(--accent-light, #FEF3EB);
+    .same-screen-row {
+        flex-direction: column;
+    }
 }

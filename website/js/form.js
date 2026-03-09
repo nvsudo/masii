@@ -1,7 +1,7 @@
 /**
- * Masii Web Form Engine — 60 Questions
- * Progressive disclosure: one question at a time, mimicking the Telegram bot's conversational feel.
- * Depends on form-config.js being loaded first.
+ * Masii Web Form Engine — V3
+ * Driven by form-config.generated.js (YAML source of truth).
+ * Flow-based navigation using getQuestionFlow().
  */
 
 (function () {
@@ -14,19 +14,16 @@
 
   // ============== STATE ==============
   const state = {
-    phase: "email",        // email | otp | resume | intro | intent | setup | proxy | gunas | sub_question | review | close | phone | done | error
-    introIndex: 0,
-    proxyIndex: 0,
-    setupStep: null,       // "full_name" | "gender"
-    currentGuna: 0,
-    currentSubStep: null,  // for multi-step questions (step1, step2, step3, etc.)
-    pendingSubQuestion: null,
+    phase: "email",      // email | otp | resume | intro | questions | review | close | phone | done | error | proxy
+    flow: [],            // ordered array of question IDs from getQuestionFlow()
+    flowIndex: 0,        // current position in flow[]
+    currentSubStep: null, // for multi-step questions (step1, step2, step3)
     previousSection: null,
-    showingTransition: false,
     editingFromReview: false,
     editingField: null,
+    proxyIndex: 0,
     answers: {},
-    meta: {                // non-guna answers (intent, proxy info)
+    meta: {
       intent: null,
       email: null,
       proxy: {}
@@ -35,19 +32,45 @@
 
   // ============== DOM ==============
   const container = document.getElementById("form-container");
-  const progressBar = document.getElementById("progress-fill");
-  const progressText = document.getElementById("progress-text");
+  const pillsContainer = document.getElementById("progress-pills");
+  const sectionName = document.getElementById("section-name");
+  const sectionCount = document.getElementById("section-count");
+  const backBtn = document.getElementById("back-btn");
+
+  // ============== CONFIG PATCHES ==============
+  // Patch pref_age_range: change to same-screen layout (two dropdowns side by side)
+  (function () {
+    var q = QUESTIONS[QUESTION_INDEX["pref_age_range"]];
+    if (q) {
+      q.type = "two_step_same_screen";
+      q.hasDoesntMatter = false;
+    }
+  })();
+
+  // Patch pref_family_status: add "Same or lower" option
+  (function () {
+    var q = QUESTIONS[QUESTION_INDEX["pref_family_status"]];
+    if (q && q.options) {
+      // Insert after "Same or higher"
+      var idx = q.options.findIndex(function (o) { return o.value === "Same or higher"; });
+      if (idx >= 0) {
+        q.options.splice(idx + 1, 0, { label: "Same or lower", value: "Same or lower" });
+      }
+    }
+  })();
 
   // ============== RENDER HELPERS ==============
 
-  function el(tag, attrs, ...children) {
-    const node = document.createElement(tag);
-    if (attrs) Object.entries(attrs).forEach(([k, v]) => {
+  function el(tag, attrs) {
+    var children = Array.prototype.slice.call(arguments, 2);
+    var node = document.createElement(tag);
+    if (attrs) Object.entries(attrs).forEach(function (entry) {
+      var k = entry[0], v = entry[1];
       if (k === "className") node.className = v;
       else if (k.startsWith("on")) node.addEventListener(k.slice(2).toLowerCase(), v);
       else node.setAttribute(k, v);
     });
-    children.forEach(c => {
+    children.forEach(function (c) {
       if (typeof c === "string") node.appendChild(document.createTextNode(c));
       else if (c) node.appendChild(c);
     });
@@ -58,222 +81,36 @@
     container.innerHTML = "";
   }
 
-  /**
-   * Calculate how many questions are actually applicable (not skipped by gender or gate).
-   * This gives a more accurate progress denominator.
-   */
-  function countApplicableQuestions() {
-    let count = 0;
-    for (let i = 1; i <= TOTAL_QUESTIONS; i++) {
-      const q = QUESTIONS[i];
-      if (!q) continue;
-      // Skip gender-forked questions for the other gender
-      if (q.gender && state.answers.gender && q.gender !== state.answers.gender) continue;
-      // Skip sensitive questions if gate answered "no"
-      if (i >= 54 && i <= 58 && state.answers.sensitive_gate === "no") continue;
-      count++;
-    }
-    return count;
-  }
-
-  function updateProgress() {
-    if (state.phase === "email" || state.phase === "otp" || state.phase === "resume" || state.phase === "intro" || state.phase === "intent" || state.phase === "setup" || state.phase === "proxy") {
-      progressBar.style.width = "0%";
-      progressText.textContent = "";
-      return;
-    }
-    if (state.phase === "done" || state.phase === "close" || state.phase === "review") {
-      progressBar.style.width = "100%";
-      const total = countApplicableQuestions();
-      progressText.textContent = total + " of " + total;
-      return;
-    }
-    // Count answered questions (those before currentGuna that are applicable)
-    let answered = 0;
-    for (let i = 1; i < state.currentGuna; i++) {
-      const q = QUESTIONS[i];
-      if (!q) continue;
-      if (q.gender && state.answers.gender && q.gender !== state.answers.gender) continue;
-      if (i >= 54 && i <= 58 && state.answers.sensitive_gate === "no") continue;
-      answered++;
-    }
-    const total = countApplicableQuestions();
-    const pct = total > 0 ? Math.round((answered / total) * 100) : 0;
-    progressBar.style.width = pct + "%";
-    progressText.textContent = answered + " of " + total;
-  }
-
   function renderCard(content, fadeIn) {
     if (fadeIn === undefined) fadeIn = true;
     clear();
-    const card = el("div", { className: "form-card" + (fadeIn ? " fade-in" : "") });
+    var card = el("div", { className: "form-card" + (fadeIn ? " fade-in" : "") });
     if (typeof content === "string") {
       card.innerHTML = content;
     } else {
       card.appendChild(content);
     }
     container.appendChild(card);
-    updateProgress();
-    // Scroll to top of card
+    updateProgressUI();
     card.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
-  function renderMessage(text, buttonLabel, onClick, extraClass) {
-    const frag = document.createDocumentFragment();
-    const msg = el("div", { className: "form-message" + (extraClass ? " " + extraClass : "") });
+  function renderMessage(text, buttonLabel, onClick) {
+    var frag = document.createDocumentFragment();
+    var msg = el("div", { className: "form-message" });
     msg.innerHTML = text.replace(/\n/g, "<br>");
     frag.appendChild(msg);
     if (buttonLabel) {
-      const btn = el("button", { className: "form-btn form-btn-primary", onClick: onClick }, buttonLabel);
+      var btn = el("button", { className: "form-btn form-btn-primary", onClick: onClick }, buttonLabel);
       frag.appendChild(btn);
     }
     renderCard(frag);
-  }
-
-  function renderOptions(questionText, options, onSelect, columns) {
-    const frag = document.createDocumentFragment();
-    const q = el("h2", { className: "form-question" }, questionText);
-    frag.appendChild(q);
-    const grid = el("div", { className: "form-options" + (columns ? " cols-" + columns : "") });
-    options.forEach(function (opt) {
-      const btn = el("button", {
-        className: "form-btn form-btn-option",
-        onClick: function () {
-          if (opt.requires_text) {
-            renderTextFollowUp(questionText, opt, onSelect);
-          } else {
-            onSelect(opt.value);
-          }
-        }
-      }, opt.label);
-      grid.appendChild(btn);
-    });
-    frag.appendChild(grid);
-    renderCard(frag);
-  }
-
-  function renderMultiSelect(questionText, options, doneLabel, onDone, columns) {
-    const selected = new Set();
-    const frag = document.createDocumentFragment();
-    const q = el("h2", { className: "form-question" }, questionText);
-    frag.appendChild(q);
-    const grid = el("div", { className: "form-options multi-select-grid" + (columns ? " cols-" + columns : "") });
-
-    options.forEach(function (opt) {
-      const btn = el("button", {
-        className: "form-btn form-btn-option",
-        onClick: function () {
-          if (selected.has(opt.value)) {
-            selected.delete(opt.value);
-            btn.classList.remove("selected");
-          } else {
-            selected.add(opt.value);
-            btn.classList.add("selected");
-          }
-        }
-      }, opt.label);
-      grid.appendChild(btn);
-    });
-    frag.appendChild(grid);
-
-    const doneBtn = el("button", {
-      className: "form-btn form-btn-primary",
-      onClick: function () {
-        onDone(Array.from(selected));
-      }
-    }, doneLabel || "Done \u2713");
-    frag.appendChild(doneBtn);
-    renderCard(frag);
-  }
-
-  function renderTextInput(questionText, placeholder, onSubmit) {
-    const frag = document.createDocumentFragment();
-    const q = el("h2", { className: "form-question" }, questionText);
-    frag.appendChild(q);
-    const input = el("textarea", {
-      className: "form-input",
-      placeholder: placeholder || "",
-      rows: "3"
-    });
-    frag.appendChild(input);
-    const btn = el("button", {
-      className: "form-btn form-btn-primary",
-      onClick: function () {
-        var val = input.value.trim();
-        if (!val) {
-          input.classList.add("shake");
-          setTimeout(function () { input.classList.remove("shake"); }, 500);
-          return;
-        }
-        onSubmit(val);
-      }
-    }, "Continue \u2192");
-    frag.appendChild(btn);
-    renderCard(frag);
-    setTimeout(function () { input.focus(); }, 100);
-  }
-
-  function renderSingleLineInput(questionText, placeholder, onSubmit) {
-    var frag = document.createDocumentFragment();
-    var q = el("h2", { className: "form-question" }, questionText);
-    frag.appendChild(q);
-    var input = el("input", {
-      className: "form-input form-input-single",
-      type: "text",
-      placeholder: placeholder || ""
-    });
-    frag.appendChild(input);
-    var btn = el("button", {
-      className: "form-btn form-btn-primary",
-      onClick: function () {
-        var val = input.value.trim();
-        if (!val) {
-          input.classList.add("shake");
-          setTimeout(function () { input.classList.remove("shake"); }, 500);
-          return;
-        }
-        onSubmit(val);
-      }
-    }, "Continue \u2192");
-    frag.appendChild(btn);
-    renderCard(frag);
-    setTimeout(function () { input.focus(); }, 100);
-  }
-
-  function renderTextFollowUp(questionText, opt, onSelect) {
-    var frag = document.createDocumentFragment();
-    var q = el("h2", { className: "form-question" }, questionText);
-    frag.appendChild(q);
-    var note = el("p", { className: "form-note" }, "Selected: " + opt.label);
-    frag.appendChild(note);
-    var input = el("input", {
-      className: "form-input form-input-single",
-      type: "text",
-      placeholder: "Please specify..."
-    });
-    frag.appendChild(input);
-    var btn = el("button", {
-      className: "form-btn form-btn-primary",
-      onClick: function () {
-        var val = input.value.trim();
-        if (!val) {
-          input.classList.add("shake");
-          setTimeout(function () { input.classList.remove("shake"); }, 500);
-          return;
-        }
-        onSelect(val);
-      }
-    }, "Continue \u2192");
-    frag.appendChild(btn);
-    renderCard(frag);
-    setTimeout(function () { input.focus(); }, 100);
   }
 
   function renderPhoneInput(questionText, placeholder, onSubmit) {
     var frag = document.createDocumentFragment();
     var q = el("h2", { className: "form-question" }, questionText);
     frag.appendChild(q);
-
     var row = el("div", { className: "phone-row" });
     var countrySelect = el("select", { className: "form-select phone-code" });
     var codes = [
@@ -293,7 +130,6 @@
       countrySelect.appendChild(opt);
     });
     row.appendChild(countrySelect);
-
     var phoneInput = el("input", {
       className: "form-input form-input-single phone-number",
       type: "tel",
@@ -301,7 +137,6 @@
     });
     row.appendChild(phoneInput);
     frag.appendChild(row);
-
     var btn = el("button", {
       className: "form-btn form-btn-primary",
       onClick: function () {
@@ -321,49 +156,6 @@
   }
 
 
-  // ============== RESOLVE OPTIONS ==============
-
-  /**
-   * Resolve options for a question. Handles string-based dynamic options
-   * and array-based static options.
-   */
-  function resolveOptions(questionNum, optionValue, extraContext) {
-    if (Array.isArray(optionValue)) return optionValue;
-    if (typeof optionValue === "string") {
-      // Try getConditionalOptions first (handles most cases)
-      var resolved = getConditionalOptions(questionNum, state.answers);
-      if (resolved) return resolved;
-      // Fallback: resolve by key name directly
-      return resolveByKey(optionValue, extraContext);
-    }
-    return null;
-  }
-
-  function resolveByKey(key, extraContext) {
-    var isNRI = state.answers._location_type === "Outside India" || (state.answers.country_current && state.answers.country_current !== "India");
-    switch (key) {
-      case "birth_years": return getBirthYears();
-      case "states_india": return getStatesIndia();
-      case "states_india_full": return getStatesIndiaFull();
-      case "countries": return getCountries();
-      case "practice_by_religion": return getPracticeByReligion(state.answers.religion);
-      case "sects_by_religion": return getSectsByReligion(state.answers.religion);
-      case "castes_by_religion": return getCastesByReligion(state.answers.religion);
-      case "diet_by_religion": return getDietByReligion(state.answers.religion);
-      case "height_by_gender": return getHeightByGender(state.answers.gender);
-      case "weight_by_gender": return getWeightByGender(state.answers.gender);
-      case "income_by_location": return getIncomeByLocation(isNRI);
-      case "income_by_location_with_doesnt_matter": return getIncomeByLocationWithDoesntMatter(isNRI);
-      case "languages_minus_mother_tongue": return getLanguagesMinusMotherTongue(state.answers.mother_tongue);
-      case "height_opposite_gender": return getHeightOppositeGender(state.answers.gender);
-      case "gotras_by_religion": return getGotrasByReligion(state.answers.religion);
-      case "age_range_min": return getAgeRangeMin();
-      case "age_range_max": return getAgeRangeMax(extraContext && extraContext.minAge ? parseInt(extraContext.minAge) : 18);
-      default: return null;
-    }
-  }
-
-
   // ============== AUTH HELPERS ==============
 
   var currentUserId = null;
@@ -378,10 +170,9 @@
     try {
       localStorage.setItem(key, JSON.stringify({
         phase: state.phase,
-        currentGuna: state.currentGuna,
+        flow: state.flow,
+        flowIndex: state.flowIndex,
         currentSubStep: state.currentSubStep,
-        setupStep: state.setupStep,
-        introIndex: state.introIndex,
         previousSection: state.previousSection,
         answers: state.answers,
         meta: state.meta
@@ -392,43 +183,179 @@
   }
 
   function restoreState(saved) {
-    state.phase = saved.phase || "intro";
-    state.currentGuna = saved.currentGuna || 0;
-    state.currentSubStep = saved.currentSubStep || null;
-    state.setupStep = saved.setupStep || null;
-    state.introIndex = saved.introIndex || 0;
-    state.previousSection = saved.previousSection || null;
     state.answers = saved.answers || {};
     state.meta = saved.meta || { intent: null, email: null, proxy: {} };
+    state.previousSection = saved.previousSection || null;
+    state.currentSubStep = saved.currentSubStep || null;
 
-    // Route to the correct screen
-    if (state.phase === "gunas" && state.currentGuna > 0) {
-      showGuna(state.currentGuna);
-    } else if (state.phase === "setup") {
-      renderSetupStep();
-    } else if (state.phase === "phone") {
-      showPhone();
-    } else if (state.phase === "review") {
+    // Recompute flow from current answers (source of truth)
+    recomputeFlow();
+
+    if (saved.phase === "questions" && saved.flowIndex != null) {
+      // Try to restore position: find the question at the saved flowIndex
+      var savedFlow = saved.flow || [];
+      var savedQId = savedFlow[saved.flowIndex];
+      if (savedQId) {
+        var idx = state.flow.indexOf(savedQId);
+        state.flowIndex = idx >= 0 ? idx : Math.min(saved.flowIndex, state.flow.length - 1);
+      } else {
+        state.flowIndex = Math.min(saved.flowIndex || 0, state.flow.length - 1);
+      }
+      state.phase = "questions";
+      showQuestion();
+    } else if (saved.phase === "review") {
       showReview();
-    } else if (state.phase === "close") {
+    } else if (saved.phase === "close") {
       showClose();
+    } else if (saved.phase === "phone") {
+      showPhone();
     } else {
+      // Default: start from intro
       showIntro();
     }
   }
 
   function calculateProgress() {
     if (!state.answers || Object.keys(state.answers).length === 0) return 0;
+    var flow = state.flow.length > 0 ? state.flow : getQuestionFlow(state.answers);
     var answered = 0;
-    for (var i = 1; i <= TOTAL_QUESTIONS; i++) {
-      var q = QUESTIONS[i];
-      if (!q) continue;
-      if (q.gender && state.answers.gender && q.gender !== state.answers.gender) continue;
-      if (i >= 54 && i <= 58 && state.answers.sensitive_gate === "no") continue;
-      if (state.answers[q.field] != null) answered++;
+    for (var i = 0; i < flow.length; i++) {
+      var q = QUESTIONS[QUESTION_INDEX[flow[i]]];
+      if (q && state.answers[q.field] != null) answered++;
     }
-    var total = countApplicableQuestions();
-    return total > 0 ? Math.round((answered / total) * 100) : 0;
+    return flow.length > 0 ? Math.round((answered / flow.length) * 100) : 0;
+  }
+
+
+  // ============== FLOW NAVIGATION ==============
+
+  function recomputeFlow() {
+    var currentQId = state.flow[state.flowIndex];
+    state.flow = getQuestionFlow(state.answers);
+
+    // Exclude setup questions (intent, full_name, preferred_name, gender) from main flow
+    // They are handled as part of the intro → questions transition
+    // Actually keep them in flow - they ARE part of the flow in V3
+
+    if (currentQId) {
+      var newIdx = state.flow.indexOf(currentQId);
+      if (newIdx >= 0) {
+        state.flowIndex = newIdx;
+      }
+      // If current question got skipped, flowIndex stays and showQuestion will handle it
+    }
+  }
+
+  function getCurrentQuestion() {
+    if (state.flowIndex >= state.flow.length) return null;
+    var qId = state.flow[state.flowIndex];
+    return QUESTIONS[QUESTION_INDEX[qId]] || null;
+  }
+
+  function advanceToNext() {
+    if (state.editingFromReview) {
+      state.editingFromReview = false;
+      state.editingField = null;
+      persistState();
+      showReview();
+      return;
+    }
+    // Capture the question we just answered BEFORE recomputing
+    var justAnsweredId = state.flow[state.flowIndex];
+    state.currentSubStep = null;
+
+    // Recompute flow (answer may have unlocked/removed downstream questions)
+    state.flow = getQuestionFlow(state.answers);
+
+    // Find the just-answered question in the new flow and go to the one after it
+    if (justAnsweredId) {
+      var answeredIdx = state.flow.indexOf(justAnsweredId);
+      if (answeredIdx >= 0) {
+        state.flowIndex = answeredIdx + 1;
+      } else {
+        state.flowIndex++;
+      }
+    } else {
+      state.flowIndex++;
+    }
+
+    persistState();
+    showQuestion();
+  }
+
+  function goBack() {
+    if (state.flowIndex <= 0) return;
+    state.flowIndex--;
+    state.currentSubStep = null;
+    showQuestion(true); // skipTransition = true
+  }
+
+
+  // ============== PROGRESS UI ==============
+
+  function updateProgressUI() {
+    if (!pillsContainer) return;
+
+    // Only show progress during questions phase
+    var showProgress = (state.phase === "questions" || state.phase === "review");
+    pillsContainer.style.display = showProgress ? "flex" : "none";
+    if (sectionName) sectionName.style.display = showProgress ? "inline" : "none";
+    if (sectionCount) sectionCount.style.display = showProgress ? "inline" : "none";
+
+    if (!showProgress) {
+      if (backBtn) backBtn.style.display = "none";
+      return;
+    }
+
+    var currentQ = getCurrentQuestion();
+    if (!currentQ) {
+      // Review phase — all completed
+      renderPills("personality"); // last section
+      if (sectionName) sectionName.textContent = "Review";
+      if (sectionCount) sectionCount.textContent = "";
+      if (backBtn) backBtn.style.display = "none";
+      return;
+    }
+
+    var currentSection = currentQ.section;
+    renderPills(currentSection);
+
+    // Section counter
+    var sectionLabel = SECTIONS[currentSection] ? SECTIONS[currentSection].label : currentSection;
+    var sectionQs = state.flow.filter(function (qId) {
+      var q = QUESTIONS[QUESTION_INDEX[qId]];
+      return q && q.section === currentSection;
+    });
+    var posInSection = sectionQs.indexOf(state.flow[state.flowIndex]) + 1;
+    if (sectionName) sectionName.textContent = sectionLabel;
+    if (sectionCount) sectionCount.textContent = posInSection + " of " + sectionQs.length;
+
+    // Back button
+    if (backBtn) {
+      backBtn.style.display = state.flowIndex > 0 ? "inline" : "none";
+      backBtn.onclick = goBack;
+    }
+  }
+
+  function renderPills(currentSection) {
+    pillsContainer.innerHTML = "";
+    // Skip "setup" from pill display
+    var displaySections = SECTION_ORDER.filter(function (s) { return s !== "setup"; });
+    var currentIdx = displaySections.indexOf(currentSection);
+
+    displaySections.forEach(function (section, i) {
+      var pill = el("div", { className: "progress-pill" });
+      if (i < currentIdx) pill.classList.add("completed");
+      else if (i === currentIdx) pill.classList.add("current");
+      else pill.classList.add("upcoming");
+      pillsContainer.appendChild(pill);
+    });
+
+    // Scroll to center current pill
+    var currentPill = pillsContainer.querySelector(".progress-pill.current");
+    if (currentPill) {
+      currentPill.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+    }
   }
 
 
@@ -524,7 +451,6 @@
       }
     }, "Verify \u2192");
     frag.appendChild(btn);
-
     var resend = el("button", {
       className: "form-btn form-btn-link",
       onClick: async function () {
@@ -547,14 +473,19 @@
 
   function onAuthComplete() {
     var key = getStorageKey();
-    if (!key) {
-      showIntro();
-      return;
-    }
+    if (!key) { showIntro(); return; }
     try {
       var saved = localStorage.getItem(key);
       if (saved) {
         var parsed = JSON.parse(saved);
+        // Handle V2 state migration
+        if (parsed.currentGuna != null && !parsed.flow) {
+          // V2 format: preserve answers, restart navigation
+          if (parsed.answers && Object.keys(parsed.answers).length > 0) {
+            showResume(parsed);
+            return;
+          }
+        }
         if (parsed.answers && Object.keys(parsed.answers).length > 0) {
           showResume(parsed);
           return;
@@ -571,14 +502,14 @@
 
   function showResume(savedState) {
     state.phase = "resume";
-    var name = savedState.answers.full_name || "";
-    // Temporarily assign to calculate progress
+    // Temporarily compute progress
     var origAnswers = state.answers;
-    var origGender = state.answers.gender;
-    state.answers = savedState.answers;
+    state.answers = savedState.answers || {};
     var pct = calculateProgress();
     state.answers = origAnswers;
 
+    var name = (savedState.answers && savedState.answers.preferred_name) ||
+               (savedState.answers && savedState.answers.full_name) || "";
     var frag = document.createDocumentFragment();
     var q = el("h2", { className: "form-question" }, "Welcome back" + (name ? ", " + name : "") + "!");
     frag.appendChild(q);
@@ -586,9 +517,7 @@
     frag.appendChild(note);
     var resumeBtn = el("button", {
       className: "form-btn form-btn-primary",
-      onClick: function () {
-        restoreState(savedState);
-      }
+      onClick: function () { restoreState(savedState); }
     }, "Resume \u2192");
     frag.appendChild(resumeBtn);
     var startOverBtn = el("button", {
@@ -596,6 +525,16 @@
       onClick: function () {
         var key = getStorageKey();
         if (key) localStorage.removeItem(key);
+        // Reset all in-memory state
+        state.answers = {};
+        state.flow = [];
+        state.flowIndex = 0;
+        state.currentSubStep = null;
+        state.previousSection = null;
+        state.editingFromReview = false;
+        state.editingField = null;
+        state.proxyIndex = 0;
+        state.meta = { intent: null, email: state.meta.email, proxy: {} };
         showIntro();
       }
     }, "Start over");
@@ -608,308 +547,144 @@
 
   function showIntro() {
     state.phase = "intro";
-    var msg = INTRO_MESSAGES[state.introIndex];
-    renderMessage(msg.text, msg.button, function () {
-      state.introIndex++;
-      if (state.introIndex < INTRO_MESSAGES.length) {
-        showIntro();
-      } else {
-        showIntent();
-      }
+    renderMessage(INTRO.text, INTRO.button, function () {
+      recomputeFlow();
+      state.flowIndex = 0;
+      state.phase = "questions";
+      state.previousSection = null;
+      persistState();
+      showQuestion();
     });
   }
 
 
-  // ============== PHASE: INTENT ==============
+  // ============== PHASE: QUESTIONS ==============
 
-  function showIntent() {
-    state.phase = "intent";
-    renderOptions(INTENT_MESSAGE.text, INTENT_MESSAGE.options, function (val) {
-      state.meta.intent = val;
-      if (val === "proxy") {
-        state.proxyIndex = 0;
-        showProxy();
-      } else {
-        showSetup();
-      }
-    });
-  }
+  function showQuestion(skipTransition) {
+    state.phase = "questions";
 
-
-  // ============== PHASE: SETUP (name + gender before numbered questions) ==============
-
-  function showSetup() {
-    state.phase = "setup";
-    state.setupStep = "full_name";
-    persistState();
-    renderSetupStep();
-  }
-
-  function renderSetupStep() {
-    if (state.setupStep === "full_name") {
-      var sq = SETUP_QUESTIONS.full_name;
-      renderSingleLineInput(sq.text, sq.placeholder, function (val) {
-        saveAnswer("full_name", val);
-        state.setupStep = "gender";
-        renderSetupStep();
-      });
-    } else if (state.setupStep === "gender") {
-      var sq = SETUP_QUESTIONS.gender;
-      renderOptions(sq.text, sq.options, function (val) {
-        saveAnswer("gender", val);
-        state.setupStep = null;
-        startGunas();
-      });
-    }
-  }
-
-
-  // ============== PHASE: PROXY ==============
-
-  function showProxy() {
-    state.phase = "proxy";
-    if (state.proxyIndex >= PROXY_QUESTIONS.length) {
-      showProxyClose();
-      return;
-    }
-
-    var pq = PROXY_QUESTIONS[state.proxyIndex];
-
-    // Handle different types
-    if (pq.type === "text_input") {
-      renderSingleLineInput(pq.text, pq.placeholder, function (val) {
-        state.meta.proxy[pq.field] = val;
-        // If this is person_name, also store full_name and gender for downstream use
-        if (pq.field === "person_name") {
-          saveAnswer("full_name", val);
-        }
-        state.proxyIndex++;
-        showProxy();
-      });
-    } else if (pq.type === "phone_input") {
-      renderPhoneInput(pq.text, pq.placeholder, function (val) {
-        state.meta.proxy[pq.field] = val;
-        state.proxyIndex++;
-        showProxy();
-      });
-    } else if (pq.type === "location_tree") {
-      // Simplified: just ask city as text input for proxy
-      renderSingleLineInput(pq.text, "City, Country", function (val) {
-        state.meta.proxy[pq.field] = val;
-        state.proxyIndex++;
-        showProxy();
-      });
-    } else {
-      // single_select
-      var options = pq.options;
-      if (typeof options === "string") {
-        // Resolve dynamic options for proxy questions
-        if (options === "birth_years") {
-          options = getBirthYears();
-        } else if (options === "castes_by_religion") {
-          options = getCastesByReligion(state.meta.proxy.person_religion) || [];
-        } else {
-          options = resolveByKey(options) || [];
-        }
-      }
-      if (!options || options.length === 0) {
-        // Skip if no options available
-        state.proxyIndex++;
-        showProxy();
-        return;
-      }
-      renderOptions(pq.text, options, function (val) {
-        state.meta.proxy[pq.field] = val;
-        // If person_gender, store for downstream
-        if (pq.field === "person_gender") {
-          saveAnswer("gender", val);
-        }
-        state.proxyIndex++;
-        showProxy();
-      }, pq.columns);
-    }
-  }
-
-  function showProxyClose() {
-    var text = PROXY_CLOSE_MESSAGE.replace(/{person_name}/g, state.meta.proxy.person_name || "them");
-    renderMessage(text, "Done \u2192", function () {
-      submitProxyForm();
-    }, "gate-message");
-  }
-
-  async function submitProxyForm() {
-    state.phase = "done";
-    renderMessage("Submitting...", "", function () {});
-    var btn = container.querySelector(".form-btn");
-    if (btn) btn.style.display = "none";
-
-    var payload = {
-      type: "proxy",
-      meta: state.meta,
-      proxy_data: state.meta.proxy
-    };
-
-    try {
-      var resp = await fetch(API_BASE + "/api/intake", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      if (!resp.ok) throw new Error("HTTP " + resp.status);
-      showProxySuccess();
-    } catch (err) {
-      console.error("Proxy submit error:", err);
-      showProxySuccess(); // Show success anyway -- data is best-effort for proxy
-    }
-  }
-
-  function showProxySuccess() {
-    var frag = document.createDocumentFragment();
-    var check = el("div", { className: "success-check" }, "\u2713");
-    frag.appendChild(check);
-    var h = el("h2", { className: "form-question" }, "Got it! We\u2019ll take it from here.");
-    frag.appendChild(h);
-    var p = el("p", { className: "form-note" },
-      "We\u2019ll reach out to " + (state.meta.proxy.person_name || "them") + " to complete their profile."
-    );
-    frag.appendChild(p);
-    var link = el("a", { href: "index.html", className: "form-btn form-btn-primary" }, "Back to Masii");
-    frag.appendChild(link);
-    renderCard(frag);
-  }
-
-
-  // ============== PHASE: GUNAS (numbered questions 1-60) ==============
-
-  function startGunas() {
-    state.phase = "gunas";
-    state.currentGuna = 1;
-    state.previousSection = null;
-    persistState();
-    showGuna(1);
-  }
-
-  function showGuna(num) {
-    // Past the end?
-    if (num > TOTAL_QUESTIONS) {
+    // Past the end of flow?
+    if (state.flowIndex >= state.flow.length) {
       showReview();
       return;
     }
 
-    // Skip logic
-    if (shouldSkipQuestion(num, state.answers)) {
-      var next = getNextQuestion(state.answers, num);
-      state.currentGuna = next;
-      showGuna(next);
+    var qId = state.flow[state.flowIndex];
+    var q = QUESTIONS[QUESTION_INDEX[qId]];
+    if (!q) {
+      // Safety: advance past unknown question
+      state.flowIndex++;
+      showQuestion();
       return;
     }
 
-    state.currentGuna = num;
-    state.phase = "gunas";
+    // Intent branching: if "For someone else", go to proxy flow
+    if (q.id === "intent" && state.answers.intent) {
+      // Already answered, skip
+      advanceToNext();
+      return;
+    }
 
-    // Check section transition
-    var section = getSectionForQuestion(num);
-    var transitionKey = getTransitionKey(section, state.previousSection);
-    if (transitionKey && SECTION_TRANSITIONS[transitionKey]) {
-      state.showingTransition = true;
-      var text = SECTION_TRANSITIONS[transitionKey].replace(/{name}/g, state.answers.full_name || "");
+    // Section transition check (skip when going back)
+    if (!skipTransition && q.section !== state.previousSection && SECTION_TRANSITIONS[q.section]) {
+      var name = state.answers.preferred_name || state.answers.full_name || "";
+      var text = SECTION_TRANSITIONS[q.section].replace(/{name}/g, name);
+      state.previousSection = q.section;
       renderMessage(text, "Continue \u2192", function () {
-        state.showingTransition = false;
-        state.previousSection = section;
-        renderGunaQuestion(num);
+        renderQuestion(q);
       });
       return;
     }
-    state.previousSection = section;
-    renderGunaQuestion(num);
+    state.previousSection = q.section;
+    renderQuestion(q);
   }
 
-  function renderGunaQuestion(num) {
-    var q = QUESTIONS[num];
-    if (!q) return;
 
+  // ============== QUESTION RENDERING ==============
+
+  function getResolvedOptions(q) {
+    // Try conditional options first
+    if (q.optionsConditional) {
+      var resolved = resolveConditionalOptions(q.id, state.answers);
+      if (resolved) return resolved;
+    }
+    // Dynamic string reference
+    if (typeof q.options === "string") {
+      return resolveOptions(q.id, state.answers);
+    }
+    // Static array
+    return q.options;
+  }
+
+  function renderQuestion(q) {
     // Multi-step types
-    if (q.type === "two_step_date") {
-      renderDateQuestion(num, q);
-      return;
-    }
-    if (q.type === "location_tree") {
-      renderLocationQuestion(num, q);
-      return;
-    }
-    if (q.type === "two_step_location") {
-      renderTwoStepLocationQuestion(num, q);
-      return;
-    }
-    if (q.type === "two_step_range") {
-      renderTwoStepRangeQuestion(num, q);
-      return;
-    }
+    if (q.type === "two_step_date") { renderDateQuestion(q); return; }
+    if (q.type === "location_tree") { renderLocationQuestion(q); return; }
+    if (q.type === "two_step_location") { renderTwoStepLocationQuestion(q); return; }
+    if (q.type === "two_step_range") { renderTwoStepRangeQuestion(q); return; }
+    if (q.type === "two_step_same_screen") { renderSameScreenQuestion(q); return; }
 
     // Text input
     if (q.type === "text_input") {
-      renderTextInput(q.text, q.placeholder, function (val) {
+      renderTextInputQuestion(q);
+      return;
+    }
+
+    // Phone input
+    if (q.type === "phone_input") {
+      renderPhoneInput(q.question, q.placeholder, function (val) {
         saveAnswer(q.field, val);
-        advanceFromGuna(num);
+        advanceToNext();
       });
+      return;
+    }
+
+    var options = getResolvedOptions(q);
+    if (!options || options.length === 0) {
+      advanceToNext();
       return;
     }
 
     // Multi-select
     if (q.type === "multi_select") {
-      var options = q.options;
-      if (typeof options === "string") {
-        options = resolveOptions(num, options);
-      }
-      if (!options || options.length === 0) {
-        advanceFromGuna(num);
-        return;
-      }
-      renderMultiSelect(q.text, options, q.done_label, function (vals) {
-        saveAnswer(q.field, vals);
-        advanceFromGuna(num);
-      }, q.columns);
+      renderMultiSelectQuestion(q, options);
       return;
     }
 
-    // Single select -- resolve options
-    var options = q.options;
-    if (typeof options === "string") {
-      options = resolveOptions(num, options);
-      if (!options) {
-        // No options available -- skip
-        advanceFromGuna(num);
-        return;
-      }
-    }
-
-    // Gate question styling
-    if (q.is_gate) {
-      renderGateQuestion(num, q, options);
-      return;
-    }
-
-    renderOptions(q.text, options, function (val) {
-      saveAnswer(q.field, val);
-      advanceFromGuna(num);
-    }, q.columns);
+    // Single select (default)
+    renderSingleSelectQuestion(q, options);
   }
 
-  /**
-   * Render gate question (Q53) with a different style -- more like a transition message.
-   */
-  function renderGateQuestion(num, q, options) {
+  function renderSingleSelectQuestion(q, options) {
     var frag = document.createDocumentFragment();
-    var msg = el("div", { className: "form-message gate-message" });
-    msg.innerHTML = q.text.replace(/\n/g, "<br>");
-    frag.appendChild(msg);
-    var grid = el("div", { className: "form-options" });
+    var heading = el("h2", { className: "form-question" }, q.question);
+    frag.appendChild(heading);
+    if (q.helperText) {
+      var note = el("p", { className: "form-note" }, q.helperText);
+      frag.appendChild(note);
+    }
+    var cols = q.columns || 0;
+    var grid = el("div", { className: "form-options" + (cols ? " cols-" + cols : "") });
     options.forEach(function (opt) {
       var btn = el("button", {
         className: "form-btn form-btn-option",
         onClick: function () {
+          // Flash effect + auto-advance after 300ms
+          btn.classList.add("flash");
           saveAnswer(q.field, opt.value);
-          advanceFromGuna(num);
+          // Handle intent branching
+          if (q.id === "intent" && opt.value === "proxy") {
+            state.meta.intent = "proxy";
+            setTimeout(function () {
+              state.proxyIndex = 0;
+              showProxy();
+            }, 300);
+            return;
+          }
+          if (q.id === "intent") {
+            state.meta.intent = opt.value;
+          }
+          setTimeout(function () { advanceToNext(); }, 300);
         }
       }, opt.label);
       grid.appendChild(btn);
@@ -918,235 +693,451 @@
     renderCard(frag);
   }
 
+  function renderMultiSelectQuestion(q, options) {
+    var selected = new Set();
+    // Pre-select if editing from review
+    var existing = state.answers[q.field];
+    if (Array.isArray(existing)) {
+      existing.forEach(function (v) { selected.add(v); });
+    }
 
-  // ============== MULTI-STEP: DATE (Q1) ==============
+    var frag = document.createDocumentFragment();
+    var heading = el("h2", { className: "form-question" }, q.question);
+    frag.appendChild(heading);
+    if (q.helperText) {
+      var note = el("p", { className: "form-note" }, q.helperText);
+      frag.appendChild(note);
+    }
+    var cols = q.columns || 0;
+    var grid = el("div", { className: "form-options" + (cols ? " cols-" + cols : "") });
+    options.forEach(function (opt) {
+      var btn = el("button", {
+        className: "form-btn form-btn-option" + (selected.has(opt.value) ? " selected" : ""),
+        onClick: function () {
+          if (selected.has(opt.value)) {
+            selected.delete(opt.value);
+            btn.classList.remove("selected");
+          } else {
+            selected.add(opt.value);
+            btn.classList.add("selected");
+          }
+        }
+      }, opt.label);
+      grid.appendChild(btn);
+    });
+    frag.appendChild(grid);
+    var doneBtn = el("button", {
+      className: "form-btn form-btn-primary",
+      onClick: function () {
+        saveAnswer(q.field, Array.from(selected));
+        advanceToNext();
+      }
+    }, q.doneLabel || "Done \u2713");
+    frag.appendChild(doneBtn);
+    renderCard(frag);
+  }
 
-  function renderDateQuestion(num, q) {
+  function renderTextInputQuestion(q) {
+    var frag = document.createDocumentFragment();
+    var heading = el("h2", { className: "form-question" }, q.question);
+    frag.appendChild(heading);
+    if (q.helperText) {
+      var note = el("p", { className: "form-note" }, q.helperText);
+      frag.appendChild(note);
+    }
+    var input = el("input", {
+      className: "form-input form-input-single",
+      type: "text",
+      placeholder: q.placeholder || ""
+    });
+    // Pre-fill if editing
+    if (state.answers[q.field]) input.value = state.answers[q.field];
+    frag.appendChild(input);
+    var submitText = function () {
+      var val = input.value.trim();
+      if (!val) {
+        input.classList.add("shake");
+        setTimeout(function () { input.classList.remove("shake"); }, 500);
+        return;
+      }
+      saveAnswer(q.field, val);
+      advanceToNext();
+    };
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { e.preventDefault(); submitText(); }
+    });
+    var btn = el("button", {
+      className: "form-btn form-btn-primary",
+      onClick: submitText
+    }, "Continue \u2192");
+    frag.appendChild(btn);
+    renderCard(frag);
+    setTimeout(function () { input.focus(); }, 100);
+  }
+
+
+  // ============== MULTI-STEP: DATE ==============
+
+  function renderDateQuestion(q) {
     if (!state.currentSubStep || state.currentSubStep === "step1") {
       state.currentSubStep = "step1";
-      var options = q.step1.options;
-      if (options === "birth_years") options = getBirthYears();
-      renderOptions(q.step1.text, options, function (val) {
-        state.answers._birth_year = val;
-        state.currentSubStep = "step2";
-        renderDateQuestion(num, q);
-      }, q.step1.columns);
+      var options = resolveStepOptions(q.step1.options, q.id);
+      var cols = q.step1.columns || 0;
+      var frag = document.createDocumentFragment();
+      var heading = el("h2", { className: "form-question" }, q.step1.text);
+      frag.appendChild(heading);
+      var grid = el("div", { className: "form-options" + (cols ? " cols-" + cols : "") });
+      options.forEach(function (opt) {
+        var btn = el("button", {
+          className: "form-btn form-btn-option",
+          onClick: function () {
+            btn.classList.add("flash");
+            saveAnswer(q.step1.field || "_birth_year", opt.value);
+            state.currentSubStep = "step2";
+            setTimeout(function () { renderDateQuestion(q); }, 300);
+          }
+        }, opt.label);
+        grid.appendChild(btn);
+      });
+      frag.appendChild(grid);
+      renderCard(frag);
     } else if (state.currentSubStep === "step2") {
-      renderOptions(q.step2.text, q.step2.options, function (val) {
-        state.answers._birth_month = val;
-        // Compose date_of_birth as "YYYY-MM-15" (day=15 as placeholder)
-        var dob = state.answers._birth_year + "-" + val.padStart(2, "0") + "-15";
-        saveAnswer(q.field, dob);
-        state.currentSubStep = null;
-        advanceFromGuna(num);
-      }, q.step2.columns);
+      var options = resolveStepOptions(q.step2.options, q.id);
+      var cols = q.step2.columns || 0;
+      var frag = document.createDocumentFragment();
+      var heading = el("h2", { className: "form-question" }, q.step2.text);
+      frag.appendChild(heading);
+      var grid = el("div", { className: "form-options" + (cols ? " cols-" + cols : "") });
+      options.forEach(function (opt) {
+        var btn = el("button", {
+          className: "form-btn form-btn-option",
+          onClick: function () {
+            btn.classList.add("flash");
+            saveAnswer(q.step2.field || "_birth_month", opt.value);
+            var year = state.answers[q.step1.field || "_birth_year"];
+            var month = opt.value;
+            var dob = year + "-" + String(month).padStart(2, "0") + "-15";
+            saveAnswer(q.field, dob);
+            state.currentSubStep = null;
+            setTimeout(function () { advanceToNext(); }, 300);
+          }
+        }, opt.label);
+        grid.appendChild(btn);
+      });
+      frag.appendChild(grid);
+      renderCard(frag);
     }
   }
 
 
-  // ============== MULTI-STEP: LOCATION TREE (Q2) ==============
+  // ============== MULTI-STEP: LOCATION TREE ==============
 
-  function renderLocationQuestion(num, q) {
+  function renderLocationQuestion(q) {
     if (!state.currentSubStep || state.currentSubStep === "step1") {
       state.currentSubStep = "step1";
-      renderOptions(q.step1.text, q.step1.options, function (val) {
-        state.answers._location_type = val;
-        state.currentSubStep = "step2";
-        renderLocationQuestion(num, q);
+      var step = q.step1;
+      var options = Array.isArray(step.options) ? step.options : (resolveOptions(q.id, state.answers) || []);
+      var frag = document.createDocumentFragment();
+      var heading = el("h2", { className: "form-question" }, step.text);
+      frag.appendChild(heading);
+      var grid = el("div", { className: "form-options" });
+      options.forEach(function (opt) {
+        var btn = el("button", {
+          className: "form-btn form-btn-option",
+          onClick: function () {
+            btn.classList.add("flash");
+            saveAnswer(q.step1.field || "_location_type", opt.value);
+            // Also save to _location_type for downstream resolvers (income, conditionals)
+            if (q.id === "current_location") saveAnswer("_location_type", opt.value);
+            state.currentSubStep = "step2";
+            setTimeout(function () { renderLocationQuestion(q); }, 300);
+          }
+        }, opt.label);
+        grid.appendChild(btn);
       });
+      frag.appendChild(grid);
+      renderCard(frag);
     } else if (state.currentSubStep === "step2") {
-      var isIndia = state.answers._location_type === "India";
-      var step = isIndia ? q.step2_india : q.step2_abroad;
+      var locField = q.step1.field || "_location_type";
+      var isIndia = state.answers[locField] === "India";
+      var step = isIndia ? q.step2India : q.step2Abroad;
+      if (!step) step = isIndia ? q.step2_india : q.step2_abroad; // fallback
       var options = step.options;
       if (typeof options === "string") {
-        options = resolveByKey(options);
+        // Resolve using V3 resolver
+        if (options === "states_india") options = STATES_INDIA;
+        else if (options === "states_india_full") options = STATES_INDIA_FULL;
+        else if (options === "countries") options = COUNTRIES;
+        else options = resolveOptions(q.id, state.answers) || [];
       }
-      renderOptions(step.text, options, function (val) {
-        saveAnswer(step.field, val);
-        if (isIndia) {
-          saveAnswer("country_current", "India");
-        }
-        state.currentSubStep = "step3";
-        renderLocationQuestion(num, q);
-      }, step.columns);
+      var cols = step.columns || 0;
+      var frag = document.createDocumentFragment();
+      var heading = el("h2", { className: "form-question" }, step.text);
+      frag.appendChild(heading);
+      var grid = el("div", { className: "form-options" + (cols ? " cols-" + cols : "") });
+      (options || []).forEach(function (opt) {
+        var btn = el("button", {
+          className: "form-btn form-btn-option",
+          onClick: function () {
+            btn.classList.add("flash");
+            saveAnswer(step.field, opt.value);
+            if (isIndia) saveAnswer("country_current", "India");
+            state.currentSubStep = "step3";
+            setTimeout(function () { renderLocationQuestion(q); }, 300);
+          }
+        }, opt.label);
+        grid.appendChild(btn);
+      });
+      frag.appendChild(grid);
+      renderCard(frag);
     } else if (state.currentSubStep === "step3") {
-      renderSingleLineInput(q.step3.text, q.step3.placeholder, function (val) {
-        saveAnswer(q.step3.field, val);
-        state.currentSubStep = null;
-        advanceFromGuna(num);
+      var step = q.step3;
+      var frag = document.createDocumentFragment();
+      var heading = el("h2", { className: "form-question" }, step.text);
+      frag.appendChild(heading);
+      var input = el("input", {
+        className: "form-input form-input-single",
+        type: "text",
+        placeholder: step.placeholder || "City"
       });
-    }
-  }
-
-
-  // ============== MULTI-STEP: TWO-STEP LOCATION (Q3 hometown) ==============
-
-  function renderTwoStepLocationQuestion(num, q) {
-    if (!state.currentSubStep || state.currentSubStep === "step1") {
-      state.currentSubStep = "step1";
-      var options = q.step1.options;
-      if (typeof options === "string") {
-        options = resolveByKey(options);
-      }
-      renderOptions(q.step1.text, options, function (val) {
-        saveAnswer(q.step1.field, val);
-        state.currentSubStep = "step2";
-        renderTwoStepLocationQuestion(num, q);
-      }, q.step1.columns);
-    } else if (state.currentSubStep === "step2") {
-      renderSingleLineInput(q.step2.text, q.step2.placeholder, function (val) {
-        saveAnswer(q.step2.field, val);
-        // Compose the combined hometown field
-        var hometown = (state.answers[q.step1.field] || "") + ", " + val;
-        saveAnswer(q.field, hometown);
-        state.currentSubStep = null;
-        advanceFromGuna(num);
-      });
-    }
-  }
-
-
-  // ============== MULTI-STEP: TWO-STEP RANGE (Q40 age, Q41 height) ==============
-
-  function renderTwoStepRangeQuestion(num, q) {
-    if (!state.currentSubStep || state.currentSubStep === "step1") {
-      state.currentSubStep = "step1";
-
-      // If this question has "doesn't matter" option, show it before step1
-      if (q.has_doesnt_matter && q.doesnt_matter_option) {
-        var options = q.step1.options;
-        if (typeof options === "string") {
-          options = resolveByKey(options);
+      frag.appendChild(input);
+      var submitCity = function () {
+        var val = input.value.trim();
+        if (!val) {
+          input.classList.add("shake");
+          setTimeout(function () { input.classList.remove("shake"); }, 500);
+          return;
         }
-        // Add the "doesn't matter" option at the top
-        var allOptions = [q.doesnt_matter_option].concat(options || []);
-        renderOptions(q.step1.text, allOptions, function (val) {
-          if (val === "doesnt_matter") {
+        saveAnswer(step.field, val);
+        state.currentSubStep = null;
+        advanceToNext();
+      };
+      input.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") { e.preventDefault(); submitCity(); }
+      });
+      var btn = el("button", {
+        className: "form-btn form-btn-primary",
+        onClick: submitCity
+      }, "Continue \u2192");
+      frag.appendChild(btn);
+      renderCard(frag);
+      setTimeout(function () { input.focus(); }, 100);
+    }
+  }
+
+
+  // ============== MULTI-STEP: TWO-STEP LOCATION ==============
+
+  function renderTwoStepLocationQuestion(q) {
+    if (!state.currentSubStep || state.currentSubStep === "step1") {
+      state.currentSubStep = "step1";
+      var options = resolveStepOptions(q.step1.options, q.id);
+      var cols = q.step1.columns || 0;
+      var frag = document.createDocumentFragment();
+      var heading = el("h2", { className: "form-question" }, q.step1.text);
+      frag.appendChild(heading);
+      var grid = el("div", { className: "form-options" + (cols ? " cols-" + cols : "") });
+      (options || []).forEach(function (opt) {
+        var btn = el("button", {
+          className: "form-btn form-btn-option",
+          onClick: function () {
+            btn.classList.add("flash");
+            saveAnswer(q.step1.field, opt.value);
+            state.currentSubStep = "step2";
+            setTimeout(function () { renderTwoStepLocationQuestion(q); }, 300);
+          }
+        }, opt.label);
+        grid.appendChild(btn);
+      });
+      frag.appendChild(grid);
+      renderCard(frag);
+    } else if (state.currentSubStep === "step2") {
+      var frag = document.createDocumentFragment();
+      var heading = el("h2", { className: "form-question" }, q.step2.text);
+      frag.appendChild(heading);
+      var input = el("input", {
+        className: "form-input form-input-single",
+        type: "text",
+        placeholder: q.step2.placeholder || "City"
+      });
+      frag.appendChild(input);
+      var submitLoc = function () {
+        var val = input.value.trim();
+        if (!val) {
+          input.classList.add("shake");
+          setTimeout(function () { input.classList.remove("shake"); }, 500);
+          return;
+        }
+        saveAnswer(q.step2.field, val);
+        var composed = (state.answers[q.step1.field] || "") + ", " + val;
+        saveAnswer(q.field, composed);
+        state.currentSubStep = null;
+        advanceToNext();
+      };
+      input.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") { e.preventDefault(); submitLoc(); }
+      });
+      var btn = el("button", {
+        className: "form-btn form-btn-primary",
+        onClick: submitLoc
+      }, "Continue \u2192");
+      frag.appendChild(btn);
+      renderCard(frag);
+      setTimeout(function () { input.focus(); }, 100);
+    }
+  }
+
+
+  // ============== MULTI-STEP: TWO-STEP RANGE ==============
+
+  function resolveStepOptions(optionsRef, qId) {
+    if (Array.isArray(optionsRef)) return optionsRef;
+    if (typeof optionsRef !== "string") return [];
+    // Try resolving the string reference directly via the switch in resolveOptions
+    // by temporarily looking up as if it were the question's options
+    var q = QUESTIONS[QUESTION_INDEX[qId]];
+    var saved = q ? q.options : undefined;
+    if (q) q.options = optionsRef;
+    var result = resolveOptions(qId, state.answers) || [];
+    if (q) q.options = saved;
+    return result;
+  }
+
+  function renderTwoStepRangeQuestion(q) {
+    if (!state.currentSubStep || state.currentSubStep === "step1") {
+      state.currentSubStep = "step1";
+      var options = resolveStepOptions(q.step1.options, q.id);
+      var cols = q.step1.columns || 0;
+      var frag = document.createDocumentFragment();
+      var heading = el("h2", { className: "form-question" }, q.step1.text);
+      frag.appendChild(heading);
+
+      // "Doesn't matter" button if applicable
+      if (q.hasDoesntMatter) {
+        var dmBtn = el("button", {
+          className: "doesnt-matter-btn",
+          onClick: function () {
             saveAnswer(q.step1.field, "doesnt_matter");
             saveAnswer(q.step2.field, "doesnt_matter");
             saveAnswer(q.field, "doesnt_matter");
             state.currentSubStep = null;
-            advanceFromGuna(num);
-          } else {
-            saveAnswer(q.step1.field, val);
-            state.currentSubStep = "step2";
-            renderTwoStepRangeQuestion(num, q);
+            advanceToNext();
           }
-        }, q.step1.columns);
-      } else {
-        var options = q.step1.options;
-        if (typeof options === "string") {
-          options = resolveByKey(options);
-        }
-        renderOptions(q.step1.text, options, function (val) {
-          saveAnswer(q.step1.field, val);
-          state.currentSubStep = "step2";
-          renderTwoStepRangeQuestion(num, q);
-        }, q.step1.columns);
+        }, q.doesntMatterLabel || "Doesn\u2019t matter");
+        frag.appendChild(dmBtn);
       }
-    } else if (state.currentSubStep === "step2") {
-      var options = q.step2.options;
-      if (typeof options === "string") {
-        // For age_range_max, pass the min age as context
-        var extraContext = {};
-        if (options === "age_range_max") {
-          extraContext.minAge = state.answers[q.step1.field];
-        }
-        options = resolveByKey(options, extraContext);
-      }
-      renderOptions(q.step2.text, options, function (val) {
-        saveAnswer(q.step2.field, val);
-        // Compose the range value
-        var rangeVal = state.answers[q.step1.field] + "-" + val;
-        saveAnswer(q.field, rangeVal);
-        state.currentSubStep = null;
-        advanceFromGuna(num);
-      }, q.step2.columns);
-    }
-  }
 
-
-  // ============== ADVANCE LOGIC ==============
-
-  function advanceFromGuna(currentNum) {
-    if (state.editingFromReview) {
-      state.editingFromReview = false;
-      state.editingField = null;
-      persistState();
-      showReview();
-      return;
-    }
-
-    // Check for sub-questions after this guna
-    for (var key in SUB_QUESTIONS) {
-      if (!SUB_QUESTIONS.hasOwnProperty(key)) continue;
-      var subQ = SUB_QUESTIONS[key];
-      if (subQ.after_guna === currentNum && shouldAskSubQuestion(key, state.answers)) {
-        state.pendingSubQuestion = key;
-        showSubQuestion(key);
-        return;
-      }
-    }
-
-    var next = getNextQuestion(state.answers, currentNum);
-    state.currentGuna = next;
-    showGuna(next);
-  }
-
-  function showSubQuestion(key) {
-    state.phase = "sub_question";
-    var subQ = SUB_QUESTIONS[key];
-
-    // Multi-select sub-questions
-    if (subQ.type === "multi_select") {
-      var options = subQ.options;
-      if (typeof options === "string") {
-        options = resolveByKey(options);
-      }
-      if (!options || options.length === 0) {
-        finishSubQuestion(key);
-        return;
-      }
-      renderMultiSelect(subQ.text, options, subQ.done_label, function (vals) {
-        saveAnswer(subQ.field, vals);
-        finishSubQuestion(key);
+      var grid = el("div", { className: "form-options" + (cols ? " cols-" + cols : "") });
+      (options || []).forEach(function (opt) {
+        var btn = el("button", {
+          className: "form-btn form-btn-option",
+          onClick: function () {
+            btn.classList.add("flash");
+            saveAnswer(q.step1.field, opt.value);
+            state.currentSubStep = "step2";
+            setTimeout(function () { renderTwoStepRangeQuestion(q); }, 300);
+          }
+        }, opt.label);
+        grid.appendChild(btn);
       });
-      return;
+      frag.appendChild(grid);
+      renderCard(frag);
+    } else if (state.currentSubStep === "step2") {
+      var options = resolveStepOptions(q.step2.options, q.id);
+      // Filter max options to be >= min
+      var minVal = state.answers[q.step1.field];
+      if (minVal && options.length > 0) {
+        var minIdx = options.findIndex(function (o) { return o.value === minVal; });
+        if (minIdx >= 0) options = options.slice(minIdx);
+      }
+      var cols = q.step2.columns || 0;
+      var frag = document.createDocumentFragment();
+      var heading = el("h2", { className: "form-question" }, q.step2.text);
+      frag.appendChild(heading);
+      var grid = el("div", { className: "form-options" + (cols ? " cols-" + cols : "") });
+      (options || []).forEach(function (opt) {
+        var btn = el("button", {
+          className: "form-btn form-btn-option",
+          onClick: function () {
+            btn.classList.add("flash");
+            saveAnswer(q.step2.field, opt.value);
+            var rangeVal = state.answers[q.step1.field] + "-" + opt.value;
+            saveAnswer(q.field, rangeVal);
+            state.currentSubStep = null;
+            setTimeout(function () { advanceToNext(); }, 300);
+          }
+        }, opt.label);
+        grid.appendChild(btn);
+      });
+      frag.appendChild(grid);
+      renderCard(frag);
     }
-
-    // Single select sub-questions
-    var options = subQ.options;
-    if (typeof options === "string") {
-      options = resolveByKey(options);
-    }
-    if (!options || options.length === 0) {
-      finishSubQuestion(key);
-      return;
-    }
-    renderOptions(subQ.text, options, function (val) {
-      saveAnswer(subQ.field, val);
-      finishSubQuestion(key);
-    });
   }
 
-  function finishSubQuestion(key) {
-    var subQ = SUB_QUESTIONS[key];
-    state.pendingSubQuestion = null;
 
-    if (state.editingFromReview) {
-      state.editingFromReview = false;
-      state.editingField = null;
-      state.phase = "review";
-      persistState();
-      showReview();
-      return;
+  // ============== NEW: TWO-STEP SAME SCREEN ==============
+
+  function renderSameScreenQuestion(q) {
+    var frag = document.createDocumentFragment();
+    var heading = el("h2", { className: "form-question" }, q.question);
+    frag.appendChild(heading);
+
+    // "Doesn't matter" button
+    if (q.hasDoesntMatter) {
+      var dmBtn = el("button", {
+        className: "doesnt-matter-btn",
+        onClick: function () {
+          saveAnswer(q.step1.field, "doesnt_matter");
+          saveAnswer(q.step2.field, "doesnt_matter");
+          saveAnswer(q.field, "doesnt_matter");
+          advanceToNext();
+        }
+      }, q.doesntMatterLabel || "Doesn\u2019t matter");
+      frag.appendChild(dmBtn);
     }
 
-    // Continue to next guna after the sub-question's parent
-    var next = getNextQuestion(state.answers, subQ.after_guna);
-    state.currentGuna = next;
-    state.phase = "gunas";
-    showGuna(next);
+    // Two dropdowns side by side
+    var row = el("div", { className: "same-screen-row" });
+
+    var col1 = el("div", { className: "same-screen-col" });
+    var label1 = el("label", null, q.step1.text || "Min");
+    col1.appendChild(label1);
+    var select1 = el("select", { className: "form-select" });
+    var opts1 = resolveStepOptions(q.step1.options, q.id);
+    (opts1 || []).forEach(function (opt) {
+      var o = el("option", { value: opt.value }, opt.label);
+      select1.appendChild(o);
+    });
+    col1.appendChild(select1);
+    row.appendChild(col1);
+
+    var col2 = el("div", { className: "same-screen-col" });
+    var label2 = el("label", null, q.step2.text || "Max");
+    col2.appendChild(label2);
+    var select2 = el("select", { className: "form-select" });
+    var opts2 = resolveStepOptions(q.step2.options, q.id);
+    (opts2 || []).forEach(function (opt) {
+      var o = el("option", { value: opt.value }, opt.label);
+      select2.appendChild(o);
+    });
+    col2.appendChild(select2);
+    row.appendChild(col2);
+
+    frag.appendChild(row);
+
+    var btn = el("button", {
+      className: "form-btn form-btn-primary",
+      onClick: function () {
+        var v1 = select1.value;
+        var v2 = select2.value;
+        saveAnswer(q.step1.field, v1);
+        saveAnswer(q.step2.field, v2);
+        saveAnswer(q.field, v1 + "-" + v2);
+        advanceToNext();
+      }
+    }, "Continue \u2192");
+    frag.appendChild(btn);
+    renderCard(frag);
   }
 
 
@@ -1163,90 +1154,65 @@
   function showReview() {
     state.phase = "review";
     persistState();
+
     var frag = document.createDocumentFragment();
+    var heading = el("h2", { className: "form-question" }, "Review your answers");
+    frag.appendChild(heading);
+    var note = el("p", { className: "form-note" }, "Make sure everything looks right. Tap Edit to change anything.");
+    frag.appendChild(note);
 
-    var title = el("h2", { className: "form-question" }, "Review your answers");
-    var subtitle = el("p", { className: "form-note" }, "Tap Edit to change anything.");
-    frag.appendChild(title);
-    frag.appendChild(subtitle);
+    // Group answers by section
+    var sectionGroups = {};
+    SECTION_ORDER.forEach(function (s) { sectionGroups[s] = []; });
 
-    // Collect sections in order
-    var sectionOrder = ["setup", "basics", "background", "partner_bg", "education", "family", "lifestyle", "marriage", "partner_physical", "household", "sensitive", "social"];
-    var sectionLabels = {
-      setup: "About You",
-      basics: "Basics",
-      background: "Background",
-      partner_bg: "Partner Background",
-      education: "Education & Career",
-      family: "Family",
-      lifestyle: "Lifestyle",
-      marriage: "Marriage",
-      partner_physical: "Partner Preferences",
-      household: "Household",
-      sensitive: "Private",
-      social: "Social"
-    };
-
-    // Build grouped items
-    var groups = {};
-    sectionOrder.forEach(function (s) { groups[s] = []; });
-
-    // Setup fields
-    if (state.answers.full_name) {
-      groups.setup.push({ label: "Name", field: "full_name", value: state.answers.full_name, type: "setup" });
-    }
-    if (state.answers.gender) {
-      groups.setup.push({ label: "Gender", field: "gender", value: state.answers.gender, type: "setup" });
-    }
-
-    // Guna questions
-    for (var i = 1; i <= TOTAL_QUESTIONS; i++) {
-      var q = QUESTIONS[i];
-      if (!q) continue;
-      if (shouldSkipQuestion(i, state.answers)) continue;
-
-      var section = getSectionForQuestion(i);
-      if (!groups[section]) groups[section] = [];
-
+    // Walk the flow to get ordered, applicable questions
+    var flow = state.flow.length > 0 ? state.flow : getQuestionFlow(state.answers);
+    flow.forEach(function (qId) {
+      var q = QUESTIONS[QUESTION_INDEX[qId]];
+      if (!q) return;
+      if (q.id === "intent") return; // Don't show intent in review
       var val = state.answers[q.field];
-      if (val == null) continue;
+      if (val == null) return;
+      var section = q.section || "setup";
+      if (!sectionGroups[section]) sectionGroups[section] = [];
+      sectionGroups[section].push({ qId: qId, q: q, value: val });
+    });
 
-      var displayVal = Array.isArray(val) ? val.join(", ") : String(val);
-      var shortLabel = q.text || q.field;
-      // Strip to first line and truncate
-      shortLabel = shortLabel.split("\n")[0];
-      if (shortLabel.length > 50) shortLabel = shortLabel.substring(0, 47) + "...";
-
-      groups[section].push({
-        label: shortLabel,
-        field: q.field,
-        value: displayVal,
-        questionNum: i,
-        type: "guna"
-      });
-    }
-
-    // Render each section
-    sectionOrder.forEach(function (sectionKey) {
-      var items = groups[sectionKey];
+    SECTION_ORDER.forEach(function (section) {
+      var items = sectionGroups[section];
       if (!items || items.length === 0) return;
-
       var sectionEl = el("div", { className: "review-section" });
-      var sectionH = el("h3", { className: "review-section-title" }, sectionLabels[sectionKey] || sectionKey);
-      sectionEl.appendChild(sectionH);
+      var label = SECTIONS[section] ? SECTIONS[section].label : section;
+      var titleEl = el("div", { className: "review-section-title" }, label);
+      sectionEl.appendChild(titleEl);
 
       items.forEach(function (item) {
+        var displayVal = Array.isArray(item.value) ? item.value.join(", ") : String(item.value);
+        // Truncate long values
+        if (displayVal.length > 60) displayVal = displayVal.substring(0, 57) + "...";
+        var questionLabel = item.q.question || item.q.field;
+        // Use first line only, max 50 chars
+        var labelText = questionLabel.split("\n")[0];
+        if (labelText.length > 50) labelText = labelText.substring(0, 47) + "...";
+
         var row = el("div", { className: "review-row" });
-        var labelEl = el("span", { className: "review-label" }, item.label);
-        var valueEl = el("span", { className: "review-value" }, item.value);
+        row.appendChild(el("span", { className: "review-label" }, labelText));
+        row.appendChild(el("span", { className: "review-value" }, displayVal));
         var editBtn = el("button", {
           className: "review-edit-btn",
-          onClick: function () {
-            editFromReview(item);
-          }
+          onClick: (function (qId) {
+            return function () {
+              var idx = state.flow.indexOf(qId);
+              if (idx >= 0) {
+                state.flowIndex = idx;
+                state.editingFromReview = true;
+                state.editingField = qId;
+                state.currentSubStep = null;
+                showQuestion();
+              }
+            };
+          })(item.qId)
         }, "Edit");
-        row.appendChild(labelEl);
-        row.appendChild(valueEl);
         row.appendChild(editBtn);
         sectionEl.appendChild(row);
       });
@@ -1254,47 +1220,12 @@
       frag.appendChild(sectionEl);
     });
 
-    // "Looks good" button
-    var confirmBtn = el("button", {
+    var btn = el("button", {
       className: "form-btn form-btn-primary",
-      onClick: function () {
-        showClose();
-      }
+      onClick: function () { showClose(); }
     }, "Looks good \u2192");
-    frag.appendChild(confirmBtn);
-
+    frag.appendChild(btn);
     renderCard(frag);
-  }
-
-  function editFromReview(item) {
-    state.editingFromReview = true;
-    state.editingField = item.field;
-
-    if (item.type === "setup") {
-      // Render setup field with return to review
-      if (item.field === "full_name") {
-        var sq = SETUP_QUESTIONS.full_name;
-        renderSingleLineInput(sq.text, sq.placeholder, function (val) {
-          saveAnswer("full_name", val);
-          state.editingFromReview = false;
-          state.editingField = null;
-          showReview();
-        });
-      } else if (item.field === "gender") {
-        var sq = SETUP_QUESTIONS.gender;
-        renderOptions(sq.text, sq.options, function (val) {
-          saveAnswer("gender", val);
-          state.editingFromReview = false;
-          state.editingField = null;
-          showReview();
-        });
-      }
-      return;
-    }
-
-    // Guna question — reset sub-step and render
-    state.currentSubStep = null;
-    renderGunaQuestion(item.questionNum);
   }
 
 
@@ -1302,8 +1233,9 @@
 
   function showClose() {
     state.phase = "close";
-    var text = CLOSE_MESSAGE.replace(/{name}/g, state.answers.full_name || "");
-    renderMessage(text, "Almost done \u2014 one last thing \u2192", function () {
+    var name = state.answers.preferred_name || state.answers.full_name || "";
+    var text = CLOSE_MESSAGE.replace(/{name}/g, name);
+    renderMessage(text, "Almost done \u2014 one last thing", function () {
       showPhone();
     });
   }
@@ -1313,86 +1245,37 @@
 
   function showPhone() {
     state.phase = "phone";
-    var frag = document.createDocumentFragment();
-    var q = el("h2", { className: "form-question" }, "Your phone number");
-    frag.appendChild(q);
-    var note = el("p", { className: "form-note" }, "We\u2019ll use this to send you your match. No spam, ever.");
-    frag.appendChild(note);
-
-    var row = el("div", { className: "phone-row" });
-    var countrySelect = el("select", { className: "form-select phone-code" });
-    var codes = [
-      { label: "+91 India", value: "+91" },
-      { label: "+1 USA/CAN", value: "+1" },
-      { label: "+44 UK", value: "+44" },
-      { label: "+61 AUS", value: "+61" },
-      { label: "+971 UAE", value: "+971" },
-      { label: "+65 SG", value: "+65" },
-      { label: "+49 DE", value: "+49" },
-      { label: "+64 NZ", value: "+64" },
-      { label: "+966 SA", value: "+966" },
-      { label: "+974 QA", value: "+974" }
-    ];
-    codes.forEach(function (c) {
-      var opt = el("option", { value: c.value }, c.label);
-      countrySelect.appendChild(opt);
+    persistState();
+    renderPhoneInput("What\u2019s the best number to reach you?", "Phone number", function (fullPhone) {
+      submitForm(fullPhone);
     });
-    row.appendChild(countrySelect);
-
-    var phoneInput = el("input", {
-      className: "form-input form-input-single phone-number",
-      type: "tel",
-      placeholder: "Phone number"
-    });
-    row.appendChild(phoneInput);
-    frag.appendChild(row);
-
-    var btn = el("button", {
-      className: "form-btn form-btn-primary",
-      onClick: function () {
-        var code = countrySelect.value;
-        var phone = phoneInput.value.trim().replace(/\D/g, "");
-        if (!phone || phone.length < 7) {
-          phoneInput.classList.add("shake");
-          setTimeout(function () { phoneInput.classList.remove("shake"); }, 500);
-          return;
-        }
-        var fullPhone = code + phone;
-        submitForm(fullPhone);
-      }
-    }, "Submit \u2192");
-    frag.appendChild(btn);
-    renderCard(frag);
-    setTimeout(function () { phoneInput.focus(); }, 100);
   }
 
 
-  // ============== SUBMIT ==============
+  // ============== PHASE: SUBMIT ==============
 
   async function submitForm(phone) {
     state.phase = "done";
-    // Show loading
     renderMessage("Submitting your answers...", "", function () {});
-    // Remove the empty button
     var btn = container.querySelector(".form-btn");
     if (btn) btn.style.display = "none";
 
-    // Build payload
     var payload = {
       phone: phone,
       name: state.answers.full_name || "",
+      preferred_name: state.answers.preferred_name || "",
       answers: {},
       meta: state.meta
     };
 
-    // Collect all question answers with their db_table info
-    for (var i = 1; i <= TOTAL_QUESTIONS; i++) {
+    // Iterate all questions in the flow and collect answers
+    for (var i = 0; i < QUESTIONS.length; i++) {
       var q = QUESTIONS[i];
-      if (!q) continue;
+      if (!q || !q.field) continue;
 
+      // Multi-step types: collect sub-fields
       if (q.type === "location_tree") {
-        // Location has multiple fields
-        ["country_current", "state_india", "city_current"].forEach(function (f) {
+        ["country_current", "state_india", "city_current", "_location_type"].forEach(function (f) {
           if (state.answers[f] != null) {
             payload.answers[f] = { value: state.answers[f], table: "users" };
           }
@@ -1401,55 +1284,29 @@
       }
       if (q.type === "two_step_date") {
         if (state.answers[q.field] != null) {
-          payload.answers[q.field] = { value: state.answers[q.field], table: q.db_table };
+          payload.answers[q.field] = { value: state.answers[q.field], table: q.dbTable };
+        }
+        if (q.step1 && q.step1.field && state.answers[q.step1.field] != null) {
+          payload.answers[q.step1.field] = { value: state.answers[q.step1.field], table: q.dbTable };
         }
         continue;
       }
-      if (q.type === "two_step_location") {
-        // Hometown has state + city sub-fields
-        if (state.answers[q.step1.field] != null) {
-          payload.answers[q.step1.field] = { value: state.answers[q.step1.field], table: q.db_table };
+      if (q.type === "two_step_location" || q.type === "two_step_range" || q.type === "two_step_same_screen") {
+        if (q.step1 && q.step1.field && state.answers[q.step1.field] != null) {
+          payload.answers[q.step1.field] = { value: state.answers[q.step1.field], table: q.dbTable };
         }
-        if (state.answers[q.step2.field] != null) {
-          payload.answers[q.step2.field] = { value: state.answers[q.step2.field], table: q.db_table };
+        if (q.step2 && q.step2.field && state.answers[q.step2.field] != null) {
+          payload.answers[q.step2.field] = { value: state.answers[q.step2.field], table: q.dbTable };
         }
         if (state.answers[q.field] != null) {
-          payload.answers[q.field] = { value: state.answers[q.field], table: q.db_table };
+          payload.answers[q.field] = { value: state.answers[q.field], table: q.dbTable };
         }
         continue;
       }
-      if (q.type === "two_step_range") {
-        // Range has min + max sub-fields
-        if (state.answers[q.step1.field] != null) {
-          payload.answers[q.step1.field] = { value: state.answers[q.step1.field], table: q.db_table };
-        }
-        if (state.answers[q.step2.field] != null) {
-          payload.answers[q.step2.field] = { value: state.answers[q.step2.field], table: q.db_table };
-        }
-        if (state.answers[q.field] != null) {
-          payload.answers[q.field] = { value: state.answers[q.field], table: q.db_table };
-        }
-        continue;
-      }
+
+      // Standard fields
       if (state.answers[q.field] != null) {
-        payload.answers[q.field] = { value: state.answers[q.field], table: q.db_table };
-      }
-    }
-
-    // Setup question answers (full_name, gender)
-    if (state.answers.full_name != null) {
-      payload.answers.full_name = { value: state.answers.full_name, table: "users" };
-    }
-    if (state.answers.gender != null) {
-      payload.answers.gender = { value: state.answers.gender, table: "users" };
-    }
-
-    // Sub-question answers
-    for (var key in SUB_QUESTIONS) {
-      if (!SUB_QUESTIONS.hasOwnProperty(key)) continue;
-      var subQ = SUB_QUESTIONS[key];
-      if (state.answers[subQ.field] != null) {
-        payload.answers[subQ.field] = { value: state.answers[subQ.field], table: subQ.db_table };
+        payload.answers[q.field] = { value: state.answers[q.field], table: q.dbTable };
       }
     }
 
@@ -1459,10 +1316,8 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
-
       if (!resp.ok) throw new Error("HTTP " + resp.status);
-      var data = await resp.json();
-      showSuccess(data);
+      showSuccess();
     } catch (err) {
       console.error("Submit error:", err);
       showError(phone);
@@ -1470,11 +1325,10 @@
   }
 
   function showSuccess() {
-    // Clear saved progress on successful submission
     var key = getStorageKey();
     if (key) localStorage.removeItem(key);
 
-    var name = state.answers.full_name || "";
+    var name = state.answers.preferred_name || state.answers.full_name || "";
     var frag = document.createDocumentFragment();
     var check = el("div", { className: "success-check" }, "\u2713");
     frag.appendChild(check);
@@ -1509,6 +1363,180 @@
       target: "_blank"
     }, "Open Telegram \u2192");
     frag.appendChild(tg);
+    renderCard(frag);
+  }
+
+
+  // ============== PHASE: PROXY ==============
+
+  function showProxy() {
+    state.phase = "proxy";
+    if (state.proxyIndex >= PROXY_QUESTIONS.length) {
+      showProxyClose();
+      return;
+    }
+    var pq = PROXY_QUESTIONS[state.proxyIndex];
+
+    if (pq.type === "text_input") {
+      var frag = document.createDocumentFragment();
+      var heading = el("h2", { className: "form-question" }, pq.question);
+      frag.appendChild(heading);
+      var input = el("input", {
+        className: "form-input form-input-single",
+        type: "text",
+        placeholder: pq.placeholder || ""
+      });
+      frag.appendChild(input);
+      var btn = el("button", {
+        className: "form-btn form-btn-primary",
+        onClick: function () {
+          var val = input.value.trim();
+          if (!val) {
+            input.classList.add("shake");
+            setTimeout(function () { input.classList.remove("shake"); }, 500);
+            return;
+          }
+          state.meta.proxy[pq.field] = val;
+          if (pq.field === "person_name") saveAnswer("full_name", val);
+          state.proxyIndex++;
+          showProxy();
+        }
+      }, "Continue \u2192");
+      frag.appendChild(btn);
+      renderCard(frag);
+      setTimeout(function () { input.focus(); }, 100);
+    } else if (pq.type === "phone_input") {
+      renderPhoneInput(pq.question, pq.placeholder, function (val) {
+        state.meta.proxy[pq.field] = val;
+        state.proxyIndex++;
+        showProxy();
+      });
+    } else if (pq.type === "location_tree") {
+      var frag = document.createDocumentFragment();
+      var heading = el("h2", { className: "form-question" }, pq.question);
+      frag.appendChild(heading);
+      var input = el("input", {
+        className: "form-input form-input-single",
+        type: "text",
+        placeholder: "City, Country"
+      });
+      frag.appendChild(input);
+      var btn = el("button", {
+        className: "form-btn form-btn-primary",
+        onClick: function () {
+          var val = input.value.trim();
+          if (!val) {
+            input.classList.add("shake");
+            setTimeout(function () { input.classList.remove("shake"); }, 500);
+            return;
+          }
+          state.meta.proxy[pq.field] = val;
+          state.proxyIndex++;
+          showProxy();
+        }
+      }, "Continue \u2192");
+      frag.appendChild(btn);
+      renderCard(frag);
+      setTimeout(function () { input.focus(); }, 100);
+    } else {
+      // single_select
+      var options = pq.options;
+      if (typeof options === "string") {
+        if (options === "birth_years") options = getBirthYears();
+        else if (options === "castes_by_religion") {
+          options = (typeof getCastesByReligionAndState === "function")
+            ? getCastesByReligionAndState(state.meta.proxy.person_religion, null)
+            : [];
+        } else if (options === "religion_list") {
+          // Get from first question with religion options
+          var relQ = QUESTIONS[QUESTION_INDEX["religion"]];
+          options = relQ ? relQ.options : [];
+        } else if (options === "marital_status_list") {
+          var msQ = QUESTIONS[QUESTION_INDEX["marital_status"]];
+          options = msQ ? msQ.options : [];
+        } else if (options === "education_level_list") {
+          var edQ = QUESTIONS[QUESTION_INDEX["education_level"]];
+          options = edQ ? edQ.options : [];
+        } else if (options === "occupation_sector_list") {
+          var ocQ = QUESTIONS[QUESTION_INDEX["occupation_sector"]];
+          options = ocQ ? ocQ.options : [];
+        } else {
+          options = resolveOptions(pq.field, state.answers) || [];
+        }
+      }
+      if (!options || options.length === 0) {
+        state.proxyIndex++;
+        showProxy();
+        return;
+      }
+      var frag = document.createDocumentFragment();
+      var heading = el("h2", { className: "form-question" }, pq.question);
+      frag.appendChild(heading);
+      var cols = pq.columns || 0;
+      var grid = el("div", { className: "form-options" + (cols ? " cols-" + cols : "") });
+      options.forEach(function (opt) {
+        var btn = el("button", {
+          className: "form-btn form-btn-option",
+          onClick: function () {
+            btn.classList.add("flash");
+            state.meta.proxy[pq.field] = opt.value;
+            if (pq.field === "person_gender") saveAnswer("gender", opt.value);
+            state.proxyIndex++;
+            setTimeout(function () { showProxy(); }, 300);
+          }
+        }, opt.label);
+        grid.appendChild(btn);
+      });
+      frag.appendChild(grid);
+      renderCard(frag);
+    }
+  }
+
+  function showProxyClose() {
+    var text = PROXY_CLOSE.replace(/{person_name}/g, state.meta.proxy.person_name || "them");
+    renderMessage(text, "Done \u2192", function () {
+      submitProxyForm();
+    });
+  }
+
+  async function submitProxyForm() {
+    state.phase = "done";
+    renderMessage("Submitting...", "", function () {});
+    var btn = container.querySelector(".form-btn");
+    if (btn) btn.style.display = "none";
+
+    var payload = {
+      type: "proxy",
+      meta: state.meta,
+      proxy_data: state.meta.proxy
+    };
+
+    try {
+      var resp = await fetch(API_BASE + "/api/intake", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (!resp.ok) throw new Error("HTTP " + resp.status);
+      showProxySuccess();
+    } catch (err) {
+      console.error("Proxy submit error:", err);
+      showProxySuccess();
+    }
+  }
+
+  function showProxySuccess() {
+    var frag = document.createDocumentFragment();
+    var check = el("div", { className: "success-check" }, "\u2713");
+    frag.appendChild(check);
+    var h = el("h2", { className: "form-question" }, "Got it! We\u2019ll take it from here.");
+    frag.appendChild(h);
+    var p = el("p", { className: "form-note" },
+      "We\u2019ll reach out to " + (state.meta.proxy.person_name || "them") + " to complete their profile."
+    );
+    frag.appendChild(p);
+    var link = el("a", { href: "index.html", className: "form-btn form-btn-primary" }, "Back to Masii");
+    frag.appendChild(link);
     renderCard(frag);
   }
 

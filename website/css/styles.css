@@ -1,30 +1,46 @@
-/* Jodi — Styles
-   Polsia-inspired minimalism + Indian cultural warmth
-   Premium, not cluttered. Confident, not flashy. */
+/* Masii — Styles
+   Warm, premium, culturally resonant design system */
 
 /* ============================================
    CSS CUSTOM PROPERTIES
    ============================================ */
 :root {
-    /* Colors — warm, premium */
-    --bg: #FDFBF7;              /* Warm off-white, like handmade paper */
-    --bg-dark: #0C0A09;         /* Near-black for dark sections */
-    --text: #1C1917;            /* Warm black */
-    --text-muted: #78716C;      /* Stone gray */
-    --text-light: #F5F0EB;      /* Light text on dark bg */
-    --accent: #DC6B2F;          /* Warm saffron/terracotta — culturally resonant */
-    --accent-light: #FEF3EB;    /* Light saffron tint */
-    --accent-hover: #C45A24;    /* Darker saffron */
-    --border: #E7E0D8;          /* Warm gray border */
-    --card-bg: #FFFFFF;
-    --terminal-bg: #1C1917;
+    /* Brand colors */
+    --cream: #FDF6EE;
+    --cream-deep: #F5EBD9;
+    --terracotta: #C4653A;
+    --terracotta-soft: #D4845E;
+    --haldi: #D4A03C;
+    --haldi-soft: #E8C876;
+    --earth: #3D2B1F;
+    --earth-medium: #5C4033;
+    --earth-light: #8B7355;
+    --sage: #7A8B6F;
+    --blush: #E8CFC0;
+    --white: #FFFDF9;
+
+    /* Legacy aliases (used by non-form pages) */
+    --bg: var(--cream);
+    --bg-dark: var(--earth);
+    --text: var(--earth);
+    --text-muted: var(--earth-medium);
+    --text-light: #F5F0EB;
+    --accent: var(--terracotta);
+    --accent-light: var(--blush);
+    --accent-hover: var(--terracotta-soft);
+    --border: var(--blush);
+    --card-bg: var(--white);
+    --terminal-bg: var(--earth);
     --terminal-text: #A8A29E;
-    --green: #16A34A;
+    --green: var(--sage);
 
     /* Typography */
-    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    --font-serif: 'Instrument Serif', 'Georgia', serif;
-    --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+    --font-body: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-display: 'Playfair Display', 'Georgia', serif;
+    --font-hand: 'Caveat', cursive;
+    /* Legacy aliases */
+    --font-serif: var(--font-display);
+    --font-mono: 'DM Sans', sans-serif;
 
     /* Spacing */
     --space-xs: 0.5rem;

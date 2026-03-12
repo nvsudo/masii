@@ -1,25 +1,7 @@
-// Jodi — Main JS
-// Minimal: mobile nav, live stats animation, smooth scroll
+// Masii — Main JS
+// Stats animation, smooth scroll (nav handled by components.js)
 
 document.addEventListener('DOMContentLoaded', () => {
-
-    // Mobile nav toggle
-    const toggle = document.querySelector('.nav-toggle');
-    const navLinks = document.querySelector('.nav-links');
-    if (toggle && navLinks) {
-        toggle.addEventListener('click', () => {
-            navLinks.classList.toggle('active');
-            toggle.classList.toggle('active');
-        });
-
-        // Close nav on link click
-        navLinks.querySelectorAll('a').forEach(link => {
-            link.addEventListener('click', () => {
-                navLinks.classList.remove('active');
-                toggle.classList.remove('active');
-            });
-        });
-    }
 
     // Animate stats numbers on scroll
     const statNumbers = document.querySelectorAll('.stat-item .number');

@@ -1,0 +1,956 @@
+# ═══════════════════════════════════════════════════════════════
+# Masii — Reference Data (v3)
+# ═══════════════════════════════════════════════════════════════
+#
+# Dynamic option lists referenced by masii-questions.yaml.
+# This file is the SINGLE SOURCE for all dropdown/select options
+# that are conditional on prior answers (state, religion, gender,
+# location).
+#
+# masii-questions.yaml references these by key name, e.g.:
+#   options: castes_by_religion_and_state
+#   options: income_by_location
+#   options: countries
+#
+# The generator script resolves these at build time.
+#
+# Last updated: March 2026 (v3)
+# ═══════════════════════════════════════════════════════════════
+
+
+# ═══════════════════════════════════════════════════════════════
+# COUNTRIES (Indian diaspora — top destinations)
+# ═══════════════════════════════════════════════════════════════
+# Used by: Q2 (current location), Q3 (raised in), Q39a (relocation)
+
+countries:
+  - { label: "USA", value: "USA" }
+  - { label: "UK", value: "UK" }
+  - { label: "Canada", value: "Canada" }
+  - { label: "Australia", value: "Australia" }
+  - { label: "UAE", value: "UAE" }
+  - { label: "Singapore", value: "Singapore" }
+  - { label: "Germany", value: "Germany" }
+  - { label: "New Zealand", value: "New Zealand" }
+  - { label: "Saudi Arabia", value: "Saudi Arabia" }
+  - { label: "Qatar", value: "Qatar" }
+  - { label: "Kuwait", value: "Kuwait" }
+  - { label: "Oman", value: "Oman" }
+  - { label: "Bahrain", value: "Bahrain" }
+  - { label: "Malaysia", value: "Malaysia" }
+  - { label: "South Africa", value: "South Africa" }
+  - { label: "Kenya", value: "Kenya" }
+  - { label: "Netherlands", value: "Netherlands" }
+  - { label: "Ireland", value: "Ireland" }
+  - { label: "Other →", value: "Other", requires_text: true }
+
+
+# ═══════════════════════════════════════════════════════════════
+# INDIAN STATES
+# ═══════════════════════════════════════════════════════════════
+
+# Major states — for current location (Q2). Sorted by population/diaspora relevance.
+states_india:
+  - { label: "Maharashtra", value: "Maharashtra" }
+  - { label: "Delhi NCR", value: "Delhi NCR" }
+  - { label: "Karnataka", value: "Karnataka" }
+  - { label: "Tamil Nadu", value: "Tamil Nadu" }
+  - { label: "Gujarat", value: "Gujarat" }
+  - { label: "Rajasthan", value: "Rajasthan" }
+  - { label: "Uttar Pradesh", value: "Uttar Pradesh" }
+  - { label: "West Bengal", value: "West Bengal" }
+  - { label: "Kerala", value: "Kerala" }
+  - { label: "Telangana", value: "Telangana" }
+  - { label: "Punjab", value: "Punjab" }
+  - { label: "Haryana", value: "Haryana" }
+  - { label: "Madhya Pradesh", value: "Madhya Pradesh" }
+  - { label: "Bihar", value: "Bihar" }
+  - { label: "Andhra Pradesh", value: "Andhra Pradesh" }
+  - { label: "Other →", value: "Other", requires_text: true }
+
+# Full states + UTs — for raised_in (Q3). Alphabetical. This is the KEY CONTEXT NODE.
+states_india_full:
+  - { label: "Andhra Pradesh", value: "Andhra Pradesh" }
+  - { label: "Arunachal Pradesh", value: "Arunachal Pradesh" }
+  - { label: "Assam", value: "Assam" }
+  - { label: "Bihar", value: "Bihar" }
+  - { label: "Chhattisgarh", value: "Chhattisgarh" }
+  - { label: "Delhi NCR", value: "Delhi NCR" }
+  - { label: "Goa", value: "Goa" }
+  - { label: "Gujarat", value: "Gujarat" }
+  - { label: "Haryana", value: "Haryana" }
+  - { label: "Himachal Pradesh", value: "Himachal Pradesh" }
+  - { label: "Jammu & Kashmir", value: "Jammu & Kashmir" }
+  - { label: "Jharkhand", value: "Jharkhand" }
+  - { label: "Karnataka", value: "Karnataka" }
+  - { label: "Kerala", value: "Kerala" }
+  - { label: "Madhya Pradesh", value: "Madhya Pradesh" }
+  - { label: "Maharashtra", value: "Maharashtra" }
+  - { label: "Manipur", value: "Manipur" }
+  - { label: "Meghalaya", value: "Meghalaya" }
+  - { label: "Mizoram", value: "Mizoram" }
+  - { label: "Nagaland", value: "Nagaland" }
+  - { label: "Odisha", value: "Odisha" }
+  - { label: "Punjab", value: "Punjab" }
+  - { label: "Rajasthan", value: "Rajasthan" }
+  - { label: "Sikkim", value: "Sikkim" }
+  - { label: "Tamil Nadu", value: "Tamil Nadu" }
+  - { label: "Telangana", value: "Telangana" }
+  - { label: "Tripura", value: "Tripura" }
+  - { label: "Uttar Pradesh", value: "Uttar Pradesh" }
+  - { label: "Uttarakhand", value: "Uttarakhand" }
+  - { label: "West Bengal", value: "West Bengal" }
+  - { label: "Chandigarh", value: "Chandigarh" }
+  - { label: "Puducherry", value: "Puducherry" }
+  - { label: "Ladakh", value: "Ladakh" }
+
+
+# ═══════════════════════════════════════════════════════════════
+# LANGUAGES
+# ═══════════════════════════════════════════════════════════════
+# Used by: Q4 (mother tongue), Q5 (languages spoken)
+
+languages_all:
+  - { label: "Hindi", value: "Hindi" }
+  - { label: "English", value: "English" }
+  - { label: "Gujarati", value: "Gujarati" }
+  - { label: "Marathi", value: "Marathi" }
+  - { label: "Tamil", value: "Tamil" }
+  - { label: "Telugu", value: "Telugu" }
+  - { label: "Kannada", value: "Kannada" }
+  - { label: "Malayalam", value: "Malayalam" }
+  - { label: "Bengali", value: "Bengali" }
+  - { label: "Punjabi", value: "Punjabi" }
+  - { label: "Urdu", value: "Urdu" }
+  - { label: "Odia", value: "Odia" }
+  - { label: "Assamese", value: "Assamese" }
+  - { label: "Sindhi", value: "Sindhi" }
+  - { label: "Konkani", value: "Konkani" }
+  - { label: "Tulu", value: "Tulu" }
+  - { label: "Rajasthani", value: "Rajasthani" }
+  - { label: "Bhojpuri", value: "Bhojpuri" }
+  - { label: "Maithili", value: "Maithili" }
+  - { label: "Dogri", value: "Dogri" }
+  - { label: "Kashmiri", value: "Kashmiri" }
+
+# Q4 mother tongue: same as above minus English, plus Other
+# Q5 languages spoken: same as above minus user's mother tongue (dynamic)
+
+# State → suggested mother tongue (auto-suggest, not enforced)
+language_by_state:
+  Tamil Nadu: Tamil
+  Kerala: Malayalam
+  Karnataka: Kannada
+  Andhra Pradesh: Telugu
+  Telangana: Telugu
+  Maharashtra: Marathi
+  Gujarat: Gujarati
+  West Bengal: Bengali
+  Punjab: Punjabi
+  Haryana: Hindi
+  Rajasthan: Rajasthani
+  Bihar: Hindi          # Bhojpuri/Maithili also common — user picks
+  Uttar Pradesh: Hindi  # Bhojpuri also common
+  Odisha: Odia
+  Assam: Assamese
+  Delhi NCR: Hindi
+  Goa: Konkani
+  Jammu & Kashmir: Kashmiri
+  Madhya Pradesh: Hindi
+  Chhattisgarh: Hindi
+  Jharkhand: Hindi
+  Himachal Pradesh: Hindi
+  Uttarakhand: Hindi
+
+
+# ═══════════════════════════════════════════════════════════════
+# CASTES — STATE-CONTEXTUALIZED
+# ═══════════════════════════════════════════════════════════════
+#
+# How this works:
+#   1. Look up user's religion → get the religion's caste master list
+#   2. Look up user's raised_in_state → get state priority castes
+#   3. Show state priority castes first, then remaining from master list
+#   4. Always end with "Other" and "Prefer not to say"
+#
+# Used by: Q12 (caste), Q14a (caste exclude)
+# ═══════════════════════════════════════════════════════════════
+
+castes:
+
+  # ─── HINDU ───────────────────────────────────────
+
+  Hindu:
+
+    # Master list (all Hindu castes across India)
+    master:
+      - Brahmin
+      - Agarwal
+      - Baniya
+      - Jat
+      - Kayastha
+      - Kshatriya
+      - Maratha
+      - Patel
+      - Rajput
+      - Reddy
+      - Nair
+      - Iyer
+      - Iyengar
+      - Gupta
+      - Khatri
+      - Arora
+      - Sindhi
+      - Lingayat
+      - Yadav
+      - Nadar
+      - Thevar
+      - Gounder
+      - Mudaliar
+      - Pillai
+      - Vanniyar
+      - Chettiar
+      - Namboodiri
+      - Menon
+      - Ezhava
+      - Vokkaliga
+      - Gowda
+      - Kamma
+      - Kapu
+      - Velama
+      - Naidu
+      - Vysya
+      - Kunbi
+      - Mali
+      - Bhumihar
+      - Kurmi
+      - Mahishya
+      - Baidya
+      - Saini
+      - Gurjar
+      - Meena
+      - Lohana
+      - Scheduled Caste
+      - Scheduled Tribe
+      - Other
+      - Prefer not to say
+
+    # State priority castes (shown first in dropdown)
+    by_state:
+
+      Tamil Nadu:
+        - Brahmin       # Iyer, Iyengar — both listed separately below
+        - Iyer
+        - Iyengar
+        - Nadar
+        - Thevar
+        - Gounder
+        - Mudaliar
+        - Pillai
+        - Vanniyar
+        - Chettiar
+        - Yadav
+        - Scheduled Caste
+        - Scheduled Tribe
+
+      Kerala:
+        - Nair
+        - Namboodiri
+        - Menon
+        - Ezhava
+        - Brahmin
+        - Pillai
+        - Scheduled Caste
+        - Scheduled Tribe
+
+      Karnataka:
+        - Brahmin
+        - Lingayat
+        - Vokkaliga
+        - Gowda
+        - Reddy
+        - Scheduled Caste
+        - Scheduled Tribe
+
+      Andhra Pradesh:
+        - Reddy
+        - Kamma
+        - Kapu
+        - Brahmin
+        - Velama
+        - Naidu
+        - Vysya
+        - Yadav
+        - Scheduled Caste
+        - Scheduled Tribe
+
+      Telangana:
+        - Reddy
+        - Kamma
+        - Velama
+        - Brahmin
+        - Naidu
+        - Vysya
+        - Yadav
+        - Scheduled Caste
+        - Scheduled Tribe
+
+      Maharashtra:
+        - Maratha
+        - Brahmin
+        - Kunbi
+        - Mali
+        - Baniya
+        - Scheduled Caste
+        - Scheduled Tribe
+
+      Gujarat:
+        - Patel
+        - Brahmin
+        - Baniya
+        - Rajput
+        - Lohana
+        - Kshatriya
+        - Scheduled Caste
+        - Scheduled Tribe
+
+      Rajasthan:
+        - Rajput
+        - Brahmin
+        - Baniya
+        - Jat
+        - Agarwal
+        - Meena
+        - Gurjar
+        - Yadav
+        - Scheduled Caste
+        - Scheduled Tribe
+
+      Punjab:
+        - Jat
+        - Khatri
+        - Arora
+        - Brahmin
+        - Yadav
+        - Saini
+        - Scheduled Caste
+
+      Haryana:
+        - Jat
+        - Brahmin
+        - Yadav
+        - Rajput
+        - Baniya
+        - Gurjar
+        - Saini
+        - Scheduled Caste
+
+      Delhi NCR:
+        - Brahmin
+        - Agarwal
+        - Baniya
+        - Jat
+        - Khatri
+        - Arora
+        - Yadav
+        - Gupta
+        - Kayastha
+        - Rajput
+        - Sindhi
+        - Scheduled Caste
+
+      Uttar Pradesh:
+        - Brahmin
+        - Yadav
+        - Rajput
+        - Bhumihar
+        - Kayastha
+        - Kurmi
+        - Baniya
+        - Jat
+        - Gupta
+        - Scheduled Caste
+        - Scheduled Tribe
+
+      Bihar:
+        - Brahmin
+        - Yadav
+        - Rajput
+        - Bhumihar
+        - Kayastha
+        - Kurmi
+        - Baniya
+        - Scheduled Caste
+        - Scheduled Tribe
+
+      West Bengal:
+        - Brahmin
+        - Kayastha
+        - Baidya
+        - Mahishya
+        - Baniya
+        - Scheduled Caste
+        - Scheduled Tribe
+
+      Madhya Pradesh:
+        - Brahmin
+        - Rajput
+        - Yadav
+        - Baniya
+        - Scheduled Caste
+        - Scheduled Tribe
+
+      Odisha:
+        - Brahmin
+        - Kshatriya
+        - Baniya
+        - Scheduled Caste
+        - Scheduled Tribe
+
+      Jharkhand:
+        - Brahmin
+        - Yadav
+        - Rajput
+        - Kurmi
+        - Scheduled Caste
+        - Scheduled Tribe
+
+      Chhattisgarh:
+        - Brahmin
+        - Yadav
+        - Rajput
+        - Scheduled Caste
+        - Scheduled Tribe
+
+      Goa:
+        - Brahmin
+        - Kshatriya
+        - Baniya
+        - Scheduled Caste
+
+      Assam:
+        - Brahmin
+        - Kayastha
+        - Scheduled Caste
+        - Scheduled Tribe
+
+      Uttarakhand:
+        - Brahmin
+        - Rajput
+        - Baniya
+        - Scheduled Caste
+
+      Himachal Pradesh:
+        - Brahmin
+        - Rajput
+        - Scheduled Caste
+
+      Jammu & Kashmir:
+        - Brahmin
+        - Rajput
+        - Scheduled Caste
+
+    # Fallback for NRIs and states not listed above
+    default:
+      - Brahmin
+      - Agarwal
+      - Baniya
+      - Jat
+      - Kayastha
+      - Kshatriya
+      - Maratha
+      - Patel
+      - Rajput
+      - Reddy
+      - Nair
+      - Iyer
+      - Iyengar
+      - Gupta
+      - Khatri
+      - Arora
+      - Sindhi
+      - Lingayat
+      - Yadav
+      - Scheduled Caste
+      - Scheduled Tribe
+
+
+  # ─── JAIN ────────────────────────────────────────
+
+  Jain:
+    master:
+      - Agarwal
+      - Baniya
+      - Oswal
+      - Porwal
+      - Shrimal
+      - Khandelwal
+      - Other
+      - Prefer not to say
+    # No state context needed — Jain castes are national
+    by_state: {}
+    default:
+      - Agarwal
+      - Baniya
+      - Oswal
+      - Porwal
+      - Shrimal
+      - Khandelwal
+
+
+  # ─── SIKH ────────────────────────────────────────
+
+  Sikh:
+    master:
+      - Jat Sikh
+      - Khatri Sikh
+      - Arora Sikh
+      - Ramgarhia
+      - Saini
+      - Ravidasia
+      - Mazhabi
+      - Other
+      - Prefer not to say
+    # No state context needed — Sikh castes are national (mostly Punjab)
+    by_state: {}
+    default:
+      - Jat Sikh
+      - Khatri Sikh
+      - Arora Sikh
+      - Ramgarhia
+      - Saini
+      - Ravidasia
+      - Mazhabi
+
+
+# ═══════════════════════════════════════════════════════════════
+# INCOME BRACKETS — BY CURRENCY
+# ═══════════════════════════════════════════════════════════════
+# Used by: Q19 (annual income), Q21 (partner income min)
+#
+# The generator maps Q2 country → currency → brackets.
+# All labels include "/year" for clarity.
+# Each bracket has an ordinal `tier` for cross-currency comparison.
+#
+# Tier mapping enables matching across currencies:
+#   A user in India at ₹20-35L/year (tier 4) and a user in
+#   US at $75-100K/year (tier 4) are considered same tier.
+# ═══════════════════════════════════════════════════════════════
+
+income_brackets:
+
+  INR:
+    currency_symbol: "₹"
+    country_match: ["India"]
+    brackets:
+      - { label: "Under ₹5 lakh/year", value: "INR_1", tier: 1 }
+      - { label: "₹5-10 lakh/year", value: "INR_2", tier: 2 }
+      - { label: "₹10-20 lakh/year", value: "INR_3", tier: 3 }
+      - { label: "₹20-35 lakh/year", value: "INR_4", tier: 4 }
+      - { label: "₹35-50 lakh/year", value: "INR_5", tier: 5 }
+      - { label: "₹50-75 lakh/year", value: "INR_6", tier: 6 }
+      - { label: "₹75 lakh - ₹1 crore/year", value: "INR_7", tier: 7 }
+      - { label: "₹1-2 crore/year", value: "INR_8", tier: 8 }
+      - { label: "Above ₹2 crore/year", value: "INR_9", tier: 9 }
+      - { label: "Prefer not to say", value: "prefer_not_to_say", tier: null }
+
+  USD:
+    currency_symbol: "$"
+    country_match: ["USA"]
+    brackets:
+      - { label: "Under $30K/year", value: "USD_1", tier: 1 }
+      - { label: "$30-50K/year", value: "USD_2", tier: 2 }
+      - { label: "$50-75K/year", value: "USD_3", tier: 3 }
+      - { label: "$75-100K/year", value: "USD_4", tier: 4 }
+      - { label: "$100-150K/year", value: "USD_5", tier: 5 }
+      - { label: "$150-250K/year", value: "USD_6", tier: 7 }
+      - { label: "Above $250K/year", value: "USD_7", tier: 9 }
+      - { label: "Prefer not to say", value: "prefer_not_to_say", tier: null }
+
+  GBP:
+    currency_symbol: "£"
+    country_match: ["UK"]
+    brackets:
+      - { label: "Under £25K/year", value: "GBP_1", tier: 1 }
+      - { label: "£25-40K/year", value: "GBP_2", tier: 2 }
+      - { label: "£40-60K/year", value: "GBP_3", tier: 3 }
+      - { label: "£60-80K/year", value: "GBP_4", tier: 4 }
+      - { label: "£80-120K/year", value: "GBP_5", tier: 5 }
+      - { label: "£120-200K/year", value: "GBP_6", tier: 7 }
+      - { label: "Above £200K/year", value: "GBP_7", tier: 9 }
+      - { label: "Prefer not to say", value: "prefer_not_to_say", tier: null }
+
+  CAD:
+    currency_symbol: "C$"
+    country_match: ["Canada"]
+    brackets:
+      - { label: "Under C$40K/year", value: "CAD_1", tier: 1 }
+      - { label: "C$40-60K/year", value: "CAD_2", tier: 2 }
+      - { label: "C$60-90K/year", value: "CAD_3", tier: 3 }
+      - { label: "C$90-120K/year", value: "CAD_4", tier: 4 }
+      - { label: "C$120-180K/year", value: "CAD_5", tier: 5 }
+      - { label: "C$180-300K/year", value: "CAD_6", tier: 7 }
+      - { label: "Above C$300K/year", value: "CAD_7", tier: 9 }
+      - { label: "Prefer not to say", value: "prefer_not_to_say", tier: null }
+
+  AED:
+    currency_symbol: "AED"
+    country_match: ["UAE"]
+    brackets:
+      - { label: "Under AED 100K/year", value: "AED_1", tier: 1 }
+      - { label: "AED 100-200K/year", value: "AED_2", tier: 2 }
+      - { label: "AED 200-350K/year", value: "AED_3", tier: 3 }
+      - { label: "AED 350-500K/year", value: "AED_4", tier: 4 }
+      - { label: "AED 500-750K/year", value: "AED_5", tier: 5 }
+      - { label: "AED 750K-1M/year", value: "AED_6", tier: 7 }
+      - { label: "Above AED 1M/year", value: "AED_7", tier: 9 }
+      - { label: "Prefer not to say", value: "prefer_not_to_say", tier: null }
+
+  SGD:
+    currency_symbol: "S$"
+    country_match: ["Singapore"]
+    brackets:
+      - { label: "Under S$40K/year", value: "SGD_1", tier: 1 }
+      - { label: "S$40-70K/year", value: "SGD_2", tier: 2 }
+      - { label: "S$70-100K/year", value: "SGD_3", tier: 3 }
+      - { label: "S$100-150K/year", value: "SGD_4", tier: 4 }
+      - { label: "S$150-250K/year", value: "SGD_5", tier: 5 }
+      - { label: "S$250-400K/year", value: "SGD_6", tier: 7 }
+      - { label: "Above S$400K/year", value: "SGD_7", tier: 9 }
+      - { label: "Prefer not to say", value: "prefer_not_to_say", tier: null }
+
+  SAR:
+    currency_symbol: "SAR"
+    country_match: ["Saudi Arabia"]
+    brackets:
+      - { label: "Under SAR 80K/year", value: "SAR_1", tier: 1 }
+      - { label: "SAR 80-150K/year", value: "SAR_2", tier: 2 }
+      - { label: "SAR 150-250K/year", value: "SAR_3", tier: 3 }
+      - { label: "SAR 250-400K/year", value: "SAR_4", tier: 4 }
+      - { label: "SAR 400-600K/year", value: "SAR_5", tier: 5 }
+      - { label: "SAR 600K-1M/year", value: "SAR_6", tier: 7 }
+      - { label: "Above SAR 1M/year", value: "SAR_7", tier: 9 }
+      - { label: "Prefer not to say", value: "prefer_not_to_say", tier: null }
+
+  QAR:
+    currency_symbol: "QAR"
+    country_match: ["Qatar"]
+    brackets:
+      - { label: "Under QAR 100K/year", value: "QAR_1", tier: 1 }
+      - { label: "QAR 100-200K/year", value: "QAR_2", tier: 2 }
+      - { label: "QAR 200-350K/year", value: "QAR_3", tier: 3 }
+      - { label: "QAR 350-500K/year", value: "QAR_4", tier: 4 }
+      - { label: "QAR 500-750K/year", value: "QAR_5", tier: 5 }
+      - { label: "QAR 750K-1.2M/year", value: "QAR_6", tier: 7 }
+      - { label: "Above QAR 1.2M/year", value: "QAR_7", tier: 9 }
+      - { label: "Prefer not to say", value: "prefer_not_to_say", tier: null }
+
+  AUD:
+    currency_symbol: "A$"
+    country_match: ["Australia", "New Zealand"]
+    brackets:
+      - { label: "Under A$40K/year", value: "AUD_1", tier: 1 }
+      - { label: "A$40-70K/year", value: "AUD_2", tier: 2 }
+      - { label: "A$70-100K/year", value: "AUD_3", tier: 3 }
+      - { label: "A$100-150K/year", value: "AUD_4", tier: 4 }
+      - { label: "A$150-250K/year", value: "AUD_5", tier: 5 }
+      - { label: "A$250-400K/year", value: "AUD_6", tier: 7 }
+      - { label: "Above A$400K/year", value: "AUD_7", tier: 9 }
+      - { label: "Prefer not to say", value: "prefer_not_to_say", tier: null }
+
+  EUR:
+    currency_symbol: "€"
+    country_match: ["Germany", "Netherlands", "Ireland"]
+    brackets:
+      - { label: "Under €30K/year", value: "EUR_1", tier: 1 }
+      - { label: "€30-50K/year", value: "EUR_2", tier: 2 }
+      - { label: "€50-75K/year", value: "EUR_3", tier: 3 }
+      - { label: "€75-100K/year", value: "EUR_4", tier: 4 }
+      - { label: "€100-150K/year", value: "EUR_5", tier: 5 }
+      - { label: "€150-250K/year", value: "EUR_6", tier: 7 }
+      - { label: "Above €250K/year", value: "EUR_7", tier: 9 }
+      - { label: "Prefer not to say", value: "prefer_not_to_say", tier: null }
+
+  # Default for unlisted countries
+  DEFAULT:
+    currency_symbol: "$"
+    country_match: []  # fallback
+    brackets:
+      - { label: "Under $30K/year", value: "DEF_1", tier: 1 }
+      - { label: "$30-50K/year", value: "DEF_2", tier: 2 }
+      - { label: "$50-75K/year", value: "DEF_3", tier: 3 }
+      - { label: "$75-100K/year", value: "DEF_4", tier: 4 }
+      - { label: "$100-150K/year", value: "DEF_5", tier: 5 }
+      - { label: "$150-250K/year", value: "DEF_6", tier: 7 }
+      - { label: "Above $250K/year", value: "DEF_7", tier: 9 }
+      - { label: "Prefer not to say", value: "prefer_not_to_say", tier: null }
+
+
+# ═══════════════════════════════════════════════════════════════
+# FAMILY FINANCIAL STATUS — BY LOCATION
+# ═══════════════════════════════════════════════════════════════
+# Used by: Q23 (family status)
+# Tier values enable cross-country comparison for Q50 scoring.
+
+family_status_brackets:
+
+  India:
+    - { label: "Less than ₹10 lakh annual income", value: "tier_1", tier: 1 }
+    - { label: "₹10-30 lakh annual income + some assets", value: "tier_2", tier: 2 }
+    - { label: "₹30-70 lakh annual income + assets", value: "tier_3", tier: 3 }
+    - { label: "₹70 lakh+ annual income + significant assets", value: "tier_4", tier: 4 }
+    - { label: "Assets over ₹10 crore", value: "tier_5", tier: 5 }
+    - { label: "Prefer not to say", value: "Prefer not to say", tier: null }
+
+  outside_india:
+    - { label: "Middle class", value: "tier_2", tier: 2 }
+    - { label: "Upper middle class", value: "tier_3", tier: 3 }
+    - { label: "Affluent", value: "tier_4", tier: 4 }
+    - { label: "Wealthy", value: "tier_5", tier: 5 }
+    - { label: "Prefer not to say", value: "Prefer not to say", tier: null }
+
+
+# ═══════════════════════════════════════════════════════════════
+# HEIGHT OPTIONS — BY GENDER
+# ═══════════════════════════════════════════════════════════════
+# Used by: Q7 (height), Q41 (partner height pref — opposite gender)
+# Values are stored in cm.
+
+height_options:
+
+  Female:
+    - { label: "Below 5'2\" (157 cm)", value: "155" }
+    - { label: "5'2\" (157 cm)", value: "157" }
+    - { label: "5'3\" (160 cm)", value: "160" }
+    - { label: "5'4\" (163 cm)", value: "163" }
+    - { label: "5'5\" (165 cm)", value: "165" }
+    - { label: "5'6\" (168 cm)", value: "168" }
+    - { label: "5'7\" (170 cm)", value: "170" }
+    - { label: "Above 5'7\" (173 cm)", value: "173" }
+
+  Male:
+    - { label: "Below 5'5\" (165 cm)", value: "163" }
+    - { label: "5'5\" (165 cm)", value: "165" }
+    - { label: "5'6\" (168 cm)", value: "168" }
+    - { label: "5'7\" (170 cm)", value: "170" }
+    - { label: "5'8\" (173 cm)", value: "173" }
+    - { label: "5'9\" (175 cm)", value: "175" }
+    - { label: "5'10\" (178 cm)", value: "178" }
+    - { label: "5'11\" (180 cm)", value: "180" }
+    - { label: "6'0\" (183 cm)", value: "183" }
+    - { label: "6'1\" (185 cm)", value: "185" }
+    - { label: "6'2\" (188 cm)", value: "188" }
+    - { label: "6'3\" (191 cm)", value: "191" }
+    - { label: "Above 6'3\" (193 cm)", value: "193" }
+
+
+# ═══════════════════════════════════════════════════════════════
+# WEIGHT OPTIONS — BY GENDER
+# ═══════════════════════════════════════════════════════════════
+# Used by: Q8 (weight). Values stored in kg.
+
+weight_options:
+
+  Female:
+    - { label: "Below 45 kg (99 lbs)", value: "42" }
+    - { label: "45-50 kg (99-110 lbs)", value: "47" }
+    - { label: "50-55 kg (110-121 lbs)", value: "52" }
+    - { label: "55-60 kg (121-132 lbs)", value: "57" }
+    - { label: "60-65 kg (132-143 lbs)", value: "62" }
+    - { label: "65-70 kg (143-154 lbs)", value: "67" }
+    - { label: "70-75 kg (154-165 lbs)", value: "72" }
+    - { label: "75-80 kg (165-176 lbs)", value: "77" }
+    - { label: "Above 80 kg (176 lbs)", value: "85" }
+
+  Male:
+    - { label: "Below 60 kg (132 lbs)", value: "57" }
+    - { label: "60-65 kg (132-143 lbs)", value: "62" }
+    - { label: "65-70 kg (143-154 lbs)", value: "67" }
+    - { label: "70-75 kg (154-165 lbs)", value: "72" }
+    - { label: "75-80 kg (165-176 lbs)", value: "77" }
+    - { label: "80-85 kg (176-187 lbs)", value: "82" }
+    - { label: "85-90 kg (187-198 lbs)", value: "87" }
+    - { label: "90-100 kg (198-220 lbs)", value: "95" }
+    - { label: "Above 100 kg (220 lbs)", value: "105" }
+
+
+# ═══════════════════════════════════════════════════════════════
+# BMI CATEGORIES (for Q8 scoring)
+# ═══════════════════════════════════════════════════════════════
+
+bmi_categories:
+  - { label: "Underweight", max: 18.5 }
+  - { label: "Normal", max: 24.9 }
+  - { label: "Overweight", max: 29.9 }
+  - { label: "Obese", max: 999 }
+
+bmi_scoring:
+  same_category: 1.0
+  one_step: 0.5
+  two_steps: 0.25
+  three_steps: 0.0
+
+
+# ═══════════════════════════════════════════════════════════════
+# BIRTH YEARS
+# ═══════════════════════════════════════════════════════════════
+# Used by: Q1 (date of birth step 1), proxy P5
+
+birth_years:
+  min: 1970
+  max: 2006
+  # Generator produces descending: 2006, 2005, ... 1970
+
+
+# ═══════════════════════════════════════════════════════════════
+# AGE RANGES (for partner preference)
+# ═══════════════════════════════════════════════════════════════
+# Used by: Q40 (partner age range)
+
+age_range:
+  min_floor: 18
+  min_ceiling: 50
+  max_ceiling: 55
+  # Step 2 max starts at whatever min was selected
+
+
+# ═══════════════════════════════════════════════════════════════
+# RELIGION LIST (convenience reference)
+# ═══════════════════════════════════════════════════════════════
+
+religion_list:
+  - Hindu
+  - Muslim
+  - Sikh
+  - Jain
+  - Christian
+  - Buddhist
+  - Parsi
+  - No religion
+  - Other
+
+# Religions with caste system
+religions_with_caste: [Hindu, Jain, Sikh]
+
+# Religions with practice levels
+religions_with_practice: [Hindu, Muslim, Sikh, Jain, Christian]
+
+# Religions with manglik
+religions_with_manglik: [Hindu, Jain]
+
+
+# ═══════════════════════════════════════════════════════════════
+# DIET OPTIONS (universal)
+# ═══════════════════════════════════════════════════════════════
+# Used by: Q29. These are universal — NOT religion-specific.
+
+diet_options:
+  - { label: "Strict vegetarian (no onion/garlic)", value: "Strict vegetarian" }
+  - { label: "Vegetarian", value: "Vegetarian" }
+  - { label: "Eggetarian", value: "Eggetarian" }
+  - { label: "Occasionally non-veg", value: "Occasionally non-veg" }
+  - { label: "Non-veg", value: "Non-veg" }
+  - { label: "Vegan", value: "Vegan" }
+  - { label: "Jain", value: "Jain" }
+  - { label: "Halal only", value: "Halal only" }
+  - { label: "Other", value: "Other" }
+
+# Diet hierarchy for Q33 gate logic (strictest → least strict)
+diet_hierarchy:
+  - Jain
+  - Strict vegetarian
+  - Vegan
+  - Vegetarian
+  - Eggetarian
+  - Occasionally non-veg
+  - Halal only
+  - Non-veg
+  - Other
+
+# Diet preference gate rules
+diet_gate_rules:
+  "Same as mine": "must_match_exact"
+  "Any vegetarian": "eliminates: [Non-veg, Occasionally non-veg, Halal only]"
+  "Vegetarian only": "allows: [Jain, Strict vegetarian, Vegan, Vegetarian]"
+  "Doesn't matter": "passes_all"
+
+
+# ═══════════════════════════════════════════════════════════════
+# EDUCATION & OCCUPATION REFERENCE LISTS
+# ═══════════════════════════════════════════════════════════════
+
+education_levels:
+  - { label: "High school", value: "High school", ordinal: 1 }
+  - { label: "Diploma", value: "Diploma", ordinal: 2 }
+  - { label: "Bachelor's", value: "Bachelor's", ordinal: 3 }
+  - { label: "Master's", value: "Master's", ordinal: 4 }
+  - { label: "Doctorate / PhD", value: "Doctorate / PhD", ordinal: 5 }
+  - { label: "Professional (CA, CS, MBBS, LLB)", value: "Professional", ordinal: 5 }
+
+education_fields:
+  - Engineering / IT
+  - Medicine / Healthcare
+  - Business / MBA
+  - Law
+  - Finance / CA / CS
+  - Arts / Humanities
+  - Science
+  - Design / Architecture
+  - Government / Civil Services
+  - Other
+
+occupation_sectors:
+  - Tech / IT
+  - Finance / Banking
+  - Consulting
+  - Healthcare
+  - Manufacturing
+  - Media / Entertainment
+  - Education
+  - Government / Public sector
+  - Professional (Doctor, Lawyer, CA)
+  - Business / Self-employed
+  - Startup
+  - Retail / Hospitality
+  - Not working
+  - Student
+  - Other
+
+
+# ═══════════════════════════════════════════════════════════════
+# MARITAL STATUS (convenience reference)
+# ═══════════════════════════════════════════════════════════════
+
+marital_status_list:
+  - Never married
+  - Divorced
+  - Widowed
+  - Awaiting divorce
+
+
+# ═══════════════════════════════════════════════════════════════
+# COUNTRY → CURRENCY MAPPING
+# ═══════════════════════════════════════════════════════════════
+# Used by generator to resolve Q19/Q21 income brackets from Q2 location.
+
+country_currency_map:
+  India: INR
+  USA: USD
+  UK: GBP
+  Canada: CAD
+  UAE: AED
+  Singapore: SGD
+  Saudi Arabia: SAR
+  Qatar: QAR
+  Australia: AUD
+  New Zealand: AUD
+  Germany: EUR
+  Netherlands: EUR
+  Ireland: EUR
+  Kuwait: AED       # close enough to AED brackets
+  Oman: AED         # close enough to AED brackets
+  Bahrain: AED      # close enough to AED brackets
+  Malaysia: DEFAULT
+  South Africa: DEFAULT
+  Kenya: DEFAULT
+  _default: DEFAULT

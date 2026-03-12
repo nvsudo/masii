@@ -29,10 +29,15 @@
         a:hover { text-decoration: underline; }
 
         /* NAV */
-        .nav { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; position: sticky; top: 0; z-index: 100; background: rgba(253,246,238,0.92); backdrop-filter: blur(12px); }
+        .nav { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; position: sticky; top: 0; z-index: 100; background: rgba(253,246,238,0.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
         .nav-logo { font-family: var(--font-display); font-size: 1.6rem; font-weight: 500; color: var(--earth); text-decoration: none; }
-        .nav-back { font-size: 0.88rem; color: var(--earth-light); font-weight: 500; text-decoration: none; }
-        .nav-back:hover { color: var(--terracotta); text-decoration: none; }
+        .nav-links { display: flex; gap: 1.5rem; list-style: none; align-items: center; }
+        .nav-links a { font-size: 0.88rem; color: var(--earth-light); font-weight: 500; text-decoration: none; }
+        .nav-links a:hover { color: var(--terracotta); text-decoration: none; }
+        .nav-cta { background: var(--terracotta) !important; color: var(--white) !important; padding: 8px 22px; border-radius: 24px; font-size: 0.85rem !important; transition: all 0.2s; }
+        .nav-cta:hover { background: var(--earth) !important; }
+        .nav-toggle { display: none; background: none; border: none; cursor: pointer; }
+        .nav-toggle span { display: block; width: 22px; height: 2px; background: var(--earth); margin: 5px 0; border-radius: 2px; }
 
         /* HERO */
         .page-hero { padding: 5rem 0 3rem; text-align: center; position: relative; z-index: 1; }
@@ -76,9 +81,19 @@
         .btn-primary:hover { background: var(--haldi); color: var(--earth); text-decoration: none; }
 
         /* FOOTER */
-        footer { padding: 1.5rem; text-align: center; font-family: var(--font-hand); font-size: 0.95rem; color: var(--earth-light); position: relative; z-index: 1; }
+        footer { padding: 1.5rem 0; border-top: 1px solid var(--blush); position: relative; z-index: 1; }
+        .container-wide { max-width: 960px; margin: 0 auto; padding: 0 1.5rem; }
+        .footer-content { display: flex; justify-content: space-between; align-items: center; }
+        .footer-content span { font-family: var(--font-hand); font-size: 0.95rem; color: var(--earth-light); }
+        .footer-links { display: flex; gap: 1.5rem; list-style: none; }
+        .footer-links a { font-size: 0.82rem; color: var(--earth-light); text-decoration: none; }
+        .footer-links a:hover { color: var(--terracotta); }
 
         @media (max-width: 768px) {
+            .nav-toggle { display: block; }
+            .nav-links { display: none; position: fixed; top: 57px; left: 0; width: 100%; background: var(--cream); flex-direction: column; padding: 2rem; gap: 1.5rem; z-index: 999; }
+            .nav-links.active { display: flex; }
+            .footer-content { flex-direction: column; gap: 0.5rem; text-align: center; }
             .vibes-grid { grid-template-columns: repeat(2, 1fr); }
             .signal-item { grid-template-columns: 48px 1fr; gap: 1rem; }
         }
@@ -91,10 +106,8 @@
 </head>
 <body>
 
-    <nav class="nav">
-        <a href="index.html" class="nav-logo">Masii 🪷</a>
-        <a href="index.html" class="nav-back">← Back home</a>
-    </nav>
+    <div id="site-nav"></div>
+    <script src="js/components.js"></script>
 
     <!-- HERO -->
     <section class="page-hero">
@@ -247,8 +260,8 @@
             <div class="signal-num">07.</div>
             <div class="signal-content">
                 <h2>She decides first</h2>
-                <p>The woman sees the match first. She decides. Only then does he see it. This isn't a feature — it's architecture. It prevents spamming, prevents unsolicited attention, and builds the kind of respect that should be the baseline, not the premium.</p>
-                <p class="aside">In traditional matchmaking, the girl's family always had the first right. We kept what works.</p>
+                <p>Her side sees the match first. She decides. Only then does he see it. This isn't a feature — it's architecture. It prevents spamming, prevents unsolicited attention, and builds the kind of respect that should be the baseline, not the premium.</p>
+                <p class="aside">In traditional matchmaking, her family always had the first right. We kept what works.</p>
             </div>
         </div>
 
@@ -299,11 +312,11 @@
         <div>
             <h2>Ready to talk?</h2>
             <p>10 minutes. No biodata. Just an honest conversation with someone who gets it.</p>
-            <a href="start.html" class="btn-primary">Talk to Masii →</a>
+            <a href="one-cup.html" class="btn-primary">Talk to Masii →</a>
         </div>
     </section>
 
-    <footer>Masii © 2026 🪷</footer>
+    <div id="site-footer"></div>
 
 </body>
 </html>

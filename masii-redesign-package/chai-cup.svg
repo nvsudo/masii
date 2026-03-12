@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <!-- Chai Cup - warm, organic feel -->
+  <defs>
+    <linearGradient id="cup-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#E8CFC0"/>
+      <stop offset="100%" stop-color="#D4845E"/>
+    </linearGradient>
+  </defs>
+  <!-- Steam wisps -->
+  <path d="M30 22 Q32 16 28 10" stroke="#C4653A" stroke-width="1.5" fill="none" opacity="0.3" stroke-linecap="round"/>
+  <path d="M40 20 Q42 12 38 6" stroke="#C4653A" stroke-width="1.5" fill="none" opacity="0.4" stroke-linecap="round"/>
+  <path d="M50 22 Q52 16 48 10" stroke="#C4653A" stroke-width="1.5" fill="none" opacity="0.3" stroke-linecap="round"/>
+  <!-- Cup body -->
+  <path d="M18 28 L22 62 Q24 68 40 68 Q56 68 58 62 L62 28 Z" fill="url(#cup-grad)" stroke="#C4653A" stroke-width="1.5"/>
+  <!-- Chai surface -->
+  <ellipse cx="40" cy="28" rx="22" ry="5" fill="#D4A03C" opacity="0.6"/>
+  <!-- Handle -->
+  <path d="M62 34 Q74 36 74 48 Q74 58 62 58" stroke="#C4653A" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <!-- Saucer -->
+  <ellipse cx="40" cy="70" rx="30" ry="5" fill="#E8CFC0" stroke="#C4653A" stroke-width="1" opacity="0.7"/>
+</svg>

@@ -89,4 +89,10 @@ fly deploy
 
 ---
 
+## Run Log
+
+All changes and decisions are logged as single-line entries in [`ops/run-log.md`](ops/run-log.md). Every code change or product decision made during a session gets a dated one-liner there.
+
+---
+
 **Let's ship.** 🚀

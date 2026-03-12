@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <!-- Masii Lotus Mark - warm, organic, hand-drawn feel -->
+  <defs>
+    <linearGradient id="petal-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#C4653A" />
+      <stop offset="100%" stop-color="#D4845E" />
+    </linearGradient>
+    <linearGradient id="petal-inner" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#D4A03C" />
+      <stop offset="100%" stop-color="#E8C876" />
+    </linearGradient>
+  </defs>
+  <!-- Center petal -->
+  <ellipse cx="60" cy="52" rx="10" ry="28" fill="url(#petal-grad)" opacity="0.9" transform="rotate(0 60 60)"/>
+  <!-- Left petals -->
+  <ellipse cx="60" cy="52" rx="10" ry="26" fill="url(#petal-grad)" opacity="0.8" transform="rotate(-30 60 68)"/>
+  <ellipse cx="60" cy="52" rx="10" ry="24" fill="url(#petal-grad)" opacity="0.65" transform="rotate(-60 60 68)"/>
+  <!-- Right petals -->
+  <ellipse cx="60" cy="52" rx="10" ry="26" fill="url(#petal-grad)" opacity="0.8" transform="rotate(30 60 68)"/>
+  <ellipse cx="60" cy="52" rx="10" ry="24" fill="url(#petal-grad)" opacity="0.65" transform="rotate(60 60 68)"/>
+  <!-- Inner glow petals -->
+  <ellipse cx="60" cy="56" rx="6" ry="16" fill="url(#petal-inner)" opacity="0.7" transform="rotate(-15 60 68)"/>
+  <ellipse cx="60" cy="56" rx="6" ry="16" fill="url(#petal-inner)" opacity="0.7" transform="rotate(15 60 68)"/>
+  <!-- Center dot -->
+  <circle cx="60" cy="66" r="4" fill="#D4A03C" opacity="0.8"/>
+  <!-- Base leaves -->
+  <path d="M38 78 Q48 70 60 74 Q72 70 82 78 Q72 82 60 80 Q48 82 38 78Z" fill="#7A8B6F" opacity="0.5"/>
+</svg>

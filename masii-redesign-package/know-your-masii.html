@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get to Know Your Masii</title>
+    <meta name="description" content="Who is Masii? Not the product. The person. Her beliefs, her vibes, her cricket opinions, and why she does what she does.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Caveat:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪷</text></svg>">
+
+    <style>
+        :root {
+            --cream: #FDF6EE; --cream-deep: #F5EBD9; --terracotta: #C4653A; --terracotta-soft: #D4845E;
+            --haldi: #D4A03C; --haldi-soft: #E8C876; --earth: #3D2B1F; --earth-medium: #5C4033;
+            --earth-light: #8B7355; --sage: #7A8B6F; --blush: #E8CFC0; --white: #FFFDF9;
+            --font-display: 'Playfair Display', 'Georgia', serif;
+            --font-body: 'DM Sans', -apple-system, sans-serif;
+            --font-hand: 'Caveat', cursive;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { font-size: 16px; scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+        body { font-family: var(--font-body); color: var(--earth); background: var(--cream); line-height: 1.7; overflow-x: hidden; }
+        body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E"); pointer-events: none; z-index: 0; }
+        ::selection { background: var(--terracotta); color: var(--white); }
+        a { color: var(--terracotta); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        /* NAV */
+        .nav { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; position: sticky; top: 0; z-index: 100; background: rgba(253,246,238,0.92); backdrop-filter: blur(12px); }
+        .nav-logo { font-family: var(--font-display); font-size: 1.6rem; font-weight: 500; color: var(--earth); text-decoration: none; }
+        .nav-back { font-size: 0.88rem; color: var(--earth-light); font-weight: 500; text-decoration: none; }
+        .nav-back:hover { color: var(--terracotta); text-decoration: none; }
+
+        /* HERO */
+        .page-hero { padding: 5rem 0 3rem; text-align: center; position: relative; z-index: 1; }
+        .page-hero .avatar { width: 100px; height: 100px; margin: 0 auto 1.5rem; border-radius: 50%; border: 3px solid var(--blush); background: var(--white); overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        .page-hero .avatar svg { width: 100%; height: 100%; }
+        .page-hero h1 { font-family: var(--font-display); font-size: clamp(2.2rem, 5vw, 3.2rem); font-weight: 400; margin-bottom: 0.5rem; }
+        .page-hero .subtitle { font-family: var(--font-hand); font-size: 1.4rem; color: var(--terracotta); margin-bottom: 1rem; }
+        .page-hero .intro { max-width: 560px; margin: 0 auto; color: var(--earth-medium); font-size: 1.05rem; line-height: 1.8; }
+
+        /* SIGNALS LIST — 37signals inspired */
+        .signals { max-width: 720px; margin: 0 auto; padding: 0 1.5rem 4rem; position: relative; z-index: 1; }
+
+        .signal-item { display: grid; grid-template-columns: 60px 1fr; gap: 1.5rem; padding: 2.5rem 0; border-bottom: 1px solid var(--blush); cursor: default; transition: background 0.2s; }
+        .signal-item:first-child { border-top: 1px solid var(--blush); }
+        .signal-item:hover { background: rgba(196, 101, 58, 0.02); }
+
+        .signal-num { font-family: var(--font-display); font-size: 1.8rem; color: var(--blush); font-weight: 400; padding-top: 4px; text-align: right; transition: color 0.2s; }
+        .signal-item:hover .signal-num { color: var(--terracotta); }
+
+        .signal-content h2 { font-family: var(--font-display); font-size: 1.35rem; font-weight: 500; margin-bottom: 0.5rem; color: var(--earth); line-height: 1.3; }
+        .signal-content p { color: var(--earth-medium); font-size: 0.95rem; line-height: 1.8; }
+        .signal-content .aside { font-family: var(--font-hand); font-size: 1.05rem; color: var(--terracotta); margin-top: 0.5rem; }
+
+        /* VIBES GRID — for quick personality hits */
+        .vibes-section { padding: 3rem 0; background: var(--cream-deep); position: relative; z-index: 1; }
+        .vibes-container { max-width: 720px; margin: 0 auto; padding: 0 1.5rem; }
+        .vibes-title { font-family: var(--font-hand); font-size: 1.4rem; color: var(--terracotta); margin-bottom: 1.5rem; text-align: center; }
+        .vibes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+        .vibe-card { background: var(--white); border: 1px solid var(--blush); border-radius: 12px; padding: 1.2rem; text-align: center; transition: transform 0.2s; }
+        .vibe-card:hover { transform: translateY(-2px); }
+        .vibe-card .emoji { font-size: 1.8rem; margin-bottom: 0.4rem; }
+        .vibe-card .label { font-size: 0.8rem; color: var(--earth-light); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+        .vibe-card .value { font-family: var(--font-display); font-size: 1rem; font-weight: 500; color: var(--earth); }
+        .vibe-card .note { font-family: var(--font-hand); font-size: 0.9rem; color: var(--terracotta); margin-top: 2px; }
+
+        /* CTA */
+        .cta-section { background: var(--earth); padding: 5rem 0; text-align: center; position: relative; z-index: 1; }
+        .cta-section h2 { font-family: var(--font-display); font-size: 2rem; color: var(--cream); margin-bottom: 0.5rem; }
+        .cta-section p { color: var(--blush); margin-bottom: 1.5rem; }
+        .btn-primary { display: inline-flex; align-items: center; gap: 8px; background: var(--terracotta); color: var(--white); padding: 16px 32px; border-radius: 32px; font-size: 1rem; font-weight: 500; font-family: var(--font-body); transition: all 0.3s; text-decoration: none; }
+        .btn-primary:hover { background: var(--haldi); color: var(--earth); text-decoration: none; }
+
+        /* FOOTER */
+        footer { padding: 1.5rem; text-align: center; font-family: var(--font-hand); font-size: 0.95rem; color: var(--earth-light); position: relative; z-index: 1; }
+
+        @media (max-width: 768px) {
+            .vibes-grid { grid-template-columns: repeat(2, 1fr); }
+            .signal-item { grid-template-columns: 48px 1fr; gap: 1rem; }
+        }
+        @media (max-width: 480px) {
+            .vibes-grid { grid-template-columns: 1fr 1fr; }
+            .signal-item { grid-template-columns: 1fr; }
+            .signal-num { text-align: left; font-size: 1.4rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="nav">
+        <a href="index.html" class="nav-logo">Masii 🪷</a>
+        <a href="index.html" class="nav-back">← Back home</a>
+    </nav>
+
+    <!-- HERO -->
+    <section class="page-hero">
+        <div class="avatar">
+            <svg viewBox="0 0 120 120" width="120" height="120"><defs><linearGradient id="abg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#FDF6EE"/><stop offset="100%" stop-color="#F5EBD9"/></linearGradient><linearGradient id="sg2" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#C4653A"/><stop offset="60%" stop-color="#D4845E"/><stop offset="100%" stop-color="#E8CFC0"/></linearGradient></defs><circle cx="60" cy="60" r="56" fill="url(#abg)" stroke="#E8CFC0" stroke-width="1.5"/><circle cx="60" cy="60" r="52" fill="none" stroke="#D4A03C" stroke-width="0.5" stroke-dasharray="2 4" opacity="0.4"/><ellipse cx="60" cy="38" rx="18" ry="20" fill="#3D2B1F" opacity="0.8"/><ellipse cx="60" cy="42" rx="14" ry="16" fill="#D4845E" opacity="0.9"/><circle cx="60" cy="36" r="2" fill="#C4653A"/><ellipse cx="54" cy="41" rx="2.5" ry="1.5" fill="#3D2B1F" opacity="0.7"/><ellipse cx="66" cy="41" rx="2.5" ry="1.5" fill="#3D2B1F" opacity="0.7"/><path d="M54 48 Q60 54 66 48" fill="none" stroke="#3D2B1F" stroke-width="1.2" stroke-linecap="round" opacity="0.5"/><path d="M32 70 Q40 58 60 56 Q80 58 88 70 L90 100 Q60 96 30 100 Z" fill="url(#sg2)" opacity="0.8"/><path d="M42 62 Q50 56 60 56 Q55 64 48 72 Q42 78 38 82" fill="#D4A03C" opacity="0.4" stroke="#D4A03C" stroke-width="0.5"/></svg>
+        </div>
+        <h1>Get to Know Your Masii</h1>
+        <p class="subtitle">मासी — not a product. a person.</p>
+        <p class="intro">
+            This isn't a feature page. This is who Masii is — her beliefs, her vibes, 
+            her opinions about cricket and cinema and chai. Because if you're going to 
+            trust someone with the most important decision of your life, you should know 
+            who they are first.
+        </p>
+    </section>
+
+    <!-- VIBES GRID — Quick personality snapshot -->
+    <section class="vibes-section">
+        <div class="vibes-container">
+            <p class="vibes-title">The quick version ☕</p>
+            <div class="vibes-grid">
+                <div class="vibe-card">
+                    <div class="emoji">☕</div>
+                    <div class="label">Runs on</div>
+                    <div class="value">Chai</div>
+                    <div class="note">half of it is AI ;)</div>
+                </div>
+                <div class="vibe-card">
+                    <div class="emoji">🏏</div>
+                    <div class="label">Favourite cricketer</div>
+                    <div class="value">Smriti Mandhana</div>
+                    <div class="note">grace under pressure</div>
+                </div>
+                <div class="vibe-card">
+                    <div class="emoji">🎬</div>
+                    <div class="label">Comfort movie</div>
+                    <div class="value">Dil Chahta Hai</div>
+                    <div class="note">friendship before everything</div>
+                </div>
+                <div class="vibe-card">
+                    <div class="emoji">🧠</div>
+                    <div class="label">Mentors like</div>
+                    <div class="value">Rohit Sharma</div>
+                    <div class="note">calm. trusts the process.</div>
+                </div>
+                <div class="vibe-card">
+                    <div class="emoji">🔥</div>
+                    <div class="label">Works like</div>
+                    <div class="value">Virat Kohli</div>
+                    <div class="note">relentless. no half measures.</div>
+                </div>
+                <div class="vibe-card">
+                    <div class="emoji">🙏</div>
+                    <div class="label">Looks up to</div>
+                    <div class="value">MS Dhoni</div>
+                    <div class="note">as we all do.</div>
+                </div>
+                <div class="vibe-card">
+                    <div class="emoji">🎵</div>
+                    <div class="label">Evening mood</div>
+                    <div class="value">Arijit Singh</div>
+                    <div class="note">the voice of longing</div>
+                </div>
+                <div class="vibe-card">
+                    <div class="emoji">📺</div>
+                    <div class="label">Guilty pleasure</div>
+                    <div class="value">Panchayat</div>
+                    <div class="note">the India she believes in</div>
+                </div>
+                <div class="vibe-card">
+                    <div class="emoji">📖</div>
+                    <div class="label">Keeps rereading</div>
+                    <div class="value">The God of Small Things</div>
+                    <div class="note">love breaks every rule</div>
+                </div>
+                <div class="vibe-card">
+                    <div class="emoji">🍳</div>
+                    <div class="label">Signature dish</div>
+                    <div class="value">Dal makhani</div>
+                    <div class="note">slow-cooked. never rushed.</div>
+                </div>
+                <div class="vibe-card">
+                    <div class="emoji">✈️</div>
+                    <div class="label">Dream city</div>
+                    <div class="value">Udaipur</div>
+                    <div class="note">every love story needs a lake</div>
+                </div>
+                <div class="vibe-card">
+                    <div class="emoji">💬</div>
+                    <div class="label">Love language</div>
+                    <div class="value">Acts of service</div>
+                    <div class="note">showing up > saying things</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SIGNALS — 37signals-inspired numbered beliefs -->
+    <section class="signals">
+
+        <div class="signal-item">
+            <div class="signal-num">01.</div>
+            <div class="signal-content">
+                <h2>Everyone deserves a matchmaker</h2>
+                <p>Traditional matchmakers charge ₹5 lakh to ₹50 lakh. That means the best matchmaking in the world is available to the wealthiest 1% of families. Masii believes what a great matchmaker does — listen deeply, understand context, find the right person — should be available to every Indian, everywhere. That's not charity. That's technology doing what it's supposed to do.</p>
+            </div>
+        </div>
+
+        <div class="signal-item">
+            <div class="signal-num">02.</div>
+            <div class="signal-content">
+                <h2>A conversation, not a form</h2>
+                <p>200-field forms capture data. Conversations capture people. When someone tells Masii they're "spiritual but not religious," she doesn't tick a box — she asks what that looks like on a Sunday morning. The follow-up question is everything. It's the difference between a database row and a human being.</p>
+            </div>
+        </div>
+
+        <div class="signal-item">
+            <div class="signal-num">03.</div>
+            <div class="signal-content">
+                <h2>Independent but not cut off</h2>
+                <p>This is the tension millions of Indians feel. They want to choose their partner. They also want their parents to be happy. These aren't contradictory — they're both valid. Masii is built for people navigating this space. Not arranged. Not "love marriage." Something that honours both.</p>
+            </div>
+        </div>
+
+        <div class="signal-item">
+            <div class="signal-num">04.</div>
+            <div class="signal-content">
+                <h2>Culture is not a checkbox</h2>
+                <p>"Hindu" on a profile tells you almost nothing. Masii knows the difference between a family that does puja every morning and one that goes to the mandir on Diwali. Between Jain-vegetarian-no-onion-no-garlic and vegetarian-but-eggs-are-fine. Between "close to family" meaning weekly video calls and "close to family" meaning joint household. Context, always context.</p>
+            </div>
+        </div>
+
+        <div class="signal-item">
+            <div class="signal-num">05.</div>
+            <div class="signal-content">
+                <h2>She respects your secrets</h2>
+                <p>There are things you'd never put on a Shaadi.com profile. Your real views on religion. Your past. The gap between what your family expects and what you actually want. Masii holds all of it without judgement. Your answers are used for matching, never displayed, never shared. The more honest you are, the better the match.</p>
+            </div>
+        </div>
+
+        <div class="signal-item">
+            <div class="signal-num">06.</div>
+            <div class="signal-content">
+                <h2>One match, with conviction</h2>
+                <p>Your grandmother's matchmaker didn't show up with a binder of 40 biodatas. She showed up with one name. And she could tell you exactly why. That's the model. Not a carousel. Not 50 profiles to swipe through. One person, with reasoning. If that match doesn't work, Masii goes back and thinks harder — she doesn't just pull the next name off a list.</p>
+            </div>
+        </div>
+
+        <div class="signal-item">
+            <div class="signal-num">07.</div>
+            <div class="signal-content">
+                <h2>She decides first</h2>
+                <p>The woman sees the match first. She decides. Only then does he see it. This isn't a feature — it's architecture. It prevents spamming, prevents unsolicited attention, and builds the kind of respect that should be the baseline, not the premium.</p>
+                <p class="aside">In traditional matchmaking, the girl's family always had the first right. We kept what works.</p>
+            </div>
+        </div>
+
+        <div class="signal-item">
+            <div class="signal-num">08.</div>
+            <div class="signal-content">
+                <h2>If you're meant to meet, nothing should stop you</h2>
+                <p>When Masii's algorithm produces a high-confidence match — two people who genuinely fit on culture, values, lifestyle, and family — the introduction is free. No paywall between people who are supposed to meet. That's the philosophy. We make money from value-add services. The core match? That's sacred.</p>
+            </div>
+        </div>
+
+        <div class="signal-item">
+            <div class="signal-num">09.</div>
+            <div class="signal-content">
+                <h2>Blessings, not subscriptions</h2>
+                <p>Shaadi.com charges ₹500/month to keep you searching. Their incentive is to keep you paying. Masii charges per introduction — so her incentive is to find you the right person, fast. If the right match comes in week one, you pay once and go live your life. That's how a real matchmaker works. That's how Masii works.</p>
+            </div>
+        </div>
+
+        <div class="signal-item">
+            <div class="signal-num">10.</div>
+            <div class="signal-content">
+                <h2>AI, and honest about it</h2>
+                <p>Masii is not pretending to be human. She's a tool built to do one thing well: find your person. She learns from every conversation. She gets better over time. The goal isn't to replace human matchmakers — it's to make what they do available to everyone. Every community, every city, everywhere Indians are building their lives.</p>
+            </div>
+        </div>
+
+        <div class="signal-item">
+            <div class="signal-num">11.</div>
+            <div class="signal-content">
+                <h2>Family is a feature, not a bug</h2>
+                <p>Your mum wants to fill out your profile? Welcome. Your kaka wants to recommend someone? Great. Masii talks to everyone and triangulates — because the best matchmakers always did. But consent is non-negotiable. The actual person always gets the final word.</p>
+            </div>
+        </div>
+
+        <div class="signal-item">
+            <div class="signal-num">12.</div>
+            <div class="signal-content">
+                <h2>The goal is to become unnecessary</h2>
+                <p>The best thing Masii can say is goodbye. Not "here are ten more profiles" but "I think you two should talk, and I don't think you'll need me after this." No engagement metrics. No push notifications designed to pull you back. You tell Masii who you are. She finds your person. You go live your life together. That's the whole product.</p>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+        <div>
+            <h2>Ready to talk?</h2>
+            <p>10 minutes. No biodata. Just an honest conversation with someone who gets it.</p>
+            <a href="start.html" class="btn-primary">Talk to Masii →</a>
+        </div>
+    </section>
+
+    <footer>Masii © 2026 🪷</footer>
+
+</body>
+</html>

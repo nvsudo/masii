@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -c website/js/form.js)",
+      "Bash(node -c website/js/auth.js)",
+      "Bash(ls -la /c/Masii/masii/masii-redesign-package/*.svg)",
+      "Bash(ls /c/Masii/masii/website/*.html)",
+      "Bash(mv index.html archive/index-old.html)",
+      "Bash(mv about.html archive/about-old.html)",
+      "Bash(cp masii-redesign-package/masii-homepage-v4.html website/index.html)",
+      "Bash(cp masii-redesign-package/masii-pricing.html website/pricing.html)",
+      "Bash(cp masii-redesign-package/know-your-masii.html website/know-your-masii.html)",
+      "Bash(cp masii-redesign-package/*.svg website/)",
+      "Bash(ls website/*.html website/*.svg)",
+      "Bash(npx serve . -p 3000)",
+      "Bash(python -m http.server 8000)",
+      "Bash(find . -name \"*.html\" -exec sed -i '/<li><a href=\"\"[.\\\\/]*stories\\\\/\"\">Stories<\\\\/a><\\\\/li>/d' {} +)",
+      "Bash(find /c/Masii/masii/website/blog -name \"*.html\" -exec sed -i 's|class=\"\"nav-logo\"\">Masii</a>|class=\"\"nav-logo\"\">Masii 🪷</a>|g' {} +)",
+      "Bash(find /c/Masii/masii/website/blog -name \"*.html\" -exec sed -i 's|../start.html|../one-cup.html|g' {} +)"
+    ]
+  }
+}

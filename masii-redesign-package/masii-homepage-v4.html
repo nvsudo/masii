@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Masii — Your Person is Out There</title>
+    <meta name="description" content="An AI matchmaker for Indians everywhere. Masii listens, understands, and finds your person. Perfect matches are free — because you're meant to meet.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Caveat:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪷</text></svg>">
+
+    <style>
+        :root {
+            --cream: #FDF6EE;
+            --cream-deep: #F5EBD9;
+            --terracotta: #C4653A;
+            --terracotta-soft: #D4845E;
+            --terracotta-glow: rgba(196, 101, 58, 0.08);
+            --haldi: #D4A03C;
+            --haldi-soft: #E8C876;
+            --earth: #3D2B1F;
+            --earth-medium: #5C4033;
+            --earth-light: #8B7355;
+            --sage: #7A8B6F;
+            --sage-light: #A8B89E;
+            --blush: #E8CFC0;
+            --white: #FFFDF9;
+            --font-display: 'Playfair Display', 'Georgia', serif;
+            --font-body: 'DM Sans', -apple-system, sans-serif;
+            --font-hand: 'Caveat', cursive;
+            --s-xs: 0.5rem; --s-sm: 1rem; --s-md: 1.5rem; --s-lg: 3rem; --s-xl: 5rem; --s-2xl: 8rem;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { font-size: 16px; scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+        body { font-family: var(--font-body); color: var(--earth); background: var(--cream); line-height: 1.7; overflow-x: hidden; }
+        body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E"); pointer-events: none; z-index: 0; }
+        ::selection { background: var(--terracotta); color: var(--white); }
+        a { color: var(--earth); text-decoration: none; transition: color 0.2s; }
+        a:hover { color: var(--terracotta); }
+        .container { max-width: 800px; margin: 0 auto; padding: 0 var(--s-md); position: relative; z-index: 1; }
+        .container-wide { max-width: 1000px; margin: 0 auto; padding: 0 var(--s-md); position: relative; z-index: 1; }
+        section { position: relative; z-index: 1; }
+
+        /* NAV */
+        .nav { display: flex; justify-content: space-between; align-items: center; padding: var(--s-sm) var(--s-md); position: sticky; top: 0; z-index: 100; background: rgba(253,246,238,0.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+        .nav-logo { font-family: var(--font-display); font-size: 1.6rem; font-weight: 500; color: var(--earth); }
+        .nav-links { display: flex; gap: var(--s-md); list-style: none; align-items: center; }
+        .nav-links a { font-size: 0.88rem; color: var(--earth-light); font-weight: 500; }
+        .nav-links a:hover { color: var(--terracotta); }
+        .nav-cta { background: var(--terracotta) !important; color: var(--white) !important; padding: 8px 22px; border-radius: 24px; font-size: 0.85rem !important; font-weight: 500; transition: all 0.2s; }
+        .nav-cta:hover { background: var(--earth) !important; transform: translateY(-1px); }
+        .nav-toggle { display: none; background: none; border: none; cursor: pointer; padding: 4px; }
+        .nav-toggle span { display: block; width: 22px; height: 2px; background: var(--earth); margin: 5px 0; border-radius: 2px; }
+
+        /* WARM HEADER */
+        .warm-header { background: var(--earth); color: var(--blush); padding: 14px var(--s-md); font-family: var(--font-hand); font-size: 1.05rem; text-align: center; letter-spacing: 0.01em; position: relative; overflow: hidden; }
+        .warm-header::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(196,101,58,0.15) 0%, transparent 50%, rgba(212,160,60,0.1) 100%); }
+        .warm-header span { position: relative; z-index: 1; }
+        .warm-header .accent { color: var(--haldi-soft); }
+
+        /* HERO */
+        .hero { padding: var(--s-2xl) 0 var(--s-xl); }
+        .hero-eyebrow { font-family: var(--font-hand); font-size: 1.3rem; color: var(--terracotta); margin-bottom: var(--s-sm); opacity: 0; animation: fadeUp 0.6s ease 0.2s forwards; }
+        .hero h1 { font-family: var(--font-display); font-size: clamp(2.4rem, 5.5vw, 3.8rem); font-weight: 400; line-height: 1.15; letter-spacing: -0.02em; color: var(--earth); margin-bottom: var(--s-md); max-width: 650px; opacity: 0; animation: fadeUp 0.6s ease 0.4s forwards; }
+        .hero h1 em { font-style: italic; color: var(--terracotta); }
+        .hero-desc { font-size: 1.1rem; color: var(--earth-medium); line-height: 1.8; max-width: 540px; margin-bottom: var(--s-lg); opacity: 0; animation: fadeUp 0.6s ease 0.6s forwards; }
+        .hero-cta-group { display: flex; gap: var(--s-sm); align-items: center; flex-wrap: wrap; opacity: 0; animation: fadeUp 0.6s ease 0.8s forwards; }
+        .btn-primary { display: inline-flex; align-items: center; gap: 8px; background: var(--terracotta); color: var(--white); padding: 16px 32px; border-radius: 32px; font-size: 1rem; font-weight: 500; font-family: var(--font-body); transition: all 0.3s; border: none; cursor: pointer; box-shadow: 0 4px 20px rgba(196,101,58,0.2); }
+        .btn-primary:hover { background: var(--earth); color: var(--white); transform: translateY(-2px); box-shadow: 0 6px 28px rgba(61,43,31,0.2); }
+        .btn-secondary { display: inline-flex; align-items: center; gap: 8px; background: transparent; color: var(--earth); padding: 16px 28px; border: 1.5px solid var(--blush); border-radius: 32px; font-size: 1rem; font-weight: 500; font-family: var(--font-body); transition: all 0.2s; cursor: pointer; }
+        .btn-secondary:hover { border-color: var(--terracotta); color: var(--terracotta); }
+        .hero-note { margin-top: var(--s-sm); font-family: var(--font-hand); font-size: 1rem; color: var(--earth-light); }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* TRUST STRIP */
+        .trust-strip { padding: var(--s-lg) 0; border-top: 1px solid var(--blush); border-bottom: 1px solid var(--blush); }
+        .trust-items { display: flex; justify-content: center; gap: var(--s-lg); flex-wrap: wrap; text-align: center; }
+        .trust-item .number { font-family: var(--font-display); font-size: 2rem; font-weight: 400; color: var(--terracotta); }
+        .trust-item .label { font-size: 0.82rem; color: var(--earth-light); margin-top: 4px; }
+
+        /* ========== SAFE SPACE / PRIVACY ========== */
+        .safe-section { padding: var(--s-xl) 0; background: var(--white); border-top: 1px solid var(--blush); }
+        .safe-inner { display: grid; grid-template-columns: 80px 1fr; gap: var(--s-md); align-items: start; }
+        .safe-icon { width: 72px; height: 72px; }
+        .safe-inner h2 { font-family: var(--font-display); font-size: 1.8rem; font-weight: 400; margin-bottom: var(--s-sm); color: var(--earth); }
+        .safe-inner h2 em { font-style: italic; color: var(--terracotta); }
+        .safe-inner p { color: var(--earth-medium); font-size: 1rem; line-height: 1.8; margin-bottom: var(--s-sm); }
+        .safe-inner .handwritten { font-family: var(--font-hand); font-size: 1.1rem; color: var(--terracotta); }
+        .safe-promises { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-sm); margin-top: var(--s-md); }
+        .safe-promise { padding: var(--s-sm); background: var(--cream); border-radius: 12px; border: 1px solid var(--blush); font-size: 0.9rem; color: var(--earth-medium); line-height: 1.6; }
+        .safe-promise strong { color: var(--earth); display: block; margin-bottom: 4px; }
+
+        /* ========== KNOW YOUR MASII ========== */
+        .masii-section { padding: var(--s-xl) 0; background: var(--cream-deep); }
+        .masii-profile { display: grid; grid-template-columns: 140px 1fr; gap: var(--s-lg); align-items: start; }
+        .masii-avatar { width: 120px; height: 120px; border-radius: 50%; border: 3px solid var(--blush); background: var(--white); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .masii-avatar svg { width: 100%; height: 100%; }
+        .masii-profile h2 { font-family: var(--font-display); font-size: 2rem; font-weight: 400; margin-bottom: var(--s-xs); }
+        .masii-profile .subtitle { font-family: var(--font-hand); font-size: 1.2rem; color: var(--terracotta); margin-bottom: var(--s-md); }
+        .masii-traits { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-sm); margin-top: var(--s-md); }
+        .trait { padding: var(--s-sm) var(--s-md); border-radius: 12px; background: var(--white); border: 1px solid var(--blush); }
+        .trait h4 { font-family: var(--font-display); font-size: 1rem; font-weight: 500; margin-bottom: 4px; color: var(--earth); }
+        .trait p { font-size: 0.88rem; color: var(--earth-medium); line-height: 1.6; }
+
+        /* DIVIDER */
+        .section-divider { text-align: center; padding: var(--s-md) 0; }
+        .section-divider svg { opacity: 0.5; max-width: 300px; }
+
+        /* HOW IT WORKS */
+        .how-section { padding: var(--s-xl) 0; }
+        .section-eyebrow { font-family: var(--font-hand); font-size: 1.2rem; color: var(--terracotta); margin-bottom: var(--s-xs); }
+        .section-title { font-family: var(--font-display); font-size: clamp(1.8rem, 4vw, 2.4rem); font-weight: 400; line-height: 1.25; margin-bottom: var(--s-lg); max-width: 500px; }
+        .steps-flow { display: grid; gap: var(--s-md); }
+        .step-card { display: grid; grid-template-columns: 68px 1fr; gap: var(--s-md); padding: var(--s-md); background: var(--white); border-radius: 16px; border: 1px solid rgba(232,207,192,0.5); transition: transform 0.2s, box-shadow 0.2s; }
+        .step-card:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(61,43,31,0.06); }
+        .step-icon-wrap { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--terracotta-glow); border: 1.5px solid var(--blush); overflow: hidden; }
+        .step-icon-wrap svg { width: 48px; height: 48px; }
+        .step-card h3 { font-family: var(--font-display); font-size: 1.2rem; font-weight: 500; margin-bottom: 6px; }
+        .step-card p { color: var(--earth-medium); font-size: 0.95rem; line-height: 1.7; }
+        .step-card .note { font-family: var(--font-hand); font-size: 1rem; color: var(--terracotta); margin-top: 8px; }
+
+        /* ========== BRIDE DECIDES FIRST ========== */
+        .bride-section { padding: var(--s-xl) 0; background: var(--white); border-top: 1px solid var(--blush); }
+        .bride-flow { display: flex; gap: var(--s-md); align-items: stretch; margin-top: var(--s-md); }
+        .bride-step { flex: 1; text-align: center; padding: var(--s-md); background: var(--cream); border-radius: 16px; border: 1px solid var(--blush); position: relative; }
+        .bride-step .step-num { font-family: var(--font-hand); font-size: 2rem; color: var(--terracotta); }
+        .bride-step h4 { font-family: var(--font-display); font-size: 1.05rem; margin: 8px 0; }
+        .bride-step p { font-size: 0.88rem; color: var(--earth-medium); line-height: 1.6; }
+        .bride-arrow { display: flex; align-items: center; color: var(--blush); font-size: 1.5rem; }
+
+        /* ========== PRICING / NO CATCH ========== */
+        .pricing-section { padding: var(--s-xl) 0; }
+        .pricing-header { text-align: center; margin-bottom: var(--s-lg); }
+        .pricing-header h2 { font-family: var(--font-display); font-size: clamp(1.8rem, 4vw, 2.4rem); font-weight: 400; }
+        .pricing-header .subtitle { font-family: var(--font-hand); font-size: 1.2rem; color: var(--terracotta); margin-top: var(--s-xs); }
+        .pricing-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--s-md); }
+        .price-card { padding: var(--s-md); border-radius: 16px; background: var(--white); border: 1.5px solid var(--blush); text-align: center; transition: transform 0.2s; }
+        .price-card:hover { transform: translateY(-2px); }
+        .price-card.featured { border-color: var(--terracotta); background: var(--cream); position: relative; }
+        .price-card.featured::after { content: 'most popular'; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--terracotta); color: var(--white); font-family: var(--font-hand); font-size: 0.9rem; padding: 3px 16px; border-radius: 12px; }
+        .price-card h3 { font-family: var(--font-display); font-size: 1.3rem; font-weight: 500; margin-bottom: var(--s-xs); }
+        .price-card .price { font-family: var(--font-display); font-size: 2rem; color: var(--terracotta); margin: var(--s-sm) 0; }
+        .price-card .price-note { font-family: var(--font-hand); font-size: 1rem; color: var(--earth-light); }
+        .price-card .features { list-style: none; text-align: left; margin-top: var(--s-md); }
+        .price-card .features li { padding: 6px 0; font-size: 0.9rem; color: var(--earth-medium); border-bottom: 1px solid rgba(232,207,192,0.3); display: flex; align-items: start; gap: 8px; }
+        .price-card .features li:last-child { border-bottom: none; }
+        .price-card .features .check { color: var(--sage); font-weight: 600; }
+        .pricing-philosophy { max-width: 600px; margin: var(--s-lg) auto 0; text-align: center; padding: var(--s-md); background: var(--cream-deep); border-radius: 16px; border: 1px solid var(--blush); }
+        .pricing-philosophy p { font-size: 0.95rem; color: var(--earth-medium); line-height: 1.7; }
+        .pricing-philosophy .handwritten { font-family: var(--font-hand); font-size: 1.15rem; color: var(--terracotta); margin-top: var(--s-sm); }
+
+        /* WHY MASII CARDS */
+        .why-section { padding: var(--s-xl) 0; background: var(--cream-deep); }
+        .why-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-md); margin-top: var(--s-md); }
+        .why-card { padding: var(--s-md); border-radius: 16px; background: var(--white); border: 1px solid var(--blush); transition: transform 0.2s; }
+        .why-card:hover { transform: translateY(-2px); }
+        .why-card .emoji { font-size: 1.6rem; margin-bottom: var(--s-xs); }
+        .why-card h3 { font-family: var(--font-display); font-size: 1.15rem; font-weight: 500; margin-bottom: 8px; }
+        .why-card p { color: var(--earth-medium); font-size: 0.92rem; line-height: 1.7; }
+
+        /* QUOTE */
+        .quote-section { padding: var(--s-xl) 0; text-align: center; position: relative; }
+        .quote-section::before { content: '"'; font-family: var(--font-display); font-size: 8rem; color: var(--terracotta); opacity: 0.08; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); line-height: 1; }
+        .quote-section blockquote { font-family: var(--font-display); font-size: clamp(1.3rem, 3vw, 1.7rem); font-weight: 400; font-style: italic; line-height: 1.5; color: var(--earth); max-width: 600px; margin: 0 auto; }
+        .quote-section cite { display: block; font-family: var(--font-hand); font-size: 1.1rem; font-style: normal; color: var(--terracotta); margin-top: var(--s-sm); }
+
+        /* CTA */
+        .cta-section { background: var(--earth); padding: var(--s-2xl) 0; text-align: center; position: relative; overflow: hidden; }
+        .cta-section::before { content: ''; position: absolute; top: -100px; left: 50%; transform: translateX(-50%); width: 600px; height: 400px; background: radial-gradient(ellipse, rgba(196,101,58,0.15) 0%, transparent 70%); border-radius: 50%; }
+        .cta-section h2 { font-family: var(--font-display); font-size: clamp(2rem, 4.5vw, 2.8rem); font-weight: 400; color: var(--cream); margin-bottom: var(--s-sm); position: relative; }
+        .cta-section .cta-sub { color: var(--blush); font-size: 1.05rem; margin-bottom: var(--s-md); max-width: 400px; margin-left: auto; margin-right: auto; position: relative; }
+        .cta-section .btn-primary { position: relative; }
+        .cta-section .btn-primary:hover { background: var(--haldi); color: var(--earth); }
+        .cta-channels { margin-top: var(--s-md); font-size: 0.88rem; color: var(--earth-light); position: relative; }
+        .cta-channels a { color: var(--haldi-soft); text-decoration: underline; text-underline-offset: 3px; }
+
+        /* FOOTER */
+        footer { padding: var(--s-md) 0; border-top: 1px solid var(--blush); }
+        .footer-content { display: flex; justify-content: space-between; align-items: center; }
+        .footer-content span { font-family: var(--font-hand); font-size: 0.95rem; color: var(--earth-light); }
+        .footer-links { display: flex; gap: var(--s-md); list-style: none; }
+        .footer-links a { font-size: 0.82rem; color: var(--earth-light); }
+
+        /* SCROLL REVEAL */
+        .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .hero { padding: var(--s-xl) 0 var(--s-lg); }
+            .why-grid, .safe-promises, .masii-traits { grid-template-columns: 1fr; }
+            .pricing-grid { grid-template-columns: 1fr; }
+            .masii-profile { grid-template-columns: 1fr; text-align: center; }
+            .masii-avatar { margin: 0 auto; }
+            .safe-inner { grid-template-columns: 1fr; text-align: center; }
+            .safe-icon { margin: 0 auto; }
+            .bride-flow { flex-direction: column; }
+            .bride-arrow { justify-content: center; transform: rotate(90deg); }
+            .hero-cta-group { flex-direction: column; align-items: flex-start; }
+            .footer-content { flex-direction: column; gap: var(--s-sm); text-align: center; }
+            .nav-toggle { display: block; }
+            .nav-links { display: none; position: fixed; top: 57px; left: 0; width: 100%; height: calc(100vh - 57px); background: var(--cream); flex-direction: column; padding: var(--s-lg); gap: var(--s-md); z-index: 999; }
+            .nav-links.active { display: flex; }
+        }
+        @media (max-width: 480px) {
+            .trust-items { flex-direction: column; gap: var(--s-sm); }
+            .step-card { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- WARM HEADER -->
+    <div class="warm-header">
+        <span>Masii is <span class="accent">listening</span> — searching across 8 communities, last introduction made <span class="accent">3 hours ago</span> ✦</span>
+    </div>
+
+    <!-- NAV -->
+    <nav class="nav">
+        <a href="#" class="nav-logo">Masii 🪷</a>
+        <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+        <ul class="nav-links">
+            <li><a href="#how">How it works</a></li>
+            <li><a href="know-your-masii.html">Meet Masii</a></li>
+            <li><a href="#pricing">Pricing</a></li>
+            <li><a href="#">Stories</a></li>
+            <li><a href="#">Blog</a></li>
+            <li><a href="#" class="nav-cta">Talk to Masii</a></li>
+        </ul>
+    </nav>
+
+    <!-- ============================================
+         HERO
+         ============================================ -->
+    <section class="hero">
+        <div class="container">
+            <p class="hero-eyebrow">Your masi knows someone perfect for you</p>
+            <h1>She listens. She remembers.<br>She finds <em>your person.</em></h1>
+            <p class="hero-desc">
+                Masii is an AI matchmaker with the cultural fluency of your favourite auntie
+                and the patience to talk to everyone. Tell her about your life — your values,
+                your family, your chai preferences. She'll find someone who actually fits.
+            </p>
+            <div class="hero-cta-group">
+                <a href="#" class="btn-primary">Talk to Masii <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+                <a href="#how" class="btn-secondary">See how it works</a>
+            </div>
+            <p class="hero-note">Free to start · 10 minutes · No biodata required</p>
+        </div>
+    </section>
+
+    <!-- TRUST STRIP -->
+    <section class="trust-strip">
+        <div class="container-wide">
+            <div class="trust-items">
+                <div class="trust-item"><span class="number" data-target="247">247</span><span class="label">People talking to Masii</span></div>
+                <div class="trust-item"><span class="number" data-target="23">23</span><span class="label">Introductions this month</span></div>
+                <div class="trust-item"><span class="number" data-target="8">8</span><span class="label">Communities</span></div>
+                <div class="trust-item"><span class="number" data-target="89" data-suffix="%">89%</span><span class="label">Average match confidence</span></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         SAFE SPACE — Privacy as a feature
+         ============================================ -->
+    <section class="safe-section" id="safe">
+        <div class="container">
+            <div class="safe-inner reveal">
+                <div class="safe-icon">
+                    <!-- inline SVG: shield with heart -->
+                    <svg viewBox="0 0 80 80" width="72" height="72"><defs><linearGradient id="sg" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#7A8B6F"/><stop offset="100%" stop-color="#5C6B4F"/></linearGradient></defs><path d="M40 8 Q18 16 14 28 Q12 44 20 56 Q28 68 40 74 Q52 68 60 56 Q68 44 66 28 Q62 16 40 8Z" fill="url(#sg)" opacity="0.15" stroke="#7A8B6F" stroke-width="1.5"/><path d="M40 16 Q24 22 22 32 Q20 44 26 52 Q32 60 40 64 Q48 60 54 52 Q60 44 58 32 Q56 22 40 16Z" fill="none" stroke="#7A8B6F" stroke-width="1" opacity="0.4" stroke-dasharray="3 3"/><path d="M40 48 L32 40 Q28 34 34 32 Q38 30 40 34 Q42 30 46 32 Q52 34 48 40 Z" fill="#C4653A" opacity="0.7"/><rect x="36" y="52" width="8" height="6" rx="1" fill="#3D2B1F" opacity="0.3"/><path d="M38 52 L38 49 Q38 46 40 46 Q42 46 42 49 L42 52" fill="none" stroke="#3D2B1F" stroke-width="1" opacity="0.3"/></svg>
+                </div>
+                <div>
+                    <h2>Your <em>safe space.</em></h2>
+                    <p>
+                        There are things you can't tell a form. Things you'd never put on a profile. How you really feel about your faith. What your family expects versus what you actually want. Your past. Your fears. The stuff that's socially complicated but matters enormously for compatibility.
+                    </p>
+                    <p>
+                        Masii holds all of it. She never judges. She never shares what you tell her — not with your match, not with their family, not with anyone. Your answers are used only for matching, never displayed.
+                    </p>
+                    <p class="handwritten">
+                        Tell her the truth. She'll find someone who fits the real you — not the biodata version.
+                    </p>
+
+                    <div class="safe-promises">
+                        <div class="safe-promise">
+                            <strong>🔒 Never shared</strong>
+                            Your answers are never shown to matches or their families. Only used for compatibility scoring.
+                        </div>
+                        <div class="safe-promise">
+                            <strong>🤫 No judgement</strong>
+                            Sexuality, past relationships, family situations, health conditions — Masii doesn't flinch. She understands.
+                        </div>
+                        <div class="safe-promise">
+                            <strong>🙅‍♀️ No spam</strong>
+                            Your profile is never browsable. No one scrolls past you. Masii introduces — she doesn't display.
+                        </div>
+                        <div class="safe-promise">
+                            <strong>✨ The real you</strong>
+                            The more honest you are, the better the match. Masii rewards vulnerability with precision.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         MEET MASII — Teaser linking to full page
+         ============================================ -->
+    <section class="masii-section" id="masii">
+        <div class="container">
+            <div class="masii-profile reveal" style="text-align: center; display: block;">
+                <div class="masii-avatar" style="margin: 0 auto 1.5rem;">
+                    <svg viewBox="0 0 120 120" width="120" height="120"><defs><linearGradient id="abg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#FDF6EE"/><stop offset="100%" stop-color="#F5EBD9"/></linearGradient><linearGradient id="sg2" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#C4653A"/><stop offset="60%" stop-color="#D4845E"/><stop offset="100%" stop-color="#E8CFC0"/></linearGradient></defs><circle cx="60" cy="60" r="56" fill="url(#abg)" stroke="#E8CFC0" stroke-width="1.5"/><circle cx="60" cy="60" r="52" fill="none" stroke="#D4A03C" stroke-width="0.5" stroke-dasharray="2 4" opacity="0.4"/><ellipse cx="60" cy="38" rx="18" ry="20" fill="#3D2B1F" opacity="0.8"/><ellipse cx="60" cy="42" rx="14" ry="16" fill="#D4845E" opacity="0.9"/><circle cx="60" cy="36" r="2" fill="#C4653A"/><ellipse cx="54" cy="41" rx="2.5" ry="1.5" fill="#3D2B1F" opacity="0.7"/><ellipse cx="66" cy="41" rx="2.5" ry="1.5" fill="#3D2B1F" opacity="0.7"/><path d="M54 48 Q60 54 66 48" fill="none" stroke="#3D2B1F" stroke-width="1.2" stroke-linecap="round" opacity="0.5"/><path d="M32 70 Q40 58 60 56 Q80 58 88 70 L90 100 Q60 96 30 100 Z" fill="url(#sg2)" opacity="0.8"/><path d="M42 62 Q50 56 60 56 Q55 64 48 72 Q42 78 38 82" fill="#D4A03C" opacity="0.4" stroke="#D4A03C" stroke-width="0.5"/></svg>
+                </div>
+                <h2 style="font-family: var(--font-display); font-size: 2rem; font-weight: 400; margin-bottom: 0.3rem;">Meet Masii</h2>
+                <p style="font-family: var(--font-hand); font-size: 1.2rem; color: var(--terracotta); margin-bottom: 1rem;">मासी — the aunt who knows everyone and quietly makes the right connections</p>
+                <p style="color: var(--earth-medium); font-size: 1.05rem; line-height: 1.8; max-width: 540px; margin: 0 auto 1.5rem;">
+                    She runs on chai (half of it is AI). She mentors like Rohit, works like Virat, 
+                    and looks up to Dhoni — as we all do. Her favourite cricketer is Smriti Mandhana. 
+                    She believes everyone deserves a matchmaker, not just the families who can afford one.
+                </p>
+                <a href="know-your-masii.html" class="btn-secondary" style="display: inline-flex;">
+                    Get to know her →
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         HOW IT WORKS
+         ============================================ -->
+    <section class="how-section" id="how">
+        <div class="container">
+            <p class="section-eyebrow">How it works</p>
+            <h2 class="section-title">One conversation. One right person.</h2>
+
+            <div class="steps-flow">
+                <div class="step-card reveal">
+                    <div class="step-icon-wrap">
+                        <svg viewBox="0 0 80 80" width="48" height="48"><path d="M30 22 Q32 16 28 10" stroke="#C4653A" stroke-width="1.5" fill="none" opacity="0.3" stroke-linecap="round"/><path d="M40 20 Q42 12 38 6" stroke="#C4653A" stroke-width="1.5" fill="none" opacity="0.4" stroke-linecap="round"/><path d="M50 22 Q52 16 48 10" stroke="#C4653A" stroke-width="1.5" fill="none" opacity="0.3" stroke-linecap="round"/><path d="M18 28 L22 62 Q24 68 40 68 Q56 68 58 62 L62 28 Z" fill="#E8CFC0" stroke="#C4653A" stroke-width="1.5"/><ellipse cx="40" cy="28" rx="22" ry="5" fill="#D4A03C" opacity="0.6"/><path d="M62 34 Q74 36 74 48 Q74 58 62 58" stroke="#C4653A" stroke-width="2.5" fill="none" stroke-linecap="round"/><ellipse cx="40" cy="70" rx="30" ry="5" fill="#E8CFC0" stroke="#C4653A" stroke-width="1" opacity="0.7"/></svg>
+                    </div>
+                    <div>
+                        <h3>Tell Masii about yourself</h3>
+                        <p>Not a form. A conversation. Masii asks about your values, your lifestyle, how your family celebrates Navratri, what "close to family" actually means to you. The kind of questions your masi would ask — but better.</p>
+                        <p class="note">~ takes about 10 minutes, on Telegram or web</p>
+                    </div>
+                </div>
+
+                <div class="step-card reveal">
+                    <div class="step-icon-wrap"><span style="font-size:1.8rem">🔍</span></div>
+                    <div>
+                        <h3>Masii searches her community</h3>
+                        <p>She doesn't give you a catalogue to browse. She does the work — weighing culture, values, lifestyle, and family vibe across everyone she's spoken with. When she finds someone worth your time, she'll reach out.</p>
+                        <p class="note">~ not 50 profiles. one person, with conviction.</p>
+                    </div>
+                </div>
+
+                <div class="step-card reveal">
+                    <div class="step-icon-wrap">
+                        <svg viewBox="0 0 80 80" width="48" height="48"><circle cx="40" cy="40" r="32" fill="none" stroke="#E8CFC0" stroke-width="1" stroke-dasharray="4 4" opacity="0.6"/><path d="M8 44 Q14 38 22 36 L34 34 Q38 33 38 36 L38 38 Q38 40 34 40 L28 40 Q24 40 24 44 Q24 48 28 48 L36 48" fill="#D4845E" stroke="#5C4033" stroke-width="0.8" opacity="0.8"/><path d="M72 36 Q66 32 58 34 L46 36 Q42 37 42 40 L42 42 Q42 44 46 44 L52 44 Q56 44 56 48 Q56 52 52 52 L44 52" fill="#D4A03C" stroke="#5C4033" stroke-width="0.8" opacity="0.8"/><circle cx="40" cy="44" r="3" fill="#D4A03C" opacity="0.6"/><circle cx="40" cy="44" r="6" fill="none" stroke="#D4A03C" stroke-width="0.8" opacity="0.3"/></svg>
+                    </div>
+                    <div>
+                        <h3>Both say yes, you meet</h3>
+                        <p>Masii shows you a match brief — not just "you're both Gujarati" but the real reasoning. Why your lives fit. If you're both interested, she makes the introduction.</p>
+                        <p class="note">~ the introduction is free for high-confidence matches. always.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         SHE DECIDES FIRST
+         ============================================ -->
+    <section class="bride-section">
+        <div class="container">
+            <p class="section-eyebrow">How introductions work</p>
+            <h2 class="section-title">She decides first. Always.</h2>
+            <p style="color: var(--earth-medium); margin-bottom: var(--s-md); max-width: 560px; line-height: 1.7;">
+                In traditional matchmaking, the girl's family has the first right. We modernized that. She sees the match first. She decides. Only then does he see it. No spamming. No unsolicited attention. Respect is built into the architecture.
+            </p>
+
+            <div class="bride-flow reveal">
+                <div class="bride-step">
+                    <div class="step-num">1</div>
+                    <h4>Masii finds a match</h4>
+                    <p>High-confidence alignment on values, culture, lifestyle, and family.</p>
+                </div>
+                <div class="bride-arrow">→</div>
+                <div class="bride-step">
+                    <div class="step-num">2</div>
+                    <h4>She sees it first</h4>
+                    <p>The woman receives the match brief with Masii's reasoning. She decides.</p>
+                </div>
+                <div class="bride-arrow">→</div>
+                <div class="bride-step">
+                    <div class="step-num">3</div>
+                    <h4>He sees it next</h4>
+                    <p>Only if she says yes. He gets the same brief. He decides.</p>
+                </div>
+                <div class="bride-arrow">→</div>
+                <div class="bride-step">
+                    <div class="step-num">4</div>
+                    <h4>Both yes? Connected.</h4>
+                    <p>Masii makes the introduction. Contact is exchanged.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         PRICING TEASER — links to full page
+         ============================================ -->
+    <section class="pricing-section" id="pricing" style="text-align: center;">
+        <div class="container">
+            <p class="section-eyebrow">So what's the catch?</p>
+            <h2 class="section-title" style="max-width: none; margin-left: auto; margin-right: auto;">There isn't one.</h2>
+            
+            <div style="display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; margin: 2rem 0;">
+                <div style="flex: 1; min-width: 200px; max-width: 260px; padding: 1.5rem; background: var(--white); border: 1px solid var(--blush); border-radius: 16px; text-align: center;">
+                    <div style="font-size: 1.8rem;">☕</div>
+                    <h3 style="font-family: var(--font-display); font-size: 1.15rem; margin: 0.3rem 0;">Masii</h3>
+                    <p style="font-family: var(--font-hand); font-size: 1rem; color: var(--terracotta);">Free for 90%+ matches</p>
+                    <p style="font-size: 0.85rem; color: var(--earth-light); margin-top: 0.3rem;">Form-based · Per intro for others</p>
+                </div>
+                <div style="flex: 1; min-width: 200px; max-width: 260px; padding: 1.5rem; background: var(--white); border: 1.5px solid var(--terracotta); border-radius: 16px; text-align: center; position: relative;">
+                    <span style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: var(--terracotta); color: var(--white); font-family: var(--font-hand); font-size: 0.8rem; padding: 2px 14px; border-radius: 10px;">coming soon</span>
+                    <div style="font-size: 1.8rem;">☕☕</div>
+                    <h3 style="font-family: var(--font-display); font-size: 1.15rem; margin: 0.3rem 0;">Masii over Chai</h3>
+                    <p style="font-family: var(--font-hand); font-size: 1rem; color: var(--terracotta);">AI conversation · Per intro</p>
+                    <p style="font-size: 0.85rem; color: var(--earth-light); margin-top: 0.3rem;">Chat & voice · Deeper matching</p>
+                </div>
+                <div style="flex: 1; min-width: 200px; max-width: 260px; padding: 1.5rem; background: var(--white); border: 1px dashed var(--blush); border-radius: 16px; text-align: center; opacity: 0.85; position: relative;">
+                    <span style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: var(--earth-light); color: var(--white); font-family: var(--font-hand); font-size: 0.8rem; padding: 2px 14px; border-radius: 10px;">coming later</span>
+                    <div style="font-size: 1.8rem;">☕☕☕</div>
+                    <h3 style="font-family: var(--font-display); font-size: 1.15rem; margin: 0.3rem 0;">Masii on a Mission</h3>
+                    <p style="font-family: var(--font-hand); font-size: 1rem; color: var(--terracotta);">Active search · Per outcome</p>
+                    <p style="font-size: 0.85rem; color: var(--earth-light); margin-top: 0.3rem;">The ₹50K matchmaker, powered by AI</p>
+                </div>
+            </div>
+
+            <p style="color: var(--earth-medium); font-size: 1rem; max-width: 480px; margin: 0 auto 1.5rem; line-height: 1.7;">
+                No subscriptions. No monthly fees. Masii charges per introduction — because her incentive 
+                should be finding you the right person, not keeping you searching.
+            </p>
+
+            <a href="pricing.html" class="btn-secondary" style="display: inline-flex;">See full pricing & FAQ →</a>
+
+            <p style="font-family: var(--font-hand); font-size: 1.1rem; color: var(--terracotta); margin-top: 1rem;">
+                Masii collects blessings, not subscriptions. 🪷
+            </p>
+        </div>
+    </section>
+
+    <!-- QUOTE -->
+    <section class="quote-section">
+        <div class="container">
+            <blockquote>If the right two people exist in this world, nothing should stop them from meeting.</blockquote>
+            <cite>— the belief behind Masii</cite>
+        </div>
+    </section>
+
+    <!-- WHY MASII -->
+    <section class="why-section" id="why">
+        <div class="container">
+            <p class="section-eyebrow">Why Masii</p>
+            <h2 class="section-title">Built for people who want to choose — without being cut off.</h2>
+            <div class="why-grid">
+                <div class="why-card reveal"><div class="emoji">🪔</div><h3>Culture isn't a checkbox</h3><p>Masii knows the difference between Jain vegetarian and "vegetarian but eggs are fine." She understands that speaking Gujarati at home means something different from speaking it only with your parents.</p></div>
+                <div class="why-card reveal"><div class="emoji">👨‍👩‍👧</div><h3>Your family is welcome here</h3><p>Your mum wants to help? She can start your profile. Your cousin wants to recommend you? They can. But Masii always talks to you too — because your voice matters most.</p></div>
+                <div class="why-card reveal"><div class="emoji">💛</div><h3>One match, with meaning</h3><p>No swiping. No catalogue. Masii gives you one person and tells you exactly why — because she's done the thinking your auntie used to do, just across a much bigger community.</p></div>
+                <div class="why-card reveal"><div class="emoji">🔓</div><h3>Your match should be free</h3><p>If two people are right for each other, a paywall shouldn't stand between them. The core introduction is always free. We earn from trust signals and concierge services.</p></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section" id="start">
+        <div class="container">
+            <h2>Ready to meet your person?</h2>
+            <p class="cta-sub">10 minutes with Masii. She takes it from there. No credit card. No biodata. Just an honest conversation.</p>
+            <a href="#" class="btn-primary">Talk to Masii <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+            <p class="cta-channels">Available on <a href="#">Telegram</a> & <a href="#">Web</a> · WhatsApp coming soon</p>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="container-wide">
+            <div class="footer-content">
+                <span>Masii © 2026 🪷</span>
+                <ul class="footer-links">
+                    <li><a href="#">About</a></li>
+                    <li><a href="#">Stories</a></li>
+                    <li><a href="#">Blog</a></li>
+                    <li><a href="#">Privacy</a></li>
+                    <li><a href="#">Terms</a></li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile nav
+        const toggle = document.querySelector('.nav-toggle');
+        const navLinks = document.querySelector('.nav-links');
+        if (toggle && navLinks) {
+            toggle.addEventListener('click', () => navLinks.classList.toggle('active'));
+            navLinks.querySelectorAll('a').forEach(l => l.addEventListener('click', () => navLinks.classList.remove('active')));
+        }
+        // Scroll reveal
+        const obs = new IntersectionObserver(entries => {
+            entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+        // Animate numbers
+        const numObs = new IntersectionObserver(entries => {
+            entries.forEach(e => {
+                if (e.isIntersecting) { animateNum(e.target); numObs.unobserve(e.target); }
+            });
+        }, { threshold: 0.5 });
+        document.querySelectorAll('.trust-item .number').forEach(el => numObs.observe(el));
+        function animateNum(el) {
+            const text = el.textContent, hasSuffix = text.includes('%');
+            const target = parseInt(text.replace('%','')), suffix = hasSuffix ? '%' : '';
+            const dur = 1200, start = Date.now();
+            el.textContent = '0' + suffix;
+            (function up() {
+                const p = Math.min((Date.now()-start)/dur, 1);
+                el.textContent = Math.round((1-Math.pow(1-p,3)) * target) + suffix;
+                if (p < 1) requestAnimationFrame(up);
+            })();
+        }
+    </script>
+</body>
+</html>

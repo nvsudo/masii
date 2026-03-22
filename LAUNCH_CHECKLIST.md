@@ -80,14 +80,51 @@
 ## 📋 IMMEDIATE ACTIONS
 
 ### To Ship This Week:
-1. **[BLOCKER]** Deploy `/api/intake` endpoint (Blitz task)
-2. **[TEST]** End-to-end form submission
-3. **[VERIFY]** Supabase receives data correctly
+1. ~~**[BLOCKER]** Deploy `/api/intake` endpoint~~ ✅ DONE (2026-03-22)
+2. **[TEST]** End-to-end form submission ✅ Verified — data lands in Supabase
+3. **[BUILD]** Orchestrator: process `form_submissions` → `users`/`preferences` tables
 4. **[OPTIONAL]** Customize email templates
 
-### Backend Decision Needed:
-- Create new `masii-bot` app? Or extend `jodi-matchmaker`?
-- Recommendation: New app (`masii-bot`) for clean separation
+---
+
+## 🏗️ ARCHITECTURE: Cross-Device Resume & Edit Profile
+
+**Problem:** Current localStorage approach is device-bound. User starts on phone, continues on laptop → no progress.
+
+### Recommended: Server-Side Drafts
+
+**Schema change to `form_submissions`:**
+```sql
+ALTER TABLE form_submissions ADD COLUMN user_id UUID;        -- Supabase auth ID
+ALTER TABLE form_submissions ADD COLUMN current_question TEXT; -- Resume point
+ALTER TABLE form_submissions ADD COLUMN status TEXT DEFAULT 'submitted'; 
+-- status: 'draft' | 'submitted' | 'processed'
+```
+
+**New endpoints needed:**
+- `POST /api/draft` — Save progress (called every section)
+- `GET /api/draft` — Load existing draft for user_id
+- `PATCH /api/intake` — Update existing submission (edit profile)
+
+**Flow:**
+1. User authenticates → get `user_id`
+2. Check for existing draft (`status='draft'`) → resume or start fresh
+3. Save progress server-side every section completed
+4. Final submit → `status='submitted'`
+5. Orchestrator processes → `status='processed'`
+6. Returning user with `status='processed'` → "Edit Profile" mode
+
+**localStorage role:** Offline cache only. Server is source of truth.
+
+### Implementation Phases
+
+| Phase | Scope | Effort |
+|-------|-------|--------|
+| **Phase 1** | Add `user_id`, `status` columns. Upsert by user_id (no duplicates). | 2 hrs |
+| **Phase 2** | Draft endpoint. Save progress server-side. Cross-device resume. | 4 hrs |
+| **Phase 3** | Edit profile flow. Load processed users, allow updates. | 3 hrs |
+
+**Priority:** Phase 1 after orchestrator. Phase 2-3 before public launch.
 
 ---
 

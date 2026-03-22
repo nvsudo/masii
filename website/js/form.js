@@ -30,6 +30,122 @@
     }
   };
 
+
+  // ============== DRAFT SUPPORT ==============
+  let currentUserId = null;
+  let editMode = false;
+  let existingSubmissionId = null;
+  let draftTimer = null;
+
+  // Check URL params for edit mode
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('mode') === 'edit') {
+    editMode = true;
+  }
+
+  /**
+   * Load existing draft or submission
+   */
+  async function loadDraft() {
+    if (!currentUserId) return false;
+    
+    try {
+      const response = await fetch(`${API_BASE}/api/draft?user_id=${currentUserId}`);
+      
+      if (response.status === 404) {
+        // No draft exists - start fresh
+        return false;
+      }
+      
+      if (!response.ok) {
+        console.error('Failed to load draft');
+        return false;
+      }
+      
+      const data = await response.json();
+      const { status, current_question, submission_data } = data;
+      
+      if (editMode || status === 'draft') {
+        // Load existing answers
+        if (submission_data && submission_data.answers) {
+          state.answers = submission_data.answers;
+        }
+        
+        if (submission_data && submission_data.meta) {
+          state.meta = { ...state.meta, ...submission_data.meta };
+        }
+        
+        console.log('✅ Loaded draft with', Object.keys(state.answers).length, 'answers');
+        return true;
+      } else if (status === 'submitted' || status === 'processed') {
+        // Redirect to dashboard unless in edit mode
+        if (!editMode) {
+          window.location.href = '/me.html';
+          return true;
+        }
+        
+        // In edit mode - load existing answers
+        if (submission_data && submission_data.answers) {
+          state.answers = submission_data.answers;
+        }
+        console.log('✅ Loaded submission for editing');
+        return true;
+      }
+      
+    } catch (error) {
+      console.error('Error loading draft:', error);
+    }
+    return false;
+  }
+
+  /**
+   * Save draft to server
+   */
+  async function saveDraft() {
+    if (!currentUserId) return;
+    
+    try {
+      const currentQ = state.flow[state.flowIndex];
+      
+      const payload = {
+        user_id: currentUserId,
+        submission_data: {
+          answers: state.answers,
+          meta: state.meta,
+          name: state.answers.full_name?.value,
+          preferred_name: state.answers.preferred_name?.value,
+          phone: state.answers.phone?.value
+        },
+        current_question: currentQ
+      };
+      
+      const response = await fetch(`${API_BASE}/api/draft`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      
+      if (response.ok) {
+        console.log('💾 Draft saved');
+      }
+      
+    } catch (error) {
+      console.error('Error saving draft:', error);
+    }
+  }
+
+  /**
+   * Schedule draft save (debounced)
+   */
+  function scheduleDraftSave() {
+    if (draftTimer) clearTimeout(draftTimer);
+    
+    draftTimer = setTimeout(() => {
+      saveDraft();
+    }, 2000); // Save 2 seconds after last answer
+  }
+
+
   // ============== DOM ==============
   const container = document.getElementById("form-container");
   const pillsContainer = document.getElementById("progress-pills");
@@ -1146,6 +1262,7 @@
   function saveAnswer(field, value) {
     state.answers[field] = value;
     persistState();
+    scheduleDraftSave(); // Save draft to server
   }
 
 

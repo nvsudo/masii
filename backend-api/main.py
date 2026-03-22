@@ -1,7 +1,7 @@
 """
-Masii Bot API - Form Intake Endpoint
-Receives form submissions from masii.co and stores them in Supabase.
-Uses a staging table approach to avoid schema mismatches.
+Masii Bot API - Form Intake with Inline Processing
+Receives form submissions from masii.co, stores in staging table,
+and immediately processes to final tables (users/preferences/signals).
 """
 
 from fastapi import FastAPI, HTTPException, Request
@@ -19,7 +19,7 @@ from datetime import datetime
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="Masii Bot API", version="1.0.0")
+app = FastAPI(title="Masii Bot API", version="1.1.0")
 
 # CORS middleware
 app.add_middleware(
@@ -37,6 +37,10 @@ DATABASE_URL = os.getenv(
 )
 
 
+# ============================================
+# MODELS
+# ============================================
+
 class AnswerValue(BaseModel):
     value: Any
     table: str
@@ -52,11 +56,21 @@ class IntakePayload(BaseModel):
     phone: Optional[str] = None
     name: Optional[str] = None
     preferred_name: Optional[str] = None
-    answers: Dict[str, AnswerValue] = Field(default_factory=dict)
+    answers: Dict[str, Any] = Field(default_factory=dict)
     meta: IntakeMeta = Field(default_factory=IntakeMeta)
     type: Optional[str] = None
     proxy_data: Optional[Dict[str, Any]] = None
 
+
+class DraftPayload(BaseModel):
+    user_id: str
+    submission_data: Dict[str, Any]
+    current_question: Optional[str] = None
+
+
+# ============================================
+# DATABASE HELPERS
+# ============================================
 
 def get_db_connection():
     """Create a database connection."""
@@ -68,41 +82,266 @@ def get_db_connection():
         raise HTTPException(status_code=500, detail="Database connection failed")
 
 
-def ensure_staging_table(cursor):
-    """Create form_submissions staging table if it doesn't exist."""
+def ensure_tables(cursor):
+    """Create staging table if it doesn't exist."""
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS form_submissions (
             id SERIAL PRIMARY KEY,
+            user_id UUID,
             phone TEXT,
             email TEXT,
             full_name TEXT,
             preferred_name TEXT,
             submission_data JSONB,
+            current_question TEXT,
+            status TEXT DEFAULT 'submitted',
             intent TEXT,
             processed BOOLEAN DEFAULT FALSE,
             created_at TIMESTAMP DEFAULT NOW(),
             updated_at TIMESTAMP DEFAULT NOW()
         )
     """)
-    cursor.execute("""
-        CREATE INDEX IF NOT EXISTS idx_form_submissions_phone ON form_submissions(phone)
-    """)
-    cursor.execute("""
-        CREATE INDEX IF NOT EXISTS idx_form_submissions_email ON form_submissions(email)
-    """)
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_form_submissions_phone ON form_submissions(phone)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_form_submissions_email ON form_submissions(email)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_form_submissions_user_id ON form_submissions(user_id)")
 
+
+# ============================================
+# INLINE ORCHESTRATOR (Option C)
+# ============================================
+
+def extract_field_value(answer_data: Any) -> Any:
+    """Extract value from answer data."""
+    if isinstance(answer_data, dict) and 'value' in answer_data:
+        return answer_data['value']
+    return answer_data
+
+
+def get_table_for_field(answer_data: Any) -> str:
+    """Get target table from answer data."""
+    if isinstance(answer_data, dict) and 'table' in answer_data:
+        return answer_data['table']
+    return 'users'
+
+
+def group_answers_by_table(answers: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
+    """Group answer fields by target table."""
+    grouped = {'users': {}, 'preferences': {}, 'signals': {}}
+    
+    for field, answer_data in answers.items():
+        table = get_table_for_field(answer_data)
+        value = extract_field_value(answer_data)
+        
+        if table == 'meta':
+            continue
+        elif table in grouped:
+            grouped[table][field] = value
+        else:
+            grouped['users'][field] = value
+    
+    return grouped
+
+
+def safe_column_name(field: str) -> str:
+    """Sanitize column name to prevent SQL injection."""
+    # Only allow alphanumeric and underscore
+    return ''.join(c for c in field if c.isalnum() or c == '_')
+
+
+def upsert_user(cursor, user_data: Dict[str, Any], email: Optional[str], phone: Optional[str]) -> Optional[str]:
+    """Insert or update user record. Returns user_id."""
+    if not email and not phone:
+        logger.error("No email or phone to identify user")
+        return None
+    
+    # Check if user exists
+    if email:
+        cursor.execute("SELECT id FROM users WHERE email = %s LIMIT 1", (email,))
+    else:
+        cursor.execute("SELECT id FROM users WHERE phone = %s LIMIT 1", (phone,))
+    
+    existing = cursor.fetchone()
+    
+    # Filter to only valid columns (avoid SQL errors on unknown fields)
+    valid_user_fields = [
+        'full_name', 'preferred_name', 'gender', 'date_of_birth', 'religion',
+        'caste', 'subcaste', 'mother_tongue', 'city_current', 'state_india',
+        'country_current', 'marital_status', 'children', 'height_cm',
+        'education_level', 'education_field', 'occupation_sector', 'occupation_role',
+        'income_range', 'email', 'phone'
+    ]
+    
+    filtered_data = {k: v for k, v in user_data.items() if k in valid_user_fields}
+    
+    if existing:
+        user_id = existing['id']
+        if filtered_data:
+            set_clause = ', '.join([f"{safe_column_name(k)} = %s" for k in filtered_data.keys()])
+            values = list(filtered_data.values()) + [user_id]
+            cursor.execute(f"UPDATE users SET {set_clause}, updated_at = NOW() WHERE id = %s", values)
+        logger.info(f"Updated user {user_id}")
+        return str(user_id)
+    else:
+        # Add identity fields
+        filtered_data['email'] = email
+        filtered_data['phone'] = phone
+        
+        if not filtered_data:
+            return None
+            
+        fields = ', '.join([safe_column_name(k) for k in filtered_data.keys()])
+        placeholders = ', '.join(['%s'] * len(filtered_data))
+        cursor.execute(
+            f"INSERT INTO users ({fields}) VALUES ({placeholders}) RETURNING id",
+            list(filtered_data.values())
+        )
+        result = cursor.fetchone()
+        user_id = result['id']
+        logger.info(f"Created user {user_id}")
+        return str(user_id)
+
+
+def upsert_preferences(cursor, user_id: str, pref_data: Dict[str, Any]):
+    """Insert or update user_preferences."""
+    if not pref_data:
+        return
+    
+    cursor.execute("SELECT id FROM user_preferences WHERE user_id = %s LIMIT 1", (user_id,))
+    existing = cursor.fetchone()
+    
+    # Filter to valid preference columns
+    valid_pref_fields = [
+        'pref_age_min', 'pref_age_max', 'pref_age_range', 'pref_height_min', 'pref_height_max',
+        'pref_religion', 'pref_caste', 'pref_mother_tongue', 'pref_education_level',
+        'pref_occupation_sector', 'pref_income_range', 'pref_location', 'pref_marital_status',
+        'pref_children', 'pref_diet', 'pref_smoking', 'pref_drinking', 'pref_family_status',
+        'pref_current_location', 'pref_settle_abroad', 'pref_relocation'
+    ]
+    
+    filtered_data = {k: v for k, v in pref_data.items() if k in valid_pref_fields}
+    
+    if not filtered_data:
+        return
+    
+    if existing:
+        set_clause = ', '.join([f"{safe_column_name(k)} = %s" for k in filtered_data.keys()])
+        values = list(filtered_data.values()) + [user_id]
+        cursor.execute(f"UPDATE user_preferences SET {set_clause} WHERE user_id = %s", values)
+        logger.info(f"Updated preferences for user {user_id}")
+    else:
+        filtered_data['user_id'] = user_id
+        fields = ', '.join([safe_column_name(k) for k in filtered_data.keys()])
+        placeholders = ', '.join(['%s'] * len(filtered_data))
+        cursor.execute(
+            f"INSERT INTO user_preferences ({fields}) VALUES ({placeholders})",
+            list(filtered_data.values())
+        )
+        logger.info(f"Created preferences for user {user_id}")
+
+
+def upsert_signals(cursor, user_id: str, signals_data: Dict[str, Any]):
+    """Insert or update user_signals."""
+    if not signals_data:
+        return
+    
+    cursor.execute("SELECT id FROM user_signals WHERE user_id = %s LIMIT 1", (user_id,))
+    existing = cursor.fetchone()
+    
+    # Filter to valid signal columns
+    valid_signal_fields = [
+        'diet', 'smoking', 'drinking', 'exercise', 'sleep_schedule',
+        'family_closeness', 'family_involvement', 'living_with_parents',
+        'religious_practice', 'prayer_frequency', 'fasting', 'temple_visits',
+        'political_views', 'social_views', 'financial_planning',
+        'spending_habits', 'savings_priority', 'career_ambition',
+        'work_life_balance', 'travel_frequency', 'hobbies', 'pets',
+        'children_timeline', 'parenting_style', 'household_responsibilities'
+    ]
+    
+    filtered_data = {k: v for k, v in signals_data.items() if k in valid_signal_fields}
+    
+    if not filtered_data:
+        return
+    
+    if existing:
+        set_clause = ', '.join([f"{safe_column_name(k)} = %s" for k in filtered_data.keys()])
+        values = list(filtered_data.values()) + [user_id]
+        cursor.execute(f"UPDATE user_signals SET {set_clause} WHERE user_id = %s", values)
+        logger.info(f"Updated signals for user {user_id}")
+    else:
+        filtered_data['user_id'] = user_id
+        fields = ', '.join([safe_column_name(k) for k in filtered_data.keys()])
+        placeholders = ', '.join(['%s'] * len(filtered_data))
+        cursor.execute(
+            f"INSERT INTO user_signals ({fields}) VALUES ({placeholders})",
+            list(filtered_data.values())
+        )
+        logger.info(f"Created signals for user {user_id}")
+
+
+def process_to_final_tables(cursor, submission_id: int, submission_data: Dict[str, Any], email: str, phone: str) -> bool:
+    """
+    Process submission data into final tables (users, preferences, signals).
+    Returns True on success, False on failure.
+    """
+    try:
+        answers = submission_data.get('answers', {})
+        if not answers:
+            logger.warning(f"No answers in submission {submission_id}")
+            return False
+        
+        # Group by target table
+        grouped = group_answers_by_table(answers)
+        
+        # Add name fields to users
+        if submission_data.get('name'):
+            grouped['users']['full_name'] = submission_data['name']
+        if submission_data.get('preferred_name'):
+            grouped['users']['preferred_name'] = submission_data['preferred_name']
+        
+        logger.info(f"Processing submission {submission_id}: users={len(grouped['users'])}, prefs={len(grouped['preferences'])}, signals={len(grouped['signals'])}")
+        
+        # Upsert into final tables
+        user_id = upsert_user(cursor, grouped['users'], email, phone)
+        
+        if not user_id:
+            logger.error(f"Failed to create/update user for submission {submission_id}")
+            return False
+        
+        upsert_preferences(cursor, user_id, grouped['preferences'])
+        upsert_signals(cursor, user_id, grouped['signals'])
+        
+        # Mark submission as processed
+        cursor.execute("""
+            UPDATE form_submissions 
+            SET status = 'processed', processed = TRUE, updated_at = NOW()
+            WHERE id = %s
+        """, (submission_id,))
+        
+        logger.info(f"✅ Processed submission {submission_id} → user {user_id}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error processing submission {submission_id}: {e}")
+        return False
+
+
+# ============================================
+# ENDPOINTS
+# ============================================
 
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
-    return {"status": "ok", "service": "masii-bot", "version": "1.0.0"}
+    return {"status": "ok", "service": "masii-bot", "version": "1.1.0"}
 
 
 @app.post("/api/intake")
 async def intake_form(payload: IntakePayload, request: Request):
     """
     Handle form submissions from masii.co.
-    Stores in staging table for processing by Masii orchestrator.
+    1. Stores in staging table (form_submissions)
+    2. Immediately processes to final tables (users/preferences/signals)
     """
     try:
         logger.info(f"Received intake from {request.client.host}")
@@ -116,110 +355,110 @@ async def intake_form(payload: IntakePayload, request: Request):
         
         try:
             cursor.execute("BEGIN")
+            ensure_tables(cursor)
             
-            # Ensure staging table exists
-            ensure_staging_table(cursor)
+            email = payload.meta.email
+            phone = payload.phone
+            submission_data = payload.model_dump()
             
             if payload.type == "proxy":
-                # Store proxy submission
+                # Proxy submissions: store only, don't process yet
                 cursor.execute("""
                     INSERT INTO form_submissions (
-                        phone, email, full_name, submission_data, intent, processed
-                    )
-                    VALUES (
-                        %(phone)s, %(email)s, %(name)s, %(data)s, 'proxy', FALSE
-                    )
-                    RETURNING id
+                        phone, email, full_name, submission_data, intent, status, processed
+                    ) VALUES (
+                        %(phone)s, %(email)s, %(name)s, %(data)s, 'proxy', 'submitted', FALSE
+                    ) RETURNING id
                 """, {
                     "phone": payload.proxy_data.get("person_phone") if payload.proxy_data else None,
-                    "email": payload.meta.email,
+                    "email": email,
                     "name": payload.proxy_data.get("person_name") if payload.proxy_data else None,
-                    "data": json.dumps(payload.model_dump())
+                    "data": json.dumps(submission_data)
                 })
                 result = cursor.fetchone()
                 submission_id = result["id"]
-                
                 cursor.execute("COMMIT")
-                logger.info(f"Stored proxy submission: {submission_id}")
                 
                 return {
                     "success": True,
                     "submission_id": submission_id,
                     "mode": "proxy",
-                    "message": "Proxy submission received"
+                    "message": "Proxy submission received. We'll reach out to them."
                 }
             
-            # Normal self-submission
-            # Check if submission exists
-            check_query = """
+            # Self-submission: check for existing
+            cursor.execute("""
                 SELECT id FROM form_submissions
                 WHERE phone = %(phone)s OR (email = %(email)s AND email IS NOT NULL)
-                ORDER BY created_at DESC
-                LIMIT 1
-            """
-            cursor.execute(check_query, {
-                "phone": payload.phone,
-                "email": payload.meta.email
-            })
+                ORDER BY created_at DESC LIMIT 1
+            """, {"phone": phone, "email": email})
             existing = cursor.fetchone()
             
             if existing:
-                # Update existing submission
-                update_query = """
-                    UPDATE form_submissions
-                    SET 
+                # Update existing
+                cursor.execute("""
+                    UPDATE form_submissions SET
                         full_name = COALESCE(%(name)s, full_name),
                         preferred_name = COALESCE(%(preferred_name)s, preferred_name),
                         email = COALESCE(%(email)s, email),
                         submission_data = %(data)s,
                         intent = %(intent)s,
+                        status = 'submitted',
                         processed = FALSE,
                         updated_at = NOW()
                     WHERE id = %(id)s
                     RETURNING id
-                """
-                cursor.execute(update_query, {
+                """, {
                     "id": existing["id"],
                     "name": payload.name,
                     "preferred_name": payload.preferred_name,
-                    "email": payload.meta.email,
-                    "data": json.dumps(payload.model_dump()),
+                    "email": email,
+                    "data": json.dumps(submission_data),
                     "intent": payload.meta.intent or "self"
                 })
                 submission_id = existing["id"]
                 logger.info(f"Updated submission: {submission_id}")
             else:
-                # Insert new submission
-                insert_query = """
+                # Insert new
+                cursor.execute("""
                     INSERT INTO form_submissions (
                         phone, email, full_name, preferred_name,
-                        submission_data, intent, processed
-                    )
-                    VALUES (
+                        submission_data, intent, status, processed
+                    ) VALUES (
                         %(phone)s, %(email)s, %(name)s, %(preferred_name)s,
-                        %(data)s, %(intent)s, FALSE
-                    )
-                    RETURNING id
-                """
-                cursor.execute(insert_query, {
-                    "phone": payload.phone,
-                    "email": payload.meta.email,
+                        %(data)s, %(intent)s, 'submitted', FALSE
+                    ) RETURNING id
+                """, {
+                    "phone": phone,
+                    "email": email,
                     "name": payload.name,
                     "preferred_name": payload.preferred_name,
-                    "data": json.dumps(payload.model_dump()),
+                    "data": json.dumps(submission_data),
                     "intent": payload.meta.intent or "self"
                 })
                 result = cursor.fetchone()
                 submission_id = result["id"]
-                logger.info(f"Created new submission: {submission_id}")
+                logger.info(f"Created submission: {submission_id}")
+            
+            # === INLINE PROCESSING (Option C) ===
+            processed = process_to_final_tables(cursor, submission_id, submission_data, email, phone)
             
             cursor.execute("COMMIT")
             
-            return {
-                "success": True,
-                "submission_id": submission_id,
-                "message": "Form submitted successfully. Masii will process it shortly."
-            }
+            if processed:
+                return {
+                    "success": True,
+                    "submission_id": submission_id,
+                    "processed": True,
+                    "message": "You're in! Masii is already looking for your person."
+                }
+            else:
+                return {
+                    "success": True,
+                    "submission_id": submission_id,
+                    "processed": False,
+                    "message": "Form submitted. Masii will process it shortly."
+                }
             
         except Exception as e:
             cursor.execute("ROLLBACK")
@@ -235,6 +474,145 @@ async def intake_form(payload: IntakePayload, request: Request):
     except Exception as e:
         logger.error(f"Unexpected error: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+
+@app.get("/api/draft")
+async def get_draft(user_id: str):
+    """Get draft submission for a user."""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        try:
+            cursor.execute("""
+                SELECT status, current_question, submission_data
+                FROM form_submissions
+                WHERE user_id = %s
+                ORDER BY created_at DESC LIMIT 1
+            """, (user_id,))
+            
+            result = cursor.fetchone()
+            if not result:
+                raise HTTPException(status_code=404, detail="No draft found")
+            
+            return {
+                "status": result["status"],
+                "current_question": result["current_question"],
+                "submission_data": result["submission_data"]
+            }
+        finally:
+            cursor.close()
+            conn.close()
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching draft: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.patch("/api/draft")
+async def upsert_draft(payload: DraftPayload):
+    """Upsert draft row (auto-save progress)."""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        try:
+            cursor.execute("BEGIN")
+            
+            cursor.execute("""
+                SELECT id FROM form_submissions
+                WHERE user_id = %s ORDER BY created_at DESC LIMIT 1
+            """, (payload.user_id,))
+            existing = cursor.fetchone()
+            
+            if existing:
+                cursor.execute("""
+                    UPDATE form_submissions SET
+                        submission_data = %s,
+                        current_question = %s,
+                        status = 'draft',
+                        updated_at = NOW()
+                    WHERE id = %s
+                """, (json.dumps(payload.submission_data), payload.current_question, existing["id"]))
+            else:
+                cursor.execute("""
+                    INSERT INTO form_submissions (user_id, submission_data, current_question, status, processed)
+                    VALUES (%s, %s, %s, 'draft', FALSE)
+                """, (payload.user_id, json.dumps(payload.submission_data), payload.current_question))
+            
+            cursor.execute("COMMIT")
+            return {"success": True, "message": "Draft saved"}
+            
+        except Exception as e:
+            cursor.execute("ROLLBACK")
+            raise e
+        finally:
+            cursor.close()
+            conn.close()
+    
+    except Exception as e:
+        logger.error(f"Error upserting draft: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.patch("/api/intake/{submission_id}")
+async def update_submission(submission_id: int, payload: IntakePayload):
+    """Update existing submission (edit mode) and reprocess."""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        try:
+            cursor.execute("BEGIN")
+            
+            submission_data = payload.model_dump()
+            email = payload.meta.email
+            phone = payload.phone
+            
+            cursor.execute("""
+                UPDATE form_submissions SET
+                    full_name = COALESCE(%s, full_name),
+                    preferred_name = COALESCE(%s, preferred_name),
+                    email = COALESCE(%s, email),
+                    phone = COALESCE(%s, phone),
+                    submission_data = %s,
+                    status = 'submitted',
+                    processed = FALSE,
+                    updated_at = NOW()
+                WHERE id = %s
+                RETURNING id
+            """, (payload.name, payload.preferred_name, email, phone, json.dumps(submission_data), submission_id))
+            
+            result = cursor.fetchone()
+            if not result:
+                raise HTTPException(status_code=404, detail="Submission not found")
+            
+            # Reprocess to final tables
+            processed = process_to_final_tables(cursor, submission_id, submission_data, email, phone)
+            
+            cursor.execute("COMMIT")
+            
+            return {
+                "success": True,
+                "submission_id": submission_id,
+                "processed": processed,
+                "message": "Profile updated!" if processed else "Update saved, processing shortly."
+            }
+            
+        except Exception as e:
+            cursor.execute("ROLLBACK")
+            raise e
+        finally:
+            cursor.close()
+            conn.close()
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating submission: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 if __name__ == "__main__":

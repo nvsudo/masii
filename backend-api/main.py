@@ -150,25 +150,27 @@ def safe_column_name(field: str) -> str:
 
 def upsert_user(cursor, user_data: Dict[str, Any], email: Optional[str], phone: Optional[str]) -> Optional[str]:
     """Insert or update user record. Returns user_id."""
-    if not email and not phone:
-        logger.error("No email or phone to identify user")
+    if not email:
+        logger.error("No email to identify user (phone not stored in users table)")
         return None
     
-    # Check if user exists
-    if email:
-        cursor.execute("SELECT id FROM users WHERE email = %s LIMIT 1", (email,))
-    else:
-        cursor.execute("SELECT id FROM users WHERE phone = %s LIMIT 1", (phone,))
+    # Check if user exists (by email only - users table has no phone column)
+    cursor.execute("SELECT id FROM users WHERE email = %s LIMIT 1", (email,))
     
     existing = cursor.fetchone()
     
-    # Filter to only valid columns (avoid SQL errors on unknown fields)
+    # Filter to only valid columns (must match actual DB schema)
+    # From Supabase OpenAPI: users table columns
     valid_user_fields = [
-        'full_name', 'preferred_name', 'gender', 'date_of_birth', 'religion',
-        'caste', 'subcaste', 'mother_tongue', 'city_current', 'state_india',
-        'country_current', 'marital_status', 'children', 'height_cm',
-        'education_level', 'education_field', 'occupation_sector', 'occupation_role',
-        'income_range', 'email', 'phone'
+        'full_name', 'gender', 'date_of_birth', 'age', 'religion',
+        'mother_tongue', 'city_current', 'state_india', 'country_current',
+        'marital_status', 'children_existing', 'height_cm', 'weight_kg',
+        'education_level', 'education_field', 'occupation_sector',
+        'annual_income', 'family_type', 'family_status',
+        'father_occupation', 'mother_occupation', 'siblings',
+        'hometown_city', 'hometown_state', 'languages_spoken',
+        'known_conditions', 'email'
+        # Note: phone is used for lookup, not stored directly
     ]
     
     filtered_data = {k: v for k, v in user_data.items() if k in valid_user_fields}
@@ -182,9 +184,8 @@ def upsert_user(cursor, user_data: Dict[str, Any], email: Optional[str], phone: 
         logger.info(f"Updated user {user_id}")
         return str(user_id)
     else:
-        # Add identity fields
+        # Add email (phone not stored in users table)
         filtered_data['email'] = email
-        filtered_data['phone'] = phone
         
         if not filtered_data:
             return None
@@ -209,13 +210,18 @@ def upsert_preferences(cursor, user_id: str, pref_data: Dict[str, Any]):
     cursor.execute("SELECT id FROM user_preferences WHERE user_id = %s LIMIT 1", (user_id,))
     existing = cursor.fetchone()
     
-    # Filter to valid preference columns
+    # Filter to valid preference columns (from Supabase OpenAPI)
     valid_pref_fields = [
-        'pref_age_min', 'pref_age_max', 'pref_age_range', 'pref_height_min', 'pref_height_max',
-        'pref_religion', 'pref_caste', 'pref_mother_tongue', 'pref_education_level',
-        'pref_occupation_sector', 'pref_income_range', 'pref_location', 'pref_marital_status',
-        'pref_children', 'pref_diet', 'pref_smoking', 'pref_drinking', 'pref_family_status',
-        'pref_current_location', 'pref_settle_abroad', 'pref_relocation'
+        'pref_age_min', 'pref_age_max', 'pref_height_min', 'pref_height_max',
+        'pref_religion', 'pref_religion_exclude', 'pref_caste', 'pref_caste_exclude',
+        'pref_mother_tongue', 'pref_education_min', 'pref_income_min',
+        'pref_diet', 'pref_smoking', 'pref_drinking', 'pref_conditions',
+        'pref_manglik', 'pref_gotra_exclude', 'pref_family_status',
+        'pref_partner_cooking', 'pref_partner_household',
+        'caste_importance', 'partner_working', 'religious_practice',
+        'sect_denomination', 'caste_community',
+        'marriage_timeline', 'children_intent', 'children_timeline',
+        'living_arrangement', 'relocation_willingness', 'family_involvement'
     ]
     
     filtered_data = {k: v for k, v in pref_data.items() if k in valid_pref_fields}
@@ -247,15 +253,17 @@ def upsert_signals(cursor, user_id: str, signals_data: Dict[str, Any]):
     cursor.execute("SELECT id FROM user_signals WHERE user_id = %s LIMIT 1", (user_id,))
     existing = cursor.fetchone()
     
-    # Filter to valid signal columns
+    # Filter to valid signal columns (from Supabase OpenAPI)
     valid_signal_fields = [
-        'diet', 'smoking', 'drinking', 'exercise', 'sleep_schedule',
-        'family_closeness', 'family_involvement', 'living_with_parents',
-        'religious_practice', 'prayer_frequency', 'fasting', 'temple_visits',
-        'political_views', 'social_views', 'financial_planning',
-        'spending_habits', 'savings_priority', 'career_ambition',
-        'work_life_balance', 'travel_frequency', 'hobbies', 'pets',
-        'children_timeline', 'parenting_style', 'household_responsibilities'
+        'diet', 'smoking', 'drinking', 'fitness_frequency',
+        'social_style', 'conflict_style', 'family_values',
+        'manglik_status', 'gotra', 'family_property',
+        'financial_planning', 'cooking_contribution', 'household_contribution',
+        'do_you_cook', 'career_after_marriage', 'financial_contribution',
+        'live_with_inlaws',
+        # JSONB blobs (can store complex data):
+        'lifestyle', 'values', 'relationship_style', 'personality',
+        'family_background', 'media_signals', 'match_learnings'
     ]
     
     filtered_data = {k: v for k, v in signals_data.items() if k in valid_signal_fields}
@@ -309,7 +317,15 @@ def process_to_final_tables(cursor, submission_id: int, submission_data: Dict[st
             return False
         
         upsert_preferences(cursor, user_id, grouped['preferences'])
-        upsert_signals(cursor, user_id, grouped['signals'])
+        
+        # Signals insertion may fail due to DB trigger - use savepoint to not block
+        try:
+            cursor.execute("SAVEPOINT signals_savepoint")
+            upsert_signals(cursor, user_id, grouped['signals'])
+            cursor.execute("RELEASE SAVEPOINT signals_savepoint")
+        except Exception as sig_err:
+            cursor.execute("ROLLBACK TO SAVEPOINT signals_savepoint")
+            logger.warning(f"Signals insertion failed (non-blocking): {sig_err}")
         
         # Mark submission as processed
         cursor.execute("""

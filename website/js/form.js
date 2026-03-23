@@ -274,8 +274,6 @@
 
   // ============== AUTH HELPERS ==============
 
-  var currentUserId = null;
-
   function getStorageKey() {
     return currentUserId ? "masii_form_" + currentUserId : null;
   }
